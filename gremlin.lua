@@ -1,3 +1,6 @@
+local inspect = require("inspect")
+local log = mist.Logger:new("Gremlin Scripts", "info")
+
 Gremlin = {
     Id = "Gremlin Script Tools",
     Version = "202403.01",
@@ -26,41 +29,41 @@ Gremlin = {
 
     -- Methods
     logError = function(toolId, message)
-        mist.Logger:error((toolId or Gremlin.Id) .. " | " .. message)
+        log:error((toolId or Gremlin.Id) .. " | " .. message)
     end,
     logWarn = function(toolId, message)
-        mist.Logger:warn((toolId or Gremlin.Id) .. " | " .. message)
+        log:warn((toolId or Gremlin.Id) .. " | " .. message)
     end,
     logInfo = function(toolId, message)
-        mist.Logger:info((toolId or Gremlin.Id) .. " | " .. message)
+        log:info((toolId or Gremlin.Id) .. " | " .. message)
     end,
     logDebug = function(toolId, message)
         if message and Gremlin.Debug then
-            mist.Logger:info((toolId or Gremlin.Id) .. " | " .. message)
+            log:info((toolId or Gremlin.Id) .. " | " .. message)
         end
     end,
     logTrace = function(toolId, message)
         if message and Gremlin.Trace then
-            mist.Logger:info((toolId or Gremlin.Id) .. " | " .. message)
+            log:info((toolId or Gremlin.Id) .. " | " .. message)
         end
     end,
-    displayMessageTo = function(_name, _text, _time, _clear)
-        if _clear ~= true then
-            _clear = nil
-        end
-
-        if _name == "all" then
-            trigger.action.outText(_text, _time, _clear)
+    displayMessageTo = function(_name, _text, _time)
+        if _name == "all" or _name == nil then
+            trigger.action.outText(_text, _time)
         elseif coalition.side[_name] ~= nil then
-            trigger.action.outTextForCoalition(coalition.side[_name], _text, _time, _clear)
+            trigger.action.outTextForCoalition(coalition.side[_name], _text, _time)
         elseif country.by_country[_name] ~= nil then
-            trigger.action.outTextForCountry(country.by_country[_name].WorldID, _text, _time, _clear)
+            trigger.action.outTextForCountry(country.by_country[_name].WorldID, _text, _time)
+        elseif type(_name) == "table" and _name.className_ == "Group" then
+            trigger.action.outTextForGroup(_name:getID(), _text, _time)
         elseif mist.DBs.groupsByName[_name] ~= nil then
-            trigger.action.outTextForGroup(mist.DBs.groupsByName[_name].groupId, _text, _time, _clear)
+            trigger.action.outTextForGroup(mist.DBs.groupsByName[_name]:getID(), _text, _time)
+        elseif type(_name) == "table" and _name.className_ == "Unit" then
+            trigger.action.outTextForUnit(_name:getID(), _text, _time)
         elseif mist.DBs.unitsByName[_name] ~= nil then
-            trigger.action.outTextForUnit(mist.DBs.unitsByName[_name].unitId, _text, _time, _clear)
+            trigger.action.outTextForUnit(mist.DBs.unitsByName[_name]:getID(), _text, _time)
         else
-            Gremlin.logError(Gremlin.Id, "Can't find object named " .. _name .. " to display message to!\nMessage was: " .. _text)
+            Gremlin.logError(Gremlin.Id, "Can't find object named " .. inspect(_name) .. " to display message to!\nMessage was: " .. _text)
         end
     end,
     parseFuncArgs = function (_args, _objs)

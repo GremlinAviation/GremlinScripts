@@ -1,5 +1,4 @@
 mist_*.lua
-DCS_*.lua
 CTLD_*.lua
 CSAR_*.lua
 luaunit_*.lua
