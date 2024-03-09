@@ -1,6 +1,5 @@
 local Mock = require("test.mock.Mock")
 local Spy = require("test.mock.Spy")
--- local inspect = require("inspect")
 require("Scripts.Common.LuaClass")
 
 Object = {
@@ -1743,15 +1742,9 @@ env = {
             },
         },
     },
-    error = function(message, dialog)
-        return io.stderr:write(string.format("\n%s\n", message))
-    end,
-    info = function(message, dialog)
-        return io.stderr:write(string.format("\n%s\n", message))
-    end,
-    warning = function(message, dialog)
-        return io.stderr:write(string.format("\n%s\n", message))
-    end,
+    error = function(message, dialog) end,
+    info = function(message, dialog) end,
+    warning = function(message, dialog) end,
 }
 land = {
     getHeight = function(point) return 0 end,
@@ -1763,6 +1756,18 @@ land = {
         ROAD = 4,
         RUNWAY = 5,
     },
+}
+missionCommands = {
+    addCommand = Mock(),
+    addCommandForCoalition = Mock(),
+    addCommandForGroup = Mock(),
+    addSubMenu = Mock(),
+    addSubMenuForCoalition = Mock(),
+    addSubMenuForGroup = Mock(),
+    doAction = Mock(),
+    removeItem = Mock(),
+    removeItemForCoalition = Mock(),
+    removeItemForGroup = Mock()
 }
 timer = {
     getTime = function() return 0 end,

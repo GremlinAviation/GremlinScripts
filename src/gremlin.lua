@@ -1,4 +1,3 @@
-local inspect = require("inspect")
 local log = mist.Logger:new("Gremlin Scripts", "info")
 
 Gremlin = {
@@ -48,8 +47,6 @@ Gremlin = {
         end
     end,
     displayMessageTo = function(_name, _text, _time)
-        -- io.stderr:write(string.format("\n%s\n", inspect({ _name, _text, _time })))
-
         if _name == "all" or _name == nil then
             trigger.action.outText(_text, _time)
         elseif coalition.side[_name] ~= nil then
@@ -65,7 +62,7 @@ Gremlin = {
         elseif mist.DBs.unitsByName[_name] ~= nil then
             trigger.action.outTextForUnit(mist.DBs.unitsByName[_name]:getID(), _text, _time)
         else
-            Gremlin.logError(Gremlin.Id, "Can't find object named " .. inspect(_name) .. " to display message to!\nMessage was: " .. _text)
+            Gremlin.logError(Gremlin.Id, "Can't find object named " .. tostring(_name) .. " to display message to!\nMessage was: " .. _text)
         end
     end,
     parseFuncArgs = function (_args, _objs)
