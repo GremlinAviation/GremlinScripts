@@ -48,6 +48,8 @@ Gremlin = {
         end
     end,
     displayMessageTo = function(_name, _text, _time)
+        -- io.stderr:write(string.format("\n%s\n", inspect({ _name, _text, _time })))
+
         if _name == "all" or _name == nil then
             trigger.action.outText(_text, _time)
         elseif coalition.side[_name] ~= nil then
@@ -87,7 +89,16 @@ Gremlin = {
         end
 
         return _out
-    end
+    end,
+    mergeTables = function (...)
+        local tbl1 = {}
+
+        for _, tbl2 in pairs({...}) do
+            for k, v in pairs(tbl2) do tbl1[k] = v end
+        end
+
+        return tbl1
+    end,
 }
 
 function Gremlin:setup(config)

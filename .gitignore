@@ -1,5 +1,6 @@
-mist_*.lua
+DCS_header_extracted.lua
+# mist_*.lua
 CTLD_*.lua
 CSAR_*.lua
-luaunit_*.lua
-inspect.lua
+# luaunit_*.lua
+# inspect.lua

@@ -1,41 +1,8 @@
 local Mock = require("test.mock.Mock")
+local Spy = require("test.mock.Spy")
+-- local inspect = require("inspect")
 require("Scripts.Common.LuaClass")
 
-Airbase = { className_ = "Airbase", categoryName = "BASE" }
-Controller = { className_ = "Controller" }
-Group = {
-    className_ = "Group",
-    isExist = function(self)
-        return true
-    end,
-    getByName = function(name)
-        local _group = { className_ = "Group", groupName = name }
-        class(_group, Group)
-        return _group
-    end,
-    getCategory = function(self, name)
-        return 1
-    end,
-    getID = function(self)
-        if self.id ~= nil then
-            return self.id
-        end
-
-        return 1
-    end,
-    getName = function(self)
-        if self.groupName ~= nil then
-            return self.groupName
-        end
-
-        return "test"
-    end,
-    getUnits = function(self, name)
-        local _unit = { className_ = "Unit", unitName = name }
-        class(_unit, Unit)
-        return { _unit }
-    end,
-}
 Object = {
     className_ = "Object",
     Category = {
@@ -48,6 +15,9 @@ Object = {
         CARGO = 6,
     },
     destroy = function(self) end,
+    inAir = function()
+        return false
+    end,
     isExist = function(self) return true end,
     getByName = function(name)
         local _myObj = { className_ = "Object", name = "test" }
@@ -55,8 +25,8 @@ Object = {
         return _myObj
     end,
     getCategory = function(_object)
-        if _object.categoryName ~= nil then
-            return Object.Category[_object.categoryName]
+        if _object.category ~= nil then
+            return _object.category
         end
 
         if _object.className_ == "Unit" then
@@ -82,17 +52,115 @@ Object = {
             return "test"
         end
     end,
-    getPoint = function(self) return { x = 0, y = 0, z = 0 } end,
-    getPosition = function(self) return { p = { x = 0, y = 0, z = 0 }, x = { x = 0, y = 0, z = 0 } } end,
-    getTypeName = function(self) return "Test" end,
+    getPoint = function(self)
+        if self.point ~= nil then
+            return self.point
+        end
+
+        return { x = 0, y = 0, z = 0 }
+    end,
+    getPosition = function(self)
+        return {
+            p = { x = 0, y = 0, z = 0 },
+            x = { x = 0, y = 0, z = 0 },
+        }
+    end,
+    getTypeName = function(self)
+        if self.typeName ~= nil then
+            return self.typeName
+        end
+
+        return "Test"
+    end,
     getVelocity = function(self) return { x = 0, y = 0, z = 0 } end,
 }
-SceneryObject = { className_ = "SceneryObject", categoryName = "SCENERY" }
-Spot = { className_ = "Spot" }
-StaticObject = { className_ = "StaticObject", categoryName = "STATIC" }
+Airbase = {
+    className_ = "Airbase",
+    category = Object.Category.BASE,
+}
+Controller = {
+    className_ = "Controller",
+    destroy = function(self) end,
+    setOption = function(self, _id, _value) end,
+}
+Group = {
+    className_ = "Group",
+    category = "helicopter",
+    Category = {
+        AIRPLANE = 0,
+        HELICOPTER = 1,
+        GROUND = 2,
+        SHIP = 3,
+        TRAIN = 4,
+    },
+    destroy = function(self) end,
+    isExist = function(self)
+        return true
+    end,
+    getByName = function(name)
+        local _name = name
+        if type(name) == "table" then
+            _name = name:getName()
+        else
+            _name = tostring(name)
+        end
+
+        if mist.DBs.groupsByName[_name] ~= nil then
+            return mist.DBs.groupsByName[_name]
+        end
+
+        return nil
+    end,
+    getCategory = function(self)
+        if self.category then
+            return self.category
+        end
+
+        return Group.Category.HELICOPTER
+    end,
+    getController = function(self)
+        return Controller
+    end,
+    getID = function(self)
+        if self.id ~= nil then
+            return self.id
+        end
+
+        return 1
+    end,
+    getName = function(self)
+        if self.groupName ~= nil then
+            return self.groupName
+        end
+
+        return "test"
+    end,
+    getUnit = function(self, idx)
+        return self:getUnits()[idx]
+    end,
+    getUnits = function(self)
+        if self.units ~= nil then
+            return self.units
+        end
+
+        return {}
+    end,
+}
+SceneryObject = {
+    className_ = "SceneryObject",
+    category = Object.Category.SCENERY,
+}
+Spot = {
+    className_ = "Spot",
+    destroy = function(self) end,
+}
+StaticObject = {
+    className_ = "StaticObject",
+    category = Object.Category.STATIC,
+}
 Unit = {
     className_ = "Unit",
-    categoryName = "UNIT",
+    category = Object.Category.UNIT,
     Category = {
         AIRPLANE = 0,
         HELICOPTER = 1,
@@ -121,15 +189,13 @@ Unit = {
     },
     getByName = function(name)
         local _name = name
-        if type(name) ~= "string" then
+        if name ~= nil and type(name) ~= "string" then
             _name = name:getName()
         end
 
-        for _zone, _units in pairs(Evac._state.extractableNow) do
+        for _, _units in pairs(Evac._state.extractableNow) do
             if _units[_name] ~= nil then
-                local _unit = { className_ = "Unit", unitName = _name }
-                class(_unit, Unit)
-                return _unit
+                return _units[_name]
             end
         end
 
@@ -138,14 +204,15 @@ Unit = {
     getCallsign = function(self)
         return "Test-1-1"
     end,
+    getCoalition = function(self)
+        return coalition.side.BLUE
+    end,
     getGroup = function(self)
         if self.groupName ~= nil then
             return Group.getByName(self.groupName)
         end
 
-        local _group = { className_ = "Group", groupName = "test" }
-        class(_group, Group)
-        return _group
+        return nil
     end,
     getID = function(self)
         if self.id ~= nil then
@@ -161,22 +228,207 @@ Unit = {
             return "test"
         end
     end,
+    getPlayerName = function(_self)
+        return "Al Gore"
+    end,
     getTypeName = function(self)
-        if self.typeName ~= nil then
-            return self.typeName
-        else
-            return "test"
+        if self.type ~= nil then
+            return self.type
         end
+
+        return "test"
     end,
     isActive = function(self)
         return true
     end,
 }
-Warehouse = { className_ = "Warehouse" }
-Weapon = { className_ = "Weapon", categoryName = "WEAPON" }
+Warehouse = {
+    className_ = "Warehouse",
+    destroy = function(self) end,
+}
+Weapon = {
+    className_ = "Weapon",
+    category = Object.Category.WEAPON,
+}
 
+AI = {
+    Option = {
+        Air = {
+            id = {
+                ECM_USING = 13,
+                FLARE_USING = 4,
+                FORCED_ATTACK = 26,
+                FORMATION = 5,
+                JETT_TANKS_IF_EMPTY = 25,
+                MISSILE_ATTACK = 18,
+                NO_OPTION = -1,
+                OPTION_RADIO_USAGE_CONTACT = 21,
+                OPTION_RADIO_USAGE_ENGAGE = 22,
+                OPTION_RADIO_USAGE_KILL = 23,
+                PREFER_VERTICAL = 32,
+                PROHIBIT_AA = 14,
+                PROHIBIT_AB = 16,
+                PROHIBIT_AG = 17,
+                PROHIBIT_JETT = 15,
+                PROHIBIT_WP_PASS_REPORT = 19,
+                RADAR_USING = 3,
+                REACTION_ON_THREAT = 1,
+                ROE = 0,
+                RTB_ON_BINGO = 6,
+                RTB_ON_OUT_OF_AMMO = 10,
+                SILENCE = 7
+            },
+            val = {
+                ECM_USING = {
+                    ALWAYS_USE = 3,
+                    NEVER_USE = 0,
+                    USE_IF_DETECTED_LOCK_BY_RADAR = 2,
+                    USE_IF_ONLY_LOCK_BY_RADAR = 1
+                },
+                FLARE_USING = {
+                    AGAINST_FIRED_MISSILE = 1,
+                    NEVER = 0,
+                    WHEN_FLYING_IN_SAM_WEZ = 2,
+                    WHEN_FLYING_NEAR_ENEMIES = 3
+                },
+                MISSILE_ATTACK = {
+                    HALF_WAY_RMAX_NEZ = 2,
+                    MAX_RANGE = 0,
+                    NEZ_RANGE = 1,
+                    RANDOM_RANGE = 4,
+                    TARGET_THREAT_EST = 3
+                },
+                RADAR_USING = {
+                    FOR_ATTACK_ONLY = 1,
+                    FOR_CONTINUOUS_SEARCH = 3,
+                    FOR_SEARCH_IF_REQUIRED = 2,
+                    NEVER = 0
+                },
+                REACTION_ON_THREAT = {
+                    ALLOW_ABORT_MISSION = 4,
+                    BYPASS_AND_ESCAPE = 3,
+                    EVADE_FIRE = 2,
+                    NO_REACTION = 0,
+                    PASSIVE_DEFENCE = 1
+                },
+                ROE = {
+                    OPEN_FIRE = 2,
+                    OPEN_FIRE_WEAPON_FREE = 1,
+                    RETURN_FIRE = 3,
+                    WEAPON_FREE = 0,
+                    WEAPON_HOLD = 4
+                }
+            }
+        },
+        Ground = {
+            id = {
+                AC_ENGAGEMENT_RANGE_RESTRICTION = 24,
+                ALARM_STATE = 9,
+                DISPERSE_ON_ATTACK = 8,
+                ENGAGE_AIR_WEAPONS = 20,
+                FORMATION = 5,
+                NO_OPTION = -1,
+                ROE = 0
+            },
+            val = {
+                ALARM_STATE = {
+                    AUTO = 0,
+                    GREEN = 1,
+                    RED = 2
+                },
+                ROE = {
+                    OPEN_FIRE = 2,
+                    RETURN_FIRE = 3,
+                    WEAPON_HOLD = 4
+                }
+            }
+        },
+        Naval = {
+            id = {
+                NO_OPTION = -1,
+                ROE = 0
+            },
+            val = {
+                ROE = {
+                    OPEN_FIRE = 2,
+                    RETURN_FIRE = 3,
+                    WEAPON_HOLD = 4
+                }
+            }
+        }
+    },
+    Skill = {
+        AVERAGE = "Average",
+        CLIENT = "Client",
+        EXCELLENT = "Excellent",
+        GOOD = "Good",
+        HIGH = "High",
+        PLAYER = "Player"
+    },
+    Task = {
+        AltitudeType = {
+            BARO = "BARO",
+            RADIO = "RADIO"
+        },
+        Designation = {
+            AUTO = "Auto",
+            IR_POINTER = "IR-Pointer",
+            LASER = "Laser",
+            NO = "No",
+            WP = "WP"
+        },
+        OrbitPattern = {
+            CIRCLE = "Circle",
+            RACE_TRACK = "Race-Track"
+        },
+        TurnMethod = {
+            FIN_POINT = "Fin Point",
+            FLY_OVER_POINT = "Fly Over Point"
+        },
+        VehicleFormation = {
+            CONE = "Cone",
+            DIAMOND = "Diamond",
+            ECHELON_LEFT = "EchelonL",
+            ECHELON_RIGHT = "EchelonR",
+            OFF_ROAD = "Off Road",
+            ON_ROAD = "On Road",
+            RANK = "Rank",
+            VEE = "Vee"
+        },
+        WaypointType = {
+            LAND = "Land",
+            TAKEOFF = "TakeOff",
+            TAKEOFF_PARKING = "TakeOffParking",
+            TAKEOFF_PARKING_HOT = "TakeOffParkingHot",
+            TURNING_POINT = "Turning Point"
+        },
+        WeaponExpend = {
+            ALL = "All",
+            FOUR = "Four",
+            HALF = "Half",
+            ONE = "One",
+            QUARTER = "Quarter",
+            TWO = "Two"
+        }
+    }
+}
 coalition = {
-    addGroup = function() end,
+    addGroup = function(_country, _category, _group)
+        local _groupObj = mist.utils.deepCopy(_group)
+        class(_groupObj, Group)
+
+        _groupObj.country = _country
+        _groupObj.groupName = _groupObj.name
+
+        for _idx, _unit in pairs(_groupObj.units) do
+            class(_unit, Unit)
+
+            _groupObj.units[_idx] = _unit
+        end
+
+        mist.DBs.groupsById[_group.groupId] = _groupObj
+        mist.DBs.groupsByName[_group.name] = _groupObj
+    end,
     addRefPoint = function() end,
     addStaticObject = function() end,
     add_dyn_group = function() end,
@@ -1480,22 +1732,29 @@ env = {
                     name = 'test',
                     x = 0,
                     y = 0,
+                    z = 0,
                     verticies = {
-                        { x = 100, y = 100 },
-                        { x = 0,   y = 100 },
-                        { x = 0,   y = 0 },
-                        { x = 100, y = 0 },
+                        { x = 100, y = 0, z = 100 },
+                        { x = -100, y = 0, z = 100 },
+                        { x = -100, y = 0, z = -100 },
+                        { x = 100, y = 0, z = -100 },
                     }
                 },
             },
         },
     },
-    error = function(message, dialog) end,
-    info = function(message, dialog) end,
-    warning = function(message, dialog) end,
+    error = function(message, dialog)
+        return io.stderr:write(string.format("\n%s\n", message))
+    end,
+    info = function(message, dialog)
+        return io.stderr:write(string.format("\n%s\n", message))
+    end,
+    warning = function(message, dialog)
+        return io.stderr:write(string.format("\n%s\n", message))
+    end,
 }
 land = {
-    getHeight = function(point) return math.random(-100, 100) end,
+    getHeight = function(point) return 0 end,
     getSurfaceType = function(coord) return 1 end,
     SurfaceType = {
         LAND = 1,
@@ -1507,10 +1766,15 @@ land = {
 }
 timer = {
     getTime = function() return 0 end,
-    scheduleFunction = function(func, args, time) end,
+    scheduleFunction = Spy(function(func, args, time) end),
 }
 trigger = {
     action = {},
+    misc = {
+        getZone = function(_zone)
+            return { point = { x = 0, y = 0, z = 0 } }
+        end,
+    },
     smokeColor = {
         Green = 0,
         Red = 1,
@@ -1525,8 +1789,12 @@ world = {
 
 require("Scripts.ScriptingSystem")
 
+trigger.action.smoke = Mock()
 trigger.action.outText = Mock()
 trigger.action.outTextForCoalition = Mock()
 trigger.action.outTextForCountry = Mock()
 trigger.action.outTextForGroup = Mock()
 trigger.action.outTextForUnit = Mock()
+trigger.action.radioTransmission = Mock()
+trigger.action.setUnitInternalCargo = Mock()
+trigger.action.stopRadioTransmission = Mock()
