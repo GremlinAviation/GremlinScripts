@@ -6,7 +6,7 @@
 -- return values.
 
 
-local ValueMatcher = require 'test.mock.ValueMatcher'
+local ValueMatcher = require 'lib.mock.ValueMatcher'
 
 
 local ProgrammableFn = {}

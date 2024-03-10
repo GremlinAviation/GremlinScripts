@@ -3,7 +3,7 @@
 -- For each call the arguments and return values are saved.
 
 
-local ValueMatcher = require 'test.mock.ValueMatcher'
+local ValueMatcher = require 'lib.mock.ValueMatcher'
 
 
 local Spy = {}

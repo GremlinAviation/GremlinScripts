@@ -1,5 +1,5 @@
-local Mock = require("test.mock.Mock")
-local Spy = require("test.mock.Spy")
+local Mock = require("lib.mock.Mock")
+local Spy = require("lib.mock.Spy")
 require("Scripts.Common.LuaClass")
 
 Object = {

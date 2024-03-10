@@ -1,6 +1,6 @@
 local lu = require("luaunit_3_4")
 local inspect = require("inspect")
-local Spy = require("test.mock.Spy")
+local Spy = require("lib.mock.Spy")
 
 table.unpack = table.unpack or unpack
 unpack = table.unpack
@@ -1749,11 +1749,22 @@ Test6TopLevel = {
     test1SetupNone = function()
         lu.assertEquals(Evac:setup(), nil)
 
-        lu.assertEquals(Evac.beaconBatteryLife, 0)
-        lu.assertEquals(Evac.beaconSound, "")
-        lu.assertEquals(Evac.carryLimits, {})
-        lu.assertEquals(Evac.idStart, 0)
-        lu.assertEquals(Evac.loadUnloadPerIndividual, 0)
+        lu.assertEquals(Evac.beaconBatteryLife, 30)
+        lu.assertEquals(Evac.beaconSound, "beacon.ogg")
+        lu.assertEquals(Evac.carryLimits, {
+            ["C-130"] = 90,
+            ["CH-47D"] = 44,
+            ["CH-43E"] = 55,
+            ["Mi-8MT"] = 24,
+            ["Mi-24P"] = 5,
+            ["Mi-24V"] = 5,
+            ["Mi-26"] = 70,
+            ["SH-60B"] = 5,
+            ["UH-1H"] = 8,
+            ["UH-60A"] = 11,
+        })
+        lu.assertEquals(Evac.idStart, 500)
+        lu.assertEquals(Evac.loadUnloadPerIndividual, 30)
         lu.assertEquals(Evac.maxExtractable, {
             Refugees = 0,
             Infantry = 0,
@@ -1763,8 +1774,8 @@ Test6TopLevel = {
             ["2B11"] = 0,
             JTAC = 0,
         })
-        lu.assertEquals(Evac.spawnRates, {})
-        lu.assertEquals(Evac.spawnWeight, 0)
+        lu.assertEquals(Evac.spawnRates, { _global = { per = 0, period = 1, units = 0 } })
+        lu.assertEquals(Evac.spawnWeight, 100)
     end,
     test2SetupBlank = function()
         lu.assertEquals(Evac:setup({}), nil)
@@ -1844,5 +1855,3 @@ Test6TopLevel = {
     end,
     tearDown = tearDown,
 }
-
-os.exit(lu.LuaUnit.run())

@@ -3,8 +3,8 @@
 -- See @{Spy} and @{ProgrammableFn} for details.
 
 
-local ProgrammableFn = require 'test.mock.ProgrammableFn'
-local Spy = require 'test.mock.Spy'
+local ProgrammableFn = require 'lib.mock.ProgrammableFn'
+local Spy = require 'lib.mock.Spy'
 
 
 local Mock = {}

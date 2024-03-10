@@ -1,0 +1,20 @@
+name: 'Gremlin Evac'
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ilammy/msvc-dev-cmd@v1
+      - uses: leafo/gh-actions-lua@v10
+        with:
+          luaVersion: '5.1'
+      - run: 'mkdir "C:\Program Files\Eagle Dynamics\DCS World"'
+      - run: '7z x lib\DCS_archive.zip -o"C:\Program Files\Eagle Dynamics\DCS World"'
+      - run: .\runtests.bat evac

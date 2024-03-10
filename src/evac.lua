@@ -1117,7 +1117,11 @@ function Evac:setup(config)
         return
     end
 
-    if config ~= nil then
+    do -- configuration
+        if config == nil then
+            config = {}
+        end
+
         Evac.beaconBatteryLife = config.beaconBatteryLife or 30
         Evac.beaconSound = config.beaconSound or "beacon.ogg"
         Evac.carryLimits = config.carryLimits or {
@@ -1163,7 +1167,7 @@ function Evac:setup(config)
                 end
             end
         end
-    end
+    end -- configuration
 
     Evac._internal.beacons.generateVHFrequencies()
     Evac._internal.beacons.generateUHFrequencies()
