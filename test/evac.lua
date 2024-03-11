@@ -24,6 +24,11 @@ local setUp = function()
     mist.DBs.MEunitsByName = mist.DBs.unitsByName
     mist.DBs.units = { [2] = { [2] = { ["UH-1H"] = { { units = { _testUnit } } } } } }
 
+    Evac.maxExtractable.Refugees = 250
+    Evac.spawnRates = { _global = {
+        { units = 0, per = 0, period = Gremlin.Periods.Second },
+        { units = 0, per = 0, period = Gremlin.Periods.Second },
+    } }
     Evac.zones.evac.register("test", trigger.smokeColor.Green, 2)
     Evac._state.extractableNow["test"] = { [_testUnit.unitName] = _testUnit }
     Evac._state.extractionUnits["test"] = {
@@ -63,6 +68,16 @@ local tearDown = function()
     Evac._state.extractionUnits["test"] = nil
     Evac._state.extractableNow["test"] = {}
     Evac._state.zones.evac = {}
+    Evac._state.spawns.alreadySpawned = {
+        Refugees = 0,
+        Infantry = 0,
+        ["2B11"] = 0,
+        StingerIgla = 0,
+        RPG = 0,
+        M249 = 0,
+        JTAC = 0,
+    }
+    Evac._state.spawns.lastChecked = {}
 
     mist.DBs.units = {}
     mist.DBs.unitsByName["test"] = nil
@@ -1741,6 +1756,45 @@ Test5Internal5Utils = {
     tearDown = tearDown,
 }
 
+Test5Internal6DoSpawns = {
+    setUp = setUp,
+    test0DoSpawnsFirstPass = function()
+        Evac.zones.evac.activate("test")
+
+        lu.assertEquals(Evac._internal.doSpawns(), nil)
+        lu.assertNotEquals(Evac._state.spawns.lastChecked[0], nil)
+        lu.assertEquals(Evac._state.spawns.alreadySpawned, {
+            Refugees = 0,
+            Infantry = 0,
+            ["2B11"] = 0,
+            StingerIgla = 0,
+            RPG = 0,
+            M249 = 0,
+            JTAC = 0,
+        })
+    end,
+    test1DoSpawnsEverything = function()
+        Evac.zones.evac.activate("test")
+
+        lu.assertEquals(Evac._internal.doSpawns(), nil)
+        lu.assertNotEquals(Evac._state.spawns.lastChecked[0], nil)
+        lu.assertEquals(Evac._state.spawns.alreadySpawned, {
+            Refugees = 0,
+            Infantry = 0,
+            ["2B11"] = 0,
+            StingerIgla = 0,
+            RPG = 0,
+            M249 = 0,
+            JTAC = 0,
+        })
+
+        lu.assertEquals(Evac._internal.doSpawns(), nil)
+        lu.assertNotEquals(Evac._state.spawns.lastChecked[0], nil)
+        lu.assertEquals(Evac._state.spawns.alreadySpawned, Evac.maxExtractable)
+    end,
+    tearDown = tearDown,
+}
+
 Test6TopLevel = {
     setUp = setUp,
     test0OnEvent = function()
@@ -1766,7 +1820,7 @@ Test6TopLevel = {
         lu.assertEquals(Evac.idStart, 500)
         lu.assertEquals(Evac.loadUnloadPerIndividual, 30)
         lu.assertEquals(Evac.maxExtractable, {
-            Refugees = 0,
+            Refugees = 250,
             Infantry = 0,
             M249 = 0,
             RPG = 0,
@@ -1774,7 +1828,7 @@ Test6TopLevel = {
             ["2B11"] = 0,
             JTAC = 0,
         })
-        lu.assertEquals(Evac.spawnRates, { _global = { per = 0, period = 1, units = 0 } })
+        lu.assertEquals(Evac.spawnRates, { _global = { { per = 0, period = 1, units = 0 }, { per = 0, period = 1, units = 0 } } })
         lu.assertEquals(Evac.spawnWeight, 100)
     end,
     test2SetupBlank = function()
@@ -1797,7 +1851,7 @@ Test6TopLevel = {
         lu.assertEquals(Evac.idStart, 500)
         lu.assertEquals(Evac.loadUnloadPerIndividual, 30)
         lu.assertEquals(Evac.maxExtractable, {
-            Refugees = 0,
+            Refugees = 250,
             Infantry = 0,
             M249 = 0,
             RPG = 0,
@@ -1805,7 +1859,7 @@ Test6TopLevel = {
             ["2B11"] = 0,
             JTAC = 0,
         })
-        lu.assertEquals(Evac.spawnRates, { _global = { per = 0, period = 1, units = 0 } })
+        lu.assertEquals(Evac.spawnRates, { _global = { { per = 0, period = 1, units = 0 }, { per = 0, period = 1, units = 0 } } })
         lu.assertEquals(Evac.spawnWeight, 100)
     end,
     test3SetupConfig = function()
@@ -1829,9 +1883,15 @@ Test6TopLevel = {
             spawnWeight = 50,
             spawnRates = {
                 test = {
-                    units = 12,
-                    per = 5,
-                    period = Gremlin.Periods.Minute,
+                    {
+                        units = 0,
+                        per = 0,
+                        period = Gremlin.Periods.Second,
+                    }, {
+                        units = 12,
+                        per = 5,
+                        period = Gremlin.Periods.Minute,
+                    },
                 },
             },
         }), nil)
@@ -1850,7 +1910,7 @@ Test6TopLevel = {
             ["2B11"] = 12,
             JTAC = 3,
         })
-        lu.assertEquals(Evac.spawnRates, { test = { per = 5, period = 60, units = 12 } })
+        lu.assertEquals(Evac.spawnRates, { test = { { per = 0, period = 1, units = 0 }, { per = 5, period = 60, units = 12 } } })
         lu.assertEquals(Evac.spawnWeight, 50)
     end,
     tearDown = tearDown,
