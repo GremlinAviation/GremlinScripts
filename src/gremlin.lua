@@ -1,4 +1,4 @@
-local log = mist.Logger:new("Gremlin Scripts", "info")
+local log
 
 Gremlin = {
     Id = "Gremlin Script Tools",
@@ -91,7 +91,13 @@ Gremlin = {
         local tbl1 = {}
 
         for _, tbl2 in pairs({...}) do
-            for k, v in pairs(tbl2) do tbl1[k] = v end
+            for k, v in pairs(tbl2) do
+                if type(k) == "number" then
+                    table.insert(tbl1, v)
+                else
+                    tbl1[k] = v
+                end
+            end
         end
 
         return tbl1
@@ -117,15 +123,21 @@ function Gremlin:setup(config)
         Gremlin.haveCTLD = true
     end
 
+    local _level = "info"
+
     if config ~= nil then
         if config.debug ~= nil then
             Gremlin.Debug = config.debug
+            _level = 'debug'
         end
 
         if config.trace ~= nil then
             Gremlin.Trace = config.trace
+            _level = 'trace'
         end
     end
+
+    log = mist.Logger:new("Gremlin Scripts", _level)
 
     Gremlin.alreadyInitialized = true
 end

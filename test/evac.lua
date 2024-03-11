@@ -12,6 +12,8 @@ require("evac")
 
 mist.scheduleFunction = Spy(mist.scheduleFunction)
 
+Gremlin:setup()
+
 local _testUnit = { className_ = "Unit", groupName = "Evacuee Group 2", type = "UH-1H", unitName = "test", unitId = 1, point = { x = 0, y = 0, z = 0 } }
 class(_testUnit, Unit)
 local _testGroup = { className_ = "Group", groupName = "Evacuee Group 2", groupId = 7, units = { _testUnit } }
@@ -1813,7 +1815,7 @@ Test6TopLevel = {
             ["Mi-24P"] = 5,
             ["Mi-24V"] = 5,
             ["Mi-26"] = 70,
-            ["SH-60B"] = 5,
+            ["SH60B"] = 5,
             ["UH-1H"] = 8,
             ["UH-60A"] = 11,
         })
@@ -1844,7 +1846,7 @@ Test6TopLevel = {
             ["Mi-24P"] = 5,
             ["Mi-24V"] = 5,
             ["Mi-26"] = 70,
-            ["SH-60B"] = 5,
+            ["SH60B"] = 5,
             ["UH-1H"] = 8,
             ["UH-60A"] = 11,
         })

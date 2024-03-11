@@ -932,35 +932,37 @@ Evac._internal.menu = {
 
         for _unitName, _ in pairs(Evac._state.extractionUnits) do
             local _unit = Unit.getByName(_unitName)
-            local _groupId = _unit:getGroup().groupId
+            if _unit ~= nil then
+                local _groupId = _unit:getGroup().groupId
 
-            local _rootPath
-            if Evac._state.menuAdded[_groupId] == nil then
-                _rootPath = missionCommands.addSubMenuForGroup(_groupId, "Gremlin Evac")
-                Evac._state.menuAdded[_groupId] = { root = _rootPath }
-            else
-                _rootPath = Evac._state.menuAdded[_groupId].root
-            end
-
-            for _cmdIdx, _command in pairs(Evac._internal.menu.commands) do
-                local _when = false
-                if type(_command.when) == "boolean" then
-                    _when = _command.when
-                elseif type(_command.when) == "table" then
-                    local _whenArgs = Gremlin.parseFuncArgs(_command.when.args,
-                        { unit = _unit, group = _unit:getGroup() })
-
-                    if _command.when.func(_whenArgs) == _command.when.value and _command.when.comp == "equal" then
-                        _when = true
-                    end
+                local _rootPath
+                if Evac._state.menuAdded[_groupId] == nil then
+                    _rootPath = missionCommands.addSubMenuForGroup(_groupId, "Gremlin Evac")
+                    Evac._state.menuAdded[_groupId] = { root = _rootPath }
+                else
+                    _rootPath = Evac._state.menuAdded[_groupId].root
                 end
 
-                missionCommands.removeItemForGroup(_groupId, Evac._state.menuAdded[_groupId][_cmdIdx])
+                for _cmdIdx, _command in pairs(Evac._internal.menu.commands) do
+                    local _when = false
+                    if type(_command.when) == "boolean" then
+                        _when = _command.when
+                    elseif type(_command.when) == "table" then
+                        local _whenArgs = Gremlin.parseFuncArgs(_command.when.args,
+                            { unit = _unit, group = _unit:getGroup() })
 
-                local _args = Gremlin.parseFuncArgs(_command.args, { unit = _unit, group = _unit:getGroup() })
-                if _when then
-                    Evac._state.menuAdded[_groupId][_cmdIdx] = missionCommands.addCommandForGroup(_groupId,
-                        _command.text, _rootPath, _command.func, _args)
+                        if _command.when.func(_whenArgs) == _command.when.value and _command.when.comp == "equal" then
+                            _when = true
+                        end
+                    end
+
+                    missionCommands.removeItemForGroup(_groupId, Evac._state.menuAdded[_groupId][_cmdIdx])
+
+                    local _args = Gremlin.parseFuncArgs(_command.args, { unit = _unit, group = _unit:getGroup() })
+                    if _when then
+                        Evac._state.menuAdded[_groupId][_cmdIdx] = missionCommands.addCommandForGroup(_groupId,
+                            _command.text, _rootPath, _command.func, _args)
+                    end
                 end
             end
         end
@@ -1206,7 +1208,7 @@ Evac:setup({
         ["Mi-24P"] = 5,
         ["Mi-24V"] = 5,
         ["Mi-26"] = 70,
-        ["SH-60B"] = 5,
+        ["SH60B"] = 5,
         ["UH-1H"] = 8,
         ["UH-60A"] = 11,
     },
@@ -1287,7 +1289,7 @@ function Evac:setup(config)
             ["Mi-24P"] = 5,
             ["Mi-24V"] = 5,
             ["Mi-26"] = 70,
-            ["SH-60B"] = 5,
+            ["SH60B"] = 5,
             ["UH-1H"] = 8,
             ["UH-60A"] = 11,
         }
@@ -1324,6 +1326,10 @@ function Evac:setup(config)
             for _, _zone in pairs(config.startingZones) do
                 if Evac.modeToText[_zone.mode] ~= nil then
                     Evac.zones[Evac.modeToText[_zone.mode]].create(_zone.name, _zone.smoke, _zone.side)
+
+                    if _zone.active then
+                        Evac.zones[Evac.modeToText[_zone.mode]].activate(_zone.name)
+                    end
                 else
                     Gremlin.logError("Can't find " .. Gremlin.SideToText[_zone.side] .. " zone " .. _zone.name)
                 end

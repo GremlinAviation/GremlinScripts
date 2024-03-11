@@ -1,0 +1,10 @@
+[book]
+authors = ["Hennik Hunsaker"]
+language = "en"
+multilingual = false
+src = "docs"
+title = "Gremlin Scripts (The Docs)"
+description = "Details the usage of the Gremlin Scripts collection in DCS World!"
+
+[output.html.playground]
+editable = true
