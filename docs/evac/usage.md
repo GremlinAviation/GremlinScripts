@@ -33,14 +33,27 @@ Evac:setup({
     },
     idStart = 5,
     loadUnloadPerIndividual = 2,
+    lossFlags = { 1, 2 },
+    lossThresholds = { 0, 25 },
     maxExtractable = {
-        Refugees = 12,
-        Infantry = 12,
-        M249 = 12,
-        RPG = 12,
-        StingerIgla = 12,
-        ["2B11"] = 12,
-        JTAC = 3,
+        {
+            Generic = 12,
+            Infantry = 12,
+            M249 = 12,
+            RPG = 12,
+            StingerIgla = 12,
+            ["2B11"] = 12,
+            JTAC = 3,
+        },
+        {
+            Generic = 12,
+            Infantry = 12,
+            M249 = 12,
+            RPG = 12,
+            StingerIgla = 12,
+            ["2B11"] = 12,
+            JTAC = 3,
+        },
     },
     spawnWeight = 50,
     spawnRates = {
@@ -67,10 +80,12 @@ Initializes Gremlin Evac, overriding all the defaults:
 - the beacon sound file is changed to something mission specific
 - the list of craft that can perform evac ops is reset to just the `SH60B` Unit type at a max loadout of 15 evacuees
 - the starting ID is dropped from 500 to 5
-- the time to takes to load or unload evacuees is set to 2 seconds per evacuee (down from 30 seconds)
-- the maximums for generated evacuees are set to 12 for all roles except JTAC, which is set to 3 (default is 0)
+- the time it takes to load or unload evacuees is set to 2 seconds per evacuee (down from 30 seconds)
+- the flags used to indicate evacuation mission failure are set to 1 and 2, respectively (default is `GremlinEvacRedLoss` and `GremlinEvacBlueLoss`)
+- the percentage of evacuees that can be lost is set to 0 for red, and 25 for blue (default is 25 for both)
+- the maximums for generated evacuees are set to 12 on both sides, for all roles except JTAC, which is set to 3 (default is 0)
 - the average spawn weight is dropped from 100kg to 50kg
-- the spawn rates are configured to spawn 12 Blue refugees every 5 minutes in the `Test 1` Zone (default is spawn all across all Zones at mission start)
+- the spawn rates are configured to spawn 12 Blue generic evacuees every 5 minutes in the `Test 1` Zone (default is spawn all across all Zones at mission start)
 - the starting Zones are set to three Blue Zones, two of which (evacuation and relay/staging) are active from mission start (default is no registered Zones)
 
 ### Manual Setup
@@ -140,7 +155,7 @@ This setup does a few things, in order:
 2. registers 5 zones for blue evacuations, and 5 for red
 3. activates the evac and relay Zones
 4. manually spawns 17 blue evacuees, using composition tables
-5. manually spawns 7 red evacuees, using numbers (makes all evacuees into refugees)
+5. manually spawns 7 red evacuees, using numbers (makes all evacuees into generic ones)
 6. manually loads up evacuees onto various standby Units
 
-Everything from there is either automatic from the script, or manual via additional triggers in the mission.
+Everything from there is either automatic from Gremlin Evac, or manual via additional triggers in the mission.

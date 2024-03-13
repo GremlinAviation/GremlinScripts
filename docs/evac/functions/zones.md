@@ -41,20 +41,20 @@ Sets the number of waiting evacuees in the zone.
 
 Sets the number of waiting evacuees in the zone.
 
-For both of the above, `_zone` is the zone name to activate, `_side` is taken from `coalition.side`, `_country` is taken from the `country` table, and `_numberOrComposition` is (as its name suggests) either a number of evacuees to generate (these will all be of type `"Refugee"`), or a table listing off the composition of the units to spawn (as its name also suggests).
+For both of the above, `_zone` is the zone name to activate, `_side` is taken from `coalition.side`, `_country` is taken from the `country` table, and `_numberOrComposition` is (as its name suggests) either a number of evacuees to generate (these will all be of type `"Generic"`), or a table listing off the composition of the units to spawn (as its name also suggests).
 
 ##### Sample Composition
 
 ```lua,editable
 Evac.zones.evac.setRemaining('test', coalition.side.BLUE, country.USA, {
-    { type = 'Refugee', unitName = 'Karl Marx', unitId = 42, weight = 75 },
+    { type = 'Generic', unitName = 'Karl Marx', unitId = 42, weight = 75 },
     { type = 'Infantry' },
     { type = 'JTAC' },
     {},
 })
 ```
 
-This will add a refugee named Karl Marx, with associated ID and weight values, an infantry unit, a JTAC unit, and a second refugee whose name is automatically generated. Note how none of the parameters are required if you just want a rufugee, though a unit composed entirely of refugees is simpler to build with a number instead of a composition table.
+This will add a generic evacuee named Karl Marx, with associated ID and weight values, an infantry unit, a JTAC unit, and a second generic evacuee whose name is automatically generated. Note how none of the parameters are required if you just want a generic evacuee, though a unit composed entirely of generics is simpler to build with a number instead of a composition table.
 
 ---
 
@@ -76,15 +76,15 @@ For all three of the above, `_zone` is the zone name to count evacuees within.
 
 #### `Evac.zones.evac.isIn(_unit)`
 
-Gets a flag indicating whether an evacuee is in a given evacuation zone.
+Gets a value indicating whether an evacuee is in a given evacuation zone.
 
 #### `Evac.zones.relay.isIn(_unit)`
 
-Gets a flag indicating whether an evacuee is in a given relay/staging zone.
+Gets a value indicating whether an evacuee is in a given relay/staging zone.
 
 #### `Evac.zones.safe.isIn(_unit)`
 
-Gets a flag indicating whether an evacuee is in a given safe zone.
+Gets a value indicating whether an evacuee is in a given safe zone.
 
 For all three of the above, `_unit` is the unit name to search for.
 

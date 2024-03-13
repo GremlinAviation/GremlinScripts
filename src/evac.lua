@@ -13,16 +13,16 @@ Evac = {
     -- Static Info
 
     -- Contains an identifier for this script
-    Id = "Gremlin Evac",
+    Id = 'Gremlin Evac',
     -- Contains tte current script version
-    Version = "202403.01",
+    Version = '202403.01',
 
     -- Config
 
     -- How long a beacon should last, in minutes
     beaconBatteryLife = 0,
     -- The audio file to play for beacons
-    beaconSound = "",
+    beaconSound = '',
     -- The max carrying capacity of the aircraft in this misson
     -- Table should be a list of capacities keyed by the unit type name
     carryLimits = {},
@@ -30,15 +30,30 @@ Evac = {
     idStart = 0,
     -- How long it takes to load one unit, in seconds
     loadUnloadPerIndividual = 0,
+    -- The Mission Editor flags to set when the players lose too many forces
+    lossFlags = { 0, 0 },
+    -- The percentage of evacuees that can be lost before mission loss
+    lossThresholds = { 0, 0 },
     -- The maximum number of each unit to generate when spawning units
     maxExtractable = {
-        Refugees = 0,
-        Infantry = 0,
-        M249 = 0,
-        RPG = 0,
-        StingerIgla = 0,
-        ["2B11"] = 0,
-        JTAC = 0,
+        {
+            Generic = 0,
+            Infantry = 0,
+            M249 = 0,
+            RPG = 0,
+            StingerIgla = 0,
+            ['2B11'] = 0,
+            JTAC = 0,
+        },
+        {
+            Generic = 0,
+            Infantry = 0,
+            M249 = 0,
+            RPG = 0,
+            StingerIgla = 0,
+            ['2B11'] = 0,
+            JTAC = 0,
+        },
     },
     -- How frequently to spawn new units, per zone
     spawnRates = {},
@@ -64,17 +79,48 @@ Evac = {
                 used = {}
             },
         },
-        menuAdded = {},
-        smoke = {},
-        spawns = {
-            alreadySpawned = {
-                Refugees = 0,
+        lostEvacuees = {
+            {
+                Generic = 0,
                 Infantry = 0,
                 M249 = 0,
                 RPG = 0,
                 StingerIgla = 0,
-                ["2B11"] = 0,
+                ['2B11'] = 0,
                 JTAC = 0,
+            },
+            {
+                Generic = 0,
+                Infantry = 0,
+                M249 = 0,
+                RPG = 0,
+                StingerIgla = 0,
+                ['2B11'] = 0,
+                JTAC = 0,
+            },
+        },
+        menuAdded = {},
+        smoke = {},
+        spawns = {
+            alreadySpawned = {
+                {
+                    Generic = 0,
+                    Infantry = 0,
+                    M249 = 0,
+                    RPG = 0,
+                    StingerIgla = 0,
+                    ['2B11'] = 0,
+                    JTAC = 0,
+                },
+                {
+                    Generic = 0,
+                    Infantry = 0,
+                    M249 = 0,
+                    RPG = 0,
+                    StingerIgla = 0,
+                    ['2B11'] = 0,
+                    JTAC = 0,
+                },
             },
             lastChecked = {},
         },
@@ -92,9 +138,9 @@ Evac = {
     },
     -- Lookup table for modes to names
     modeToText = {
-        "evac",
-        "safe",
-        "relay",
+        'evac',
+        'safe',
+        'relay',
     },
     -- Internal Methods - AVOID USING / DO NOT MODIFY
     _internal = {},
@@ -209,13 +255,13 @@ Evac.units = {
             _free = _free - Evac._internal.aircraft.countEvacuees(_unit)
 
             if _free <= 0 then
-                Gremlin.displayMessageTo(_unit, "Already full! Unload, first!", timer.getTime() + 5)
+                Gremlin.utils.displayMessageTo(_unit, 'Already full! Unload, first!', timer.getTime() + 5)
                 return
             end
 
             Evac._internal.aircraft.loadEvacuees(_unit, _free)
         else
-            Gremlin.displayMessageTo(_unit, "Your aircraft isn't rated for evacuees in this mission!",
+            Gremlin.utils.displayMessageTo(_unit, "Your aircraft isn't rated for evacuees in this mission!",
                 timer.getTime() + 5)
         end
     end,
@@ -227,17 +273,17 @@ Evac.units = {
     countEvacuees = function(_unit)
         local _count = Evac._internal.aircraft.countEvacuees(_unit)
 
-        Gremlin.displayMessageTo(_unit, "You are currently carrying " .. _count .. " evacuees.", timer.getTime() + 5)
+        Gremlin.utils.displayMessageTo(_unit, 'You are currently carrying ' .. _count .. ' evacuees.', timer.getTime() + 5)
     end,
     -- Count the number of units in a given zone
     count = function(_zone)
-        return #(mist.getUnitsInZones(mist.makeUnitTable({ "[all]" }, false), { _zone }, "c"))
+        return #(mist.getUnitsInZones(mist.makeUnitTable({ '[all]' }, false), { _zone }, 'c'))
     end,
 }
 
 --- Group methods
 Evac.groups = {
-    -- Spawns refugees when given a number for `_numberOrComposition`.
+    -- Spawns generic evacuees when given a number for `_numberOrComposition`.
     -- For a mix of evac targets, pass a list of units to add instead.
     spawn = function(_side, _numberOrComposition, _country, _zone, _scatterRadius)
         local _groupData = Evac._internal.zones.generateEvacuees(_side, _numberOrComposition, _country)
@@ -278,7 +324,7 @@ Evac.groups = {
     -- Returns a list of all groups in a zone
     list = function(_zone)
         local groupsFound = {}
-        local _unitsInZone = mist.getUnitsInZones(mist.makeUnitTable({ "[all]" }, false), { _zone }, "c")
+        local _unitsInZone = mist.getUnitsInZones(mist.makeUnitTable({ '[all]' }, false), { _zone }, 'c')
 
         for _, _unit in pairs(_unitsInZone) do
             local _unitGroup = Unit.getByName(_unit):getGroup()
@@ -339,7 +385,7 @@ Evac._internal.aircraft = {
         return Evac._internal.zones.isIn(_unit, _evacMode)
     end,
     inAir = function(_unit)
-        if type(_unit) == "string" then
+        if type(_unit) == 'string' then
             _unit = Unit.getByName(_unit)
         end
 
@@ -355,7 +401,7 @@ Evac._internal.aircraft = {
         return true
     end,
     heightDifference = function(_unit)
-        if type(_unit) == "string" then
+        if type(_unit) == 'string' then
             _unit = Unit.getByName(_unit)
         end
 
@@ -384,12 +430,12 @@ Evac._internal.aircraft = {
                     end
 
                     Evac._internal.aircraft.adaptWeight(_unit)
-                    _message = "Evacuee loading complete!"
+                    _message = 'Evacuee loading complete!'
                 else
-                    _message = _left .. " seconds remaining in evacuee loading process"
+                    _message = _left .. ' seconds remaining in evacuee loading process'
                 end
 
-                Gremlin.displayMessageTo(_unit, _message, timer.getTime() + 1)
+                Gremlin.utils.displayMessageTo(_unit, _message, timer.getTime() + 1)
             end,
             { timer.getTime() + 1 },
             timer.getTime() + 1,
@@ -450,12 +496,12 @@ Evac._internal.aircraft = {
 
                 Evac._state.extractionUnits[_unit] = {}
                 Evac._internal.aircraft.adaptWeight(_unit)
-                _message = "Evacuee unloading complete!"
+                _message = 'Evacuee unloading complete!'
             else
-                _message = _left .. " seconds remaining in evacuee unloading process"
+                _message = _left .. ' seconds remaining in evacuee unloading process'
             end
 
-            Gremlin.displayMessageTo(_unit, _message, timer.getTime() + 1)
+            Gremlin.utils.displayMessageTo(_unit, _message, timer.getTime() + 1)
         end, { timer.getTime() + 1 }, timer.getTime() + 1, 1, _timeout)
     end,
 }
@@ -468,8 +514,8 @@ Evac._internal.beacons = {
             return ctld.createRadioBeaconAtZone(_zone, _side, _batteryLife, _name)
         end
 
-        if _name == nil or _name == "" then
-            _name = "Beacon #" .. (#(Evac._state.beacons) + 1)
+        if _name == nil or _name == '' then
+            _name = 'Beacon #' .. (#(Evac._state.beacons) + 1)
         end
 
         local _battery
@@ -483,45 +529,45 @@ Evac._internal.beacons = {
         local _groupId = Evac._internal.utils.getNextGroupId()
         local _unitId = Evac._internal.utils.getNextUnitId()
         local _freq = Evac._internal.beacons.getFreeADFFrequencies()
-        local _freqsText = string.format("%.2f kHz - %.2f / %.2f MHz", (_freq.vhf or 30) / 1000, _freq.uhf / 1000000,
+        local _freqsText = string.format('%.2f kHz - %.2f / %.2f MHz', (_freq.vhf or 30) / 1000, _freq.uhf / 1000000,
             _freq.fm / 1000000)
 
         local _radioGroup = {
-            ["visible"] = false,
-            ["hidden"] = false,
-            ["units"] = {
+            ['visible'] = false,
+            ['hidden'] = false,
+            ['units'] = {
                 {
-                    ["y"] = _zonePos.z,
-                    ["type"] = "TACAN_beacon",
-                    ["name"] = "VHF Unit #" .. _unitId .. " - " .. _name .. " [" .. _freqsText .. "]",
-                    ["heading"] = 0,
-                    ["playerCanDrive"] = true,
-                    ["skill"] = "Excellent",
-                    ["x"] = _zonePos.x,
+                    ['y'] = _zonePos.z,
+                    ['type'] = 'TACAN_beacon',
+                    ['name'] = 'VHF Unit #' .. _unitId .. ' - ' .. _name .. ' [' .. _freqsText .. ']',
+                    ['heading'] = 0,
+                    ['playerCanDrive'] = true,
+                    ['skill'] = 'Excellent',
+                    ['x'] = _zonePos.x,
                 },
                 {
-                    ["y"] = _zonePos.z,
-                    ["type"] = "TACAN_beacon",
-                    ["name"] = "UHF Unit #" .. (_unitId + 1) .. " - " .. _name .. " [" .. _freqsText .. "]",
-                    ["heading"] = 0,
-                    ["playerCanDrive"] = true,
-                    ["skill"] = "Excellent",
-                    ["x"] = _zonePos.x,
+                    ['y'] = _zonePos.z,
+                    ['type'] = 'TACAN_beacon',
+                    ['name'] = 'UHF Unit #' .. (_unitId + 1) .. ' - ' .. _name .. ' [' .. _freqsText .. ']',
+                    ['heading'] = 0,
+                    ['playerCanDrive'] = true,
+                    ['skill'] = 'Excellent',
+                    ['x'] = _zonePos.x,
                 },
                 {
-                    ["y"] = _zonePos.z,
-                    ["type"] = "TACAN_beacon",
-                    ["name"] = "FM Unit #" .. (_unitId + 2) .. " - " .. _name .. " [" .. _freqsText .. "]",
-                    ["heading"] = 0,
-                    ["playerCanDrive"] = true,
-                    ["skill"] = "Excellent",
-                    ["x"] = _zonePos.x,
+                    ['y'] = _zonePos.z,
+                    ['type'] = 'TACAN_beacon',
+                    ['name'] = 'FM Unit #' .. (_unitId + 2) .. ' - ' .. _name .. ' [' .. _freqsText .. ']',
+                    ['heading'] = 0,
+                    ['playerCanDrive'] = true,
+                    ['skill'] = 'Excellent',
+                    ['x'] = _zonePos.x,
                 },
             },
-            ["name"] = "Group #" .. _groupId .. " - " .. _name,
-            ["task"] = {},
-            ["category"] = Group.Category.GROUND,
-            ["country"] = _country
+            ['name'] = 'Group #' .. _groupId .. ' - ' .. _name,
+            ['task'] = {},
+            ['category'] = Group.Category.GROUND,
+            ['country'] = _country
         }
 
         mist.dynAdd(_radioGroup)
@@ -572,20 +618,20 @@ Evac._internal.beacons = {
     list = function(_unit)
         local _message
 
-        if _unit ~= nil and type(_unit) == "string" then
+        if _unit ~= nil and type(_unit) == 'string' then
             local _unitObj = mist.DBs.unitsByName[_unit]
 
             if _unitObj ~= nil then
                 for _x, _details in pairs(Evac._state.beacons) do
                     if _details.side == _unitObj:getCoalition() then
-                        _message = string.format("%s%s (%s)\n", _message or "", _details.group, _details.text or "")
+                        _message = string.format('%s%s (%s)\n', _message or '', _details.group, _details.text or '')
                     end
                 end
 
-                if _message ~= nil and _message ~= "" then
-                    Gremlin.displayMessageTo(_unitObj:getGroup(), "Radio Beacons:\n" .. _message, 20)
+                if _message ~= nil and _message ~= '' then
+                    Gremlin.utils.displayMessageTo(_unitObj:getGroup(), 'Radio Beacons:\n' .. _message, 20)
                 else
-                    Gremlin.displayMessageTo(_unitObj:getGroup(), "No Active Radio Beacons", 20)
+                    Gremlin.utils.displayMessageTo(_unitObj:getGroup(), 'No Active Radio Beacons', 20)
                 end
             end
         end
@@ -598,28 +644,28 @@ Evac._internal.beacons = {
 
         local _batteryLife = _beaconDetails.battery - timer.getTime()
         if _batteryLife < 1 and _beaconDetails.battery ~= -1 then
-            trigger.action.stopRadioTransmission(_beaconDetails.text .. " | VHF")
-            trigger.action.stopRadioTransmission(_beaconDetails.text .. " | UHF")
-            trigger.action.stopRadioTransmission(_beaconDetails.text .. " | FM")
+            trigger.action.stopRadioTransmission(_beaconDetails.text .. ' | VHF')
+            trigger.action.stopRadioTransmission(_beaconDetails.text .. ' | UHF')
+            trigger.action.stopRadioTransmission(_beaconDetails.text .. ' | FM')
             _radioGroup:destroy()
 
             return false
         end
 
         local _controller = _radioGroup:getController()
-        local _sound = "l10n/DEFAULT/" .. Evac.beaconSound
+        local _sound = 'l10n/DEFAULT/' .. Evac.beaconSound
 
         _controller:setOption(AI.Option.Ground.id.ROE, AI.Option.Ground.val.ROE.WEAPON_HOLD)
 
-        trigger.action.stopRadioTransmission(_beaconDetails.text .. " | VHF")
-        trigger.action.stopRadioTransmission(_beaconDetails.text .. " | UHF")
-        trigger.action.stopRadioTransmission(_beaconDetails.text .. " | FM")
+        trigger.action.stopRadioTransmission(_beaconDetails.text .. ' | VHF')
+        trigger.action.stopRadioTransmission(_beaconDetails.text .. ' | UHF')
+        trigger.action.stopRadioTransmission(_beaconDetails.text .. ' | FM')
         trigger.action.radioTransmission(_sound, _radioGroup:getUnit(1):getPoint(), 0, true, _beaconDetails.vhf, 1000,
-            _beaconDetails.text .. " | VHF")
+            _beaconDetails.text .. ' | VHF')
         trigger.action.radioTransmission(_sound, _radioGroup:getUnit(2):getPoint(), 0, true, _beaconDetails.uhf, 1000,
-            _beaconDetails.text .. " | UHF")
+            _beaconDetails.text .. ' | UHF')
         trigger.action.radioTransmission(_sound, _radioGroup:getUnit(3):getPoint(), 1, true, _beaconDetails.fm, 1000,
-            _beaconDetails.text .. " | FM")
+            _beaconDetails.text .. ' | FM')
 
         return true
     end,
@@ -790,7 +836,7 @@ Evac._internal.beacons = {
 -- Smoke
 Evac._internal.smoke = {
     refresh = function()
-        for _, _zoneData in pairs(Gremlin.mergeTables(Evac._state.zones.evac, Evac._state.zones.relay, Evac._state.zones.safe)) do
+        for _, _zoneData in pairs(Gremlin.utils.mergeTables(Evac._state.zones.evac, Evac._state.zones.relay, Evac._state.zones.safe)) do
             local _zone = trigger.misc.getZone(_zoneData.name)
             if _zone ~= nil and _zoneData.active then
                 local _pos2 = { x = _zone.point.x, y = _zone.point.z }
@@ -818,14 +864,14 @@ Evac._internal.zones = {
         Evac._state.extractableNow[_zone] = {}
     end,
     generateEvacuees = function(_side, _numberOrComposition, _country)
-        local _groupName = "Evacuee Group"
-        local _unitType = "Refugee"
+        local _groupName = 'Evacuee Group'
+        local _unitType = 'Generic'
         local _groupId = Evac._internal.utils.getNextGroupId()
         local _composition = {}
         local _troops = {}
         local _weight = 0
 
-        if type(_numberOrComposition) == "number" then
+        if type(_numberOrComposition) == 'number' then
             for _i = 1, _numberOrComposition do
                 _composition[_i] = { type = _unitType }
             end
@@ -841,7 +887,7 @@ Evac._internal.zones = {
                 _unit.unitId = Evac._internal.utils.getNextUnitId() + (_i - 1)
             end
             if _unit.unitName == nil then
-                _unit.unitName = string.format("Evacuee: %s #%i", _unit.type, _unit.unitId)
+                _unit.unitName = string.format('Evacuee: %s #%i', _unit.type, _unit.unitId)
             end
             if _unit.weight == nil then
                 _unit.weight = Evac._internal.utils.randomizeWeight(Evac.spawnWeight)
@@ -854,7 +900,7 @@ Evac._internal.zones = {
         return {
             units = _troops,
             groupId = _groupId,
-            groupName = string.format("%s %i", _groupName, _groupId),
+            groupName = string.format('%s %i', _groupName, _groupId),
             side = _side,
             country = _country,
             weight = _weight,
@@ -895,7 +941,7 @@ Evac._internal.zones = {
         local _unitObj = Unit.getByName(_unit)
 
         if _unitObj ~= nil then
-            if type(_evacMode) == "string" then
+            if type(_evacMode) == 'string' then
                 local _zone = _evacMode
                 local _zoneData = Evac._state.zones.evac[_zone] or Evac._state.zones.relay[_zone] or
                 Evac._state.zones.safe[_zone] or { active = false }
@@ -938,7 +984,7 @@ Evac._internal.menu = {
 
                 local _rootPath
                 if Evac._state.menuAdded[_groupId] == nil then
-                    _rootPath = missionCommands.addSubMenuForGroup(_groupId, "Gremlin Evac")
+                    _rootPath = missionCommands.addSubMenuForGroup(_groupId, 'Gremlin Evac')
                     Evac._state.menuAdded[_groupId] = { root = _rootPath }
                 else
                     _rootPath = Evac._state.menuAdded[_groupId].root
@@ -946,22 +992,22 @@ Evac._internal.menu = {
 
                 for _cmdIdx, _command in pairs(Evac._internal.menu.commands) do
                     local _when = false
-                    if type(_command.when) == "boolean" then
+                    if type(_command.when) == 'boolean' then
                         _when = _command.when
-                    elseif type(_command.when) == "table" then
+                    elseif type(_command.when) == 'table' then
                         ---@diagnostic disable-next-line: undefined-field
-                        local _whenArgs = Gremlin.parseFuncArgs(_command.when.args,
+                        local _whenArgs = Gremlin.utils.parseFuncArgs(_command.when.args,
                             { unit = _unit, group = _unit:getGroup() })
 
                         ---@diagnostic disable-next-line: undefined-field
-                        if _command.when.func(_whenArgs) == _command.when.value and _command.when.comp == "equal" then
+                        if _command.when.func(_whenArgs) == _command.when.value and _command.when.comp == 'equal' then
                             _when = true
                         end
                     end
 
                     missionCommands.removeItemForGroup(_groupId, Evac._state.menuAdded[_groupId][_cmdIdx])
 
-                    local _args = Gremlin.parseFuncArgs(_command.args, { unit = _unit, group = _unit:getGroup() })
+                    local _args = Gremlin.utils.parseFuncArgs(_command.args, { unit = _unit, group = _unit:getGroup() })
                     if _when then
                         Evac._state.menuAdded[_groupId][_cmdIdx] = missionCommands.addCommandForGroup(_groupId,
                             _command.text, _rootPath, _command.func, _args)
@@ -972,37 +1018,37 @@ Evac._internal.menu = {
     end,
     commands = {
         {
-            text = "Scan For Evacuee Beacons",
+            text = 'Scan For Evacuee Beacons',
             func = Evac.units.findEvacuees,
-            args = { "{unit}:name" },
+            args = { '{unit}:name' },
             when = true,
         },
         {
-            text = "Load Evacuees",
+            text = 'Load Evacuees',
             func = Evac.units.loadEvacuees,
-            args = { "{unit}:name" },
+            args = { '{unit}:name' },
             when = {
                 func = Evac._internal.aircraft.countEvacuees,
-                args = { "{unit}:name" },
-                comp = "equal",
+                args = { '{unit}:name' },
+                comp = 'equal',
                 value = 0,
             },
         },
         {
-            text = "Unload Evacuees",
+            text = 'Unload Evacuees',
             func = Evac.units.unloadEvacuees,
-            args = { "{unit}:name" },
+            args = { '{unit}:name' },
             when = {
                 func = Evac._internal.aircraft.countEvacuees,
-                args = { "{unit}:name" },
-                comp = "inequal",
+                args = { '{unit}:name' },
+                comp = 'inequal',
                 value = 0,
             },
         },
         {
-            text = "Evacuees Aboard",
+            text = 'Evacuees Aboard',
             func = Evac.units.countEvacuees,
-            args = { "{unit}:name" },
+            args = { '{unit}:name' },
             when = true,
         },
     },
@@ -1012,6 +1058,24 @@ Evac._internal.menu = {
 Evac._internal.utils = {
     currentGroup = Evac.idStart + 1,
     currentUnit = Evac.idStart + 1,
+    endIfLossesTooHigh = function()
+        for _side, _maxExtract in pairs(Evac.maxExtractable) do
+            local _lost = Evac._state.lostEvacuees[_side]
+
+            local _generic = _lost.Generic / _maxExtract.Generic
+            local _infantry = _lost.Infantry / _maxExtract.Infantry
+            local _2b11 = _lost['2B11'] / _maxExtract['2B11']
+            local _m249 = _lost.M249 / _maxExtract.M249
+            local _rpg = _lost.RPG / _maxExtract.RPG
+            local _stingerIgla = _lost.StingerIgla / _maxExtract.StingerIgla
+            local _jtac = _lost.JTAC / _maxExtract.JTAC
+            local _combined = (_generic + _infantry + _2b11 + _m249 + _rpg + _stingerIgla + _jtac) / 7
+
+            if (_combined > 0 and _combined >= (Evac.lossThresholds[_side] / 100)) or (_generic > 0 and _generic >= (Evac.lossThresholds[_side] / 100)) then
+                trigger.action.setUserFlag(Evac.lossFlags[_side], true)
+            end
+        end
+    end,
     getNextGroupId = function()
         if Gremlin.haveCTLD then
             ---@diagnostic disable-next-line: undefined-global
@@ -1047,7 +1111,7 @@ Evac._internal.utils = {
                 type = _unit.type,
                 unitId = _unit.unitId,
                 name = _unit.unitName,
-                skill = "Excellent",
+                skill = 'Excellent',
                 playerCanDrive = false,
                 x = _point.x + (_xOffset + math.random(_scatterRadius)),
                 y = _point.z + (_yOffset + math.random(_scatterRadius)),
@@ -1060,20 +1124,20 @@ Evac._internal.utils = {
 }
 
 Evac._internal.doSpawns = function()
-    local _anyOver = function()
-        if Evac._state.spawns.alreadySpawned.Refugees > 0 and Evac._state.spawns.alreadySpawned.Refugees >= Evac.maxExtractable.Refugees then
+    local _anyOver = function(_side)
+        if Evac._state.spawns.alreadySpawned[_side].Generic > 0 and Evac._state.spawns.alreadySpawned[_side].Generic >= Evac.maxExtractable[_side].Generic then
             return true
-        elseif Evac._state.spawns.alreadySpawned.Infantry > 0 and Evac._state.spawns.alreadySpawned.Infantry >= Evac.maxExtractable.Infantry then
+        elseif Evac._state.spawns.alreadySpawned[_side].Infantry > 0 and Evac._state.spawns.alreadySpawned[_side].Infantry >= Evac.maxExtractable[_side].Infantry then
             return true
-        elseif Evac._state.spawns.alreadySpawned.M249 > 0 and Evac._state.spawns.alreadySpawned.M249 >= Evac.maxExtractable.M249 then
+        elseif Evac._state.spawns.alreadySpawned[_side].M249 > 0 and Evac._state.spawns.alreadySpawned[_side].M249 >= Evac.maxExtractable[_side].M249 then
             return true
-        elseif Evac._state.spawns.alreadySpawned.RPG > 0 and Evac._state.spawns.alreadySpawned.RPG >= Evac.maxExtractable.RPG then
+        elseif Evac._state.spawns.alreadySpawned[_side].RPG > 0 and Evac._state.spawns.alreadySpawned[_side].RPG >= Evac.maxExtractable[_side].RPG then
             return true
-        elseif Evac._state.spawns.alreadySpawned.StingerIgla > 0 and Evac._state.spawns.alreadySpawned.StingerIgla >= Evac.maxExtractable.StingerIgla then
+        elseif Evac._state.spawns.alreadySpawned[_side].StingerIgla > 0 and Evac._state.spawns.alreadySpawned[_side].StingerIgla >= Evac.maxExtractable[_side].StingerIgla then
             return true
-        elseif Evac._state.spawns.alreadySpawned["2B11"] > 0 and Evac._state.spawns.alreadySpawned["2B11"] >= Evac.maxExtractable["2B11"] then
+        elseif Evac._state.spawns.alreadySpawned[_side]['2B11'] > 0 and Evac._state.spawns.alreadySpawned[_side]['2B11'] >= Evac.maxExtractable[_side]['2B11'] then
             return true
-        elseif Evac._state.spawns.alreadySpawned.JTAC > 0 and Evac._state.spawns.alreadySpawned.JTAC >= Evac.maxExtractable.JTAC then
+        elseif Evac._state.spawns.alreadySpawned[_side].JTAC > 0 and Evac._state.spawns.alreadySpawned[_side].JTAC >= Evac.maxExtractable[_side].JTAC then
             return true
         end
 
@@ -1084,36 +1148,36 @@ Evac._internal.doSpawns = function()
         local _addedUnits = false
 
         for _side, _rate in pairs(_rates) do
-            if not _anyOver() and _lastChecked ~= nil and _lastChecked + (math.abs(_rate.per) * _rate.period) <= timer.getTime() then
+            if not _anyOver(_side) and _lastChecked ~= nil and _lastChecked + (math.abs(_rate.per) * _rate.period) <= timer.getTime() then
                 local _units
                 if _rate.units == 0 then
                     _units = {}
-                    for i = 1, Evac.maxExtractable.Refugees do
-                        table.insert(_units, { type = "Refugee" })
+                    for i = 1, Evac.maxExtractable[_side].Generic do
+                        table.insert(_units, { type = 'Generic' })
                     end
-                    for i = 1, Evac.maxExtractable.Infantry do
-                        table.insert(_units, { type = "Infantry" })
+                    for i = 1, Evac.maxExtractable[_side].Infantry do
+                        table.insert(_units, { type = 'Infantry' })
                     end
-                    for i = 1, Evac.maxExtractable.StingerIgla do
-                        table.insert(_units, { type = "StingerIgla" })
+                    for i = 1, Evac.maxExtractable[_side].StingerIgla do
+                        table.insert(_units, { type = 'StingerIgla' })
                     end
-                    for i = 1, Evac.maxExtractable.RPG do
-                        table.insert(_units, { type = "RPG" })
+                    for i = 1, Evac.maxExtractable[_side].RPG do
+                        table.insert(_units, { type = 'RPG' })
                     end
-                    for i = 1, Evac.maxExtractable.M249 do
-                        table.insert(_units, { type = "M249" })
+                    for i = 1, Evac.maxExtractable[_side].M249 do
+                        table.insert(_units, { type = 'M249' })
                     end
-                    for i = 1, Evac.maxExtractable["2B11"] do
-                        table.insert(_units, { type = "2B11" })
+                    for i = 1, Evac.maxExtractable[_side]['2B11'] do
+                        table.insert(_units, { type = '2B11' })
                     end
-                    for i = 1, Evac.maxExtractable.JTAC do
-                        table.insert(_units, { type = "JTAC" })
+                    for i = 1, Evac.maxExtractable[_side].JTAC do
+                        table.insert(_units, { type = 'JTAC' })
                     end
                 else
                     _units = _rate.units
                 end
 
-                if type(_units) == "number" and _units < 0 then
+                if type(_units) == 'number' and _units < 0 then
                     local _spawned = #(Evac._state.extractableNow[_zone] or {})
                     local _removed = 0
 
@@ -1136,16 +1200,13 @@ Evac._internal.doSpawns = function()
                     _addedUnits = true
                 end
 
-                if type(_units) == "number" then
-                    Evac._state.spawns.alreadySpawned.Refugees = (Evac._state.spawns.alreadySpawned.Refugees or 0) + _units
-                elseif type(_units) == "table" then
+                if type(_units) == 'number' then
+                    Evac._state.spawns.alreadySpawned[_side].Generic = (Evac._state.spawns.alreadySpawned[_side].Generic or 0) + _units
+                elseif type(_units) == 'table' then
                     for _, _unit in pairs(_units) do
                         local _spawnType = _unit.type
-                        if _spawnType == "Refugee" then
-                            _spawnType = "Refugees"
-                        end
 
-                        Evac._state.spawns.alreadySpawned[_spawnType] = (Evac._state.spawns.alreadySpawned[_spawnType] or 0) + 1
+                        Evac._state.spawns.alreadySpawned[_side][_spawnType] = (Evac._state.spawns.alreadySpawned[_side][_spawnType] or 0) + 1
                     end
                 end
             end
@@ -1160,7 +1221,7 @@ Evac._internal.doSpawns = function()
         local _lastChecked = Evac._state.spawns.lastChecked[_zone]
         local _addedUnits = false
 
-        if _zone == "_global" then
+        if _zone == '_global' then
             ---@diagnostic disable-next-line: redefined-local
             for _zone, _zoneData in pairs(Evac._state.zones.evac) do
                 if _zoneData.active then
@@ -1188,12 +1249,47 @@ Evac._internal.doSpawns = function()
     Evac._state.spawns.lastChecked[0] = timer.getTime()
 end
 
--- Event handler
-function Evac:onEvent(_event)
-    Gremlin.logInfo(Evac.Id, string.format("EVENT: %s\n", mist.utils.tableShowSorted(_event)))
+-- Event handlers
+Evac._internal.handlers = {
+    logEvents = {
+        event = -1,
+        fn = function(_event)
+            Gremlin.log.info(Evac.Id, string.format('%s: %s\n', Gremlin.events.idToName[_event.id], mist.utils.tableShowSorted(_event)))
+        end,
+    },
+    fullLoss = {
+        event = world.event.S_EVENT_UNIT_LOST,
+        fn = function(_event)
+            local _unit = _event.initiator
 
-    -- // TODO
-end
+            if _unit ~= nil then
+                local _name = _unit:getName()
+                local _side = _unit:getCoalition()
+
+                if Evac._state.extractionUnits[_name] ~= nil then
+                    for _, _evacuee in pairs(Evac._state.extractionUnits[_name]) do
+                        local _type = _evacuee.type
+
+                        if _type == nil or _type == 'Generic' then
+                            _type = 'Generic'
+                        end
+
+                        Evac._state.lostEvacuees[_side][_type] = (Evac._state.lostEvacuees[_side][_type] or 0) + 1
+                    end
+
+                    Evac._state.extractionUnits[_name] = nil
+                    Evac._internal.utils.endIfLossesTooHigh()
+                end
+            end
+        end,
+    },
+    toggleZones = {
+        event = world.event.S_EVENT_TRIGGER_ZONE,
+        fn = function(_event)
+            -- // TODO
+        end,
+    }
+}
 
 --[[
 Setup Gremlin Evac! The argument should contain a configuration table as
@@ -1204,30 +1300,44 @@ Example providing all the defaults:
 ```
 Evac:setup({
     beaconBatteryLife = 30,
-    beaconSound = "beacon.ogg",
+    beaconSound = 'beacon.ogg',
     carryLimits = {
-        ["C-130"] = 90,
-        ["CH-47D"] = 44,
-        ["CH-43E"] = 55,
-        ["Mi-8MT"] = 24,
-        ["Mi-24P"] = 5,
-        ["Mi-24V"] = 5,
-        ["Mi-26"] = 70,
-        ["SH60B"] = 5,
-        ["UH-1H"] = 8,
-        ["UH-60A"] = 11,
+        ['C-130'] = 90,
+        ['CH-47D'] = 44,
+        ['CH-43E'] = 55,
+        ['Mi-8MT'] = 24,
+        ['Mi-24P'] = 5,
+        ['Mi-24V'] = 5,
+        ['Mi-26'] = 70,
+        ['SH60B'] = 5,
+        ['UH-1H'] = 8,
+        ['UH-60A'] = 11,
     },
     idStart = 500,
     loadUnloadPerIndividual = 30,
+    lossFlags = { 'GremlinEvacRedLoss', 'GremlinEvacBlueLoss' }
+    lossThresholds = { 25, 25 },
     maxExtractable = {
-        Refugees = 0,
-        Infantry = 0,
-        M249 = 0,
-        RPG = 0,
-        StingerIgla = 0,
-        ["2B11"] = 0,
-        JTAC = 0,
-        Downed = 0,
+        {
+            Generic = 0,
+            Infantry = 0,
+            M249 = 0,
+            RPG = 0,
+            StingerIgla = 0,
+            ['2B11'] = 0,
+            JTAC = 0,
+            Downed = 0,
+        },
+        {
+            Generic = 0,
+            Infantry = 0,
+            M249 = 0,
+            RPG = 0,
+            StingerIgla = 0,
+            ['2B11'] = 0,
+            JTAC = 0,
+            Downed = 0,
+        },
     },
     spawnRates = {
         _global = {
@@ -1252,11 +1362,11 @@ Evac:setup({
 called `_global` that applies to the entire map. Each value is a table of sides
 (the standard red = 1, blue = 2 approach), whose values are tables listing
 the number or composition of units to generate, and how long to wait between
-spawns. In English, it would probably be described as "{units} unit(s) every
-{per} {period}(s)". The special value 0 for `units` means "as many as allowed";
+spawns. In English, it would probably be described as '{units} unit(s) every
+{per} {period}(s)'. The special value 0 for `units` means 'as many as allowed';
 negative values actually remove evacuees according to the same rules. `period`
 should be a constant from `Gremlin.Periods`. `per` indicates how many periods
-to wait between auto spawns; the special value 0 means "mission start", while
+to wait between auto spawns; the special value 0 means 'mission start', while
 positive values run every `per` `period`s, and negative means only spawn once
 rather than repeatedly.
 
@@ -1268,47 +1378,55 @@ attached to).
 ]]
 function Evac:setup(config)
     assert(Gremlin ~= nil,
-        "\n\n** HEY MISSION-DESIGNER! **\n\nGremlin Script Tools has not been loaded!\n\nMake sure Gremlin Script Tools is running *before* running this script!\n")
+        '\n\n** HEY MISSION-DESIGNER! **\n\nGremlin Script Tools has not been loaded!\n\nMake sure Gremlin Script Tools is loaded *before* running this script!\n')
 
     if not Gremlin.alreadyInitialized or config.forceReload then
         Gremlin:setup(config)
     end
 
     if Evac._state.alreadyInitialized and not config.forceReload then
-        Gremlin.logInfo(Evac.Id, string.format("Bypassing initialization because Evac._state.alreadyInitialized = true"))
+        Gremlin.log.info(Evac.Id, string.format('Bypassing initialization because Evac._state.alreadyInitialized = true'))
         return
     end
 
-    do -- configuration
+    Gremlin.log.info(Evac.Id, string.format('Starting setup of %s version %s!', Evac.Id, Evac.Version))
+
+    if not Evac.alreadyInitialized or (config ~= nil and config.forceReload) then -- configuration
         if config == nil then
             config = {}
         end
 
         Evac.beaconBatteryLife = config.beaconBatteryLife or 30
-        Evac.beaconSound = config.beaconSound or "beacon.ogg"
+        Evac.beaconSound = config.beaconSound or 'beacon.ogg'
         Evac.carryLimits = config.carryLimits or {
-            ["C-130"] = 90,
-            ["CH-47D"] = 44,
-            ["CH-43E"] = 55,
-            ["Mi-8MT"] = 24,
-            ["Mi-24P"] = 5,
-            ["Mi-24V"] = 5,
-            ["Mi-26"] = 70,
-            ["SH60B"] = 5,
-            ["UH-1H"] = 8,
-            ["UH-60A"] = 11,
+            ['C-130'] = 90,
+            ['CH-47D'] = 44,
+            ['CH-43E'] = 55,
+            ['Mi-8MT'] = 24,
+            ['Mi-24P'] = 5,
+            ['Mi-24V'] = 5,
+            ['Mi-26'] = 70,
+            ['SH60B'] = 5,
+            ['UH-1H'] = 8,
+            ['UH-60A'] = 11,
         }
         Evac.idStart = config.idStart or 500
         Evac.loadUnloadPerIndividual = config.loadUnloadPerIndividual or 30
+        Evac.lossFlags = config.lossFlag or { 'GremlinEvacRedLoss', 'GremlinEvacBlueLoss' }
+        Evac.lossThresholds = config.lossThresholds or { 25, 25 }
 
-        if config.maxExtractable ~= nil then
-            Evac.maxExtractable.Refugees = config.maxExtractable.Refugees or 0
-            Evac.maxExtractable.Infantry = config.maxExtractable.Infantry or 0
-            Evac.maxExtractable.M249 = config.maxExtractable.M249 or 0
-            Evac.maxExtractable.RPG = config.maxExtractable.RPG or 0
-            Evac.maxExtractable.StingerIgla = config.maxExtractable.StingerIgla or 0
-            Evac.maxExtractable["2B11"] = config.maxExtractable["2B11"] or 0
-            Evac.maxExtractable.JTAC = config.maxExtractable.JTAC or 0
+        if config.maxExtractable ~= nil and #config.maxExtractable > 0 then
+            for _side, _extractable in ipairs(Evac.maxExtractable) do
+                if _extractable ~= nil then
+                    Evac.maxExtractable[_side].Generic = _extractable.Generic or 0
+                    Evac.maxExtractable[_side].Infantry = _extractable.Infantry or 0
+                    Evac.maxExtractable[_side].M249 = _extractable.M249 or 0
+                    Evac.maxExtractable[_side].RPG = _extractable.RPG or 0
+                    Evac.maxExtractable[_side].StingerIgla = _extractable.StingerIgla or 0
+                    Evac.maxExtractable[_side]['2B11'] = _extractable['2B11'] or 0
+                    Evac.maxExtractable[_side].JTAC = _extractable.JTAC or 0
+                end
+            end
         end
 
         Evac.spawnWeight = config.spawnWeight or 100
@@ -1329,18 +1447,23 @@ function Evac:setup(config)
 
         if config.startingZones ~= nil then
             for _, _zone in pairs(config.startingZones) do
-                if Evac.modeToText[_zone.mode] ~= nil then
-                    Evac.zones[Evac.modeToText[_zone.mode]].create(_zone.name, _zone.smoke, _zone.side)
+                local _mode = _zone.mode or Evac.modes.EVAC
+
+                if Evac.modeToText[_mode] ~= nil then
+                    Evac.zones[Evac.modeToText[_mode]].register(_zone.name, _zone.smoke, _zone.side)
 
                     if _zone.active then
-                        Evac.zones[Evac.modeToText[_zone.mode]].activate(_zone.name)
+                        Evac.zones[Evac.modeToText[_mode]].activate(_zone.name)
                     end
                 else
-                    Gremlin.logError("Can't find " .. Gremlin.SideToText[_zone.side] .. " zone " .. _zone.name)
+                    Gremlin.log.error("Can't find " .. Gremlin.SideToText[_zone.side] .. ' zone ' .. _zone.name)
                 end
             end
         end
     end -- configuration
+
+    trigger.action.setUserFlag(Evac.lossFlags[1], false)
+    trigger.action.setUserFlag(Evac.lossFlags[2], false)
 
     Evac._internal.beacons.generateVHFrequencies()
     Evac._internal.beacons.generateUHFrequencies()
@@ -1353,7 +1476,13 @@ function Evac:setup(config)
         timer.scheduleFunction(Evac._internal.menu.addToF10, nil, timer.getTime() + 5)
     end, nil, timer.getTime() + 1)
 
-    mist.addEventHandler(Evac._internal.onEvent)
+    for _name, _def in pairs(Evac._internal.handlers) do
+        Evac._internal.handlers[_name].id = Gremlin.events.on(_def.event, _def.fn)
+
+        Gremlin.log.debug(Evac.id, string.format('Registered %s event handler', _name))
+    end
+
+    Gremlin.log.info(Evac.Id, string.format('Finished setting up %s version %s!', Evac.Id, Evac.Version))
 
     Evac._state.alreadyInitialized = true
 end

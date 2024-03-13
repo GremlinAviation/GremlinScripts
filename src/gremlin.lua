@@ -27,81 +27,138 @@ Gremlin = {
     },
 
     -- Methods
-    logError = function(toolId, message)
-        log:error((toolId or Gremlin.Id) .. " | " .. message)
-    end,
-    logWarn = function(toolId, message)
-        log:warn((toolId or Gremlin.Id) .. " | " .. message)
-    end,
-    logInfo = function(toolId, message)
-        log:info((toolId or Gremlin.Id) .. " | " .. message)
-    end,
-    logDebug = function(toolId, message)
-        if message and Gremlin.Debug then
-            log:info((toolId or Gremlin.Id) .. " | " .. message)
-        end
-    end,
-    logTrace = function(toolId, message)
-        if message and Gremlin.Trace then
-            log:info((toolId or Gremlin.Id) .. " | " .. message)
-        end
-    end,
-    displayMessageTo = function(_name, _text, _time)
-        if _name == "all" or _name == nil then
-            trigger.action.outText(_text, _time)
-        elseif coalition.side[_name] ~= nil then
-            trigger.action.outTextForCoalition(coalition.side[_name], _text, _time)
-        elseif country.by_country[_name] ~= nil then
-            trigger.action.outTextForCountry(country.by_country[_name].WorldID, _text, _time)
-        elseif type(_name) == "table" and _name.className_ == "Group" then
-            trigger.action.outTextForGroup(_name:getID(), _text, _time)
-        elseif mist.DBs.groupsByName[_name] ~= nil then
-            trigger.action.outTextForGroup(mist.DBs.groupsByName[_name]:getID(), _text, _time)
-        elseif type(_name) == "table" and _name.className_ == "Unit" then
-            trigger.action.outTextForUnit(_name:getID(), _text, _time)
-        elseif mist.DBs.unitsByName[_name] ~= nil then
-            trigger.action.outTextForUnit(mist.DBs.unitsByName[_name]:getID(), _text, _time)
-        else
-            Gremlin.logError(Gremlin.Id, "Can't find object named " .. tostring(_name) .. " to display message to!\nMessage was: " .. _text)
-        end
-    end,
-    parseFuncArgs = function (_args, _objs)
-        local _out = {}
-        for _, _arg in pairs(_args) do
-            if type(_arg) == "string" then
-                if string.sub(_arg, 1, 7) == "{unit}:" then
-                    local _key = string.sub(_arg, 8)
+    events = {
+        idToName = {},
+        _handlers = {},
+        on = function(_eventId, _fn)
+            if Gremlin.events._handlers[_eventId] == nil then
+                Gremlin.events._handlers[_eventId] = {}
+            end
 
-                    table.insert(_out, _objs.unit[_key])
-                elseif string.sub(_arg, 1, 8) == "{group}:" then
-                    local _key = string.sub(_arg, 9)
+            table.insert(Gremlin.events._handlers[_eventId], _fn)
 
-                    table.insert(_out, _objs.group[_key])
+            return #Gremlin.events._handlers[_eventId]
+        end,
+        off = function(_eventId, _index)
+            if Gremlin.events._handlers[_eventId] ~= nil and #Gremlin.events._handlers[_eventId] >= 0 then
+                Gremlin.events._handlers[_eventId][_index] = nil
+            end
+        end,
+        _handler = function(_event)
+            for _, _handler in pairs(Gremlin.utils.mergeTables(Gremlin.events._handlers[_event.id] or {}, Gremlin.events._handlers[-1] or {})) do
+                _handler(_event)
+            end
+        end,
+    },
+    log = {
+        error = function(toolId, message)
+            local _toolId = toolId
+            local _message = message
+            if _message == nil then
+                _toolId = Gremlin.Id
+                _message = toolId
+            end
+            env.error(_toolId .. " | " .. tostring(message))
+        end,
+        warn = function(toolId, message)
+            local _toolId = toolId
+            local _message = message
+            if _message == nil then
+                _toolId = Gremlin.Id
+                _message = toolId
+            end
+            env.warning(_toolId .. " | " .. tostring(message))
+        end,
+        info = function(toolId, message)
+            local _toolId = toolId
+            local _message = message
+            if _message == nil then
+                _toolId = Gremlin.Id
+                _message = toolId
+            end
+            env.info(_toolId .. " | " .. tostring(message))
+        end,
+        debug = function(toolId, message)
+            if Gremlin.Debug then
+                local _toolId = toolId
+                local _message = message
+                if _message == nil then
+                    _toolId = Gremlin.Id
+                    _message = toolId
+                end
+                env.info("DEBUG: " .. _toolId .. " | " .. tostring(message))
+            end
+        end,
+        trace = function(toolId, message)
+            if Gremlin.Trace then
+                local _toolId = toolId
+                local _message = message
+                if _message == nil then
+                    _toolId = Gremlin.Id
+                    _message = toolId
+                end
+                env.info("TRACE: " .. _toolId .. " | " .. tostring(message))
+            end
+        end,
+    },
+    utils = {
+        displayMessageTo = function(_name, _text, _time)
+            if _name == "all" or _name == nil then
+                trigger.action.outText(_text, _time)
+            elseif coalition.side[_name] ~= nil then
+                trigger.action.outTextForCoalition(coalition.side[_name], _text, _time)
+            elseif country.by_country[_name] ~= nil then
+                trigger.action.outTextForCountry(country.by_country[_name].WorldID, _text, _time)
+            elseif type(_name) == "table" and _name.className_ == "Group" then
+                trigger.action.outTextForGroup(_name:getID(), _text, _time)
+            elseif mist.DBs.groupsByName[_name] ~= nil then
+                trigger.action.outTextForGroup(mist.DBs.groupsByName[_name]:getID(), _text, _time)
+            elseif type(_name) == "table" and _name.className_ == "Unit" then
+                trigger.action.outTextForUnit(_name:getID(), _text, _time)
+            elseif mist.DBs.unitsByName[_name] ~= nil then
+                trigger.action.outTextForUnit(mist.DBs.unitsByName[_name]:getID(), _text, _time)
+            else
+                Gremlin.log.error(Gremlin.Id, "Can't find object named " .. tostring(_name) .. " to display message to!\nMessage was: " .. _text)
+            end
+        end,
+        parseFuncArgs = function (_args, _objs)
+            local _out = {}
+            for _, _arg in pairs(_args) do
+                if type(_arg) == "string" then
+                    if string.sub(_arg, 1, 7) == "{unit}:" then
+                        local _key = string.sub(_arg, 8)
+
+                        table.insert(_out, _objs.unit[_key])
+                    elseif string.sub(_arg, 1, 8) == "{group}:" then
+                        local _key = string.sub(_arg, 9)
+
+                        table.insert(_out, _objs.group[_key])
+                    else
+                        table.insert(_out, _arg)
+                    end
                 else
                     table.insert(_out, _arg)
                 end
-            else
-                table.insert(_out, _arg)
             end
-        end
 
-        return _out
-    end,
-    mergeTables = function (...)
-        local tbl1 = {}
+            return _out
+        end,
+        mergeTables = function (...)
+            local tbl1 = {}
 
-        for _, tbl2 in pairs({...}) do
-            for k, v in pairs(tbl2) do
-                if type(k) == "number" then
-                    table.insert(tbl1, v)
-                else
-                    tbl1[k] = v
+            for _, tbl2 in pairs({...}) do
+                for k, v in pairs(tbl2) do
+                    if type(k) == "number" then
+                        table.insert(tbl1, v)
+                    else
+                        tbl1[k] = v
+                    end
                 end
             end
-        end
 
-        return tbl1
-    end,
+            return tbl1
+        end,
+    },
 }
 
 function Gremlin:setup(config)
@@ -109,7 +166,7 @@ function Gremlin:setup(config)
         "\n\n** HEY MISSION-DESIGNER! **\n\nMission Script Tools (MiST) has not been loaded!\n\nMake sure MiST is running *before* running this script!\n")
 
     if Gremlin.alreadyInitialized and not config.forceReload then
-        Gremlin.logInfo(Gremlin.Id, string.format("Bypassing initialization because Gremlin.alreadyInitialized = true"))
+        Gremlin.log.info(Gremlin.Id, string.format("Bypassing initialization because Gremlin.alreadyInitialized = true"))
         return
     end
 
@@ -137,7 +194,13 @@ function Gremlin:setup(config)
         end
     end
 
+    for _name, _id in pairs(world.event) do
+        Gremlin.events.idToName[_id] = _name
+    end
+
     log = mist.Logger:new("Gremlin Scripts", _level)
+
+    mist.addEventHandler(Gremlin.events._handler)
 
     Gremlin.alreadyInitialized = true
 end

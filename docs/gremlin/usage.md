@@ -6,11 +6,11 @@ Gremlin Script Tools is an abstraction framework built on MiST. It doesn't do mu
 ```lua,editable
 Gremlin:setup()
 
-Gremlin.logInfo('My Cool DCS Script', 'Starting up!')
+Gremlin.log.info('My Cool DCS Script', 'Starting up!')
 
-Gremlin.displayMessageTo('test', 'Hullabaloo!', timer.getTime() + 1)
+Gremlin.utils.displayMessageTo('test', 'Hullabaloo!', timer.getTime() + 1)
 
-local myArgs = Gremlin.parseFuncArgs({ '{unit}:test', '{group}:test', timer.getTime() }, {
+local myArgs = Gremlin.utils.parseFuncArgs({ '{unit}:test', '{group}:test', timer.getTime() }, {
     unit = {
         test: Unit:getByName('test'),
     },
@@ -19,7 +19,7 @@ local myArgs = Gremlin.parseFuncArgs({ '{unit}:test', '{group}:test', timer.getT
     },
 })
 
-local mergedList = Gremlin.mergeTables(list1, list2, list3)
+local mergedList = Gremlin.utils.mergeTables(list1, list2, list3)
 ```
 
 Clearly, the above script doesn't actually _do_ anything, besides show some of how the framework can be used. The [function documentation](./functions.md) will be more helpful when building scripts that actually do things.

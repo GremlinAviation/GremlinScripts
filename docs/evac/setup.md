@@ -12,8 +12,10 @@ Evac:setup({
     },
     idStart = 5,
     loadUnloadPerIndividual = 2,
+    lossFlags = { 'GremlinEvacRedLoss', 'GremlinEvacBlueLoss' }
+    lossThresholds = { 25, 25 },
     maxExtractable = {
-        Refugees = 12,
+        Generic = 12,
         Infantry = 12,
         M249 = 12,
         RPG = 12,
@@ -54,6 +56,12 @@ Evac:setup({
 
 - `loadUnloadPerIndividual`: The amount of time it takes to load/unload a single evacuee onto/from an aircraft, in seconds
   - Default: `30`
+
+- `lossFlags`: Flags to tell the Mission Editor that one side or the other (or both!) has lost
+  - Default: `{ 'GremlinEvacRedLoss', 'GremlinEvacBlueLoss' }`
+
+- `lossThresholds`: The maximum percentage of evacuees that can be lost from any side
+  - Default: `{ 25, 25 }`
 
 - `maxExtractable`: Provides a cap for automatically generated evacuees, by type; the script won't create more than allowed here
   - Default: `0` for everything

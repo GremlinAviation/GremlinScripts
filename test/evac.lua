@@ -1,42 +1,47 @@
-local lu = require("luaunit_3_4")
-local inspect = require("inspect")
-local Spy = require("lib.mock.Spy")
+local lu = require('luaunit_3_4')
+local inspect = require('inspect')
+local Spy = require('lib.mock.Spy')
 
 table.unpack = table.unpack or unpack
 unpack = table.unpack
 
-require("mocks.DCS")
-require("mist_4_5_122")
-require("gremlin")
-require("evac")
+require('mocks.DCS')
+require('mist_4_5_122')
+require('gremlin')
+require('evac')
 
 mist.scheduleFunction = Spy(mist.scheduleFunction)
+Gremlin.log.error = Spy(Gremlin.log.error)
+Gremlin.log.warn = Spy(Gremlin.log.warn)
+Gremlin.log.info = Spy(Gremlin.log.info)
+Gremlin.log.debug = Spy(Gremlin.log.debug)
+Gremlin.log.trace = Spy(Gremlin.log.trace)
 
 Gremlin:setup()
 
-local _testUnit = { className_ = "Unit", groupName = "Evacuee Group 2", type = "UH-1H", unitName = "test", unitId = 1, point = { x = 0, y = 0, z = 0 } }
+local _testUnit = { className_ = 'Unit', groupName = 'Evacuee Group 2', type = 'UH-1H', unitName = 'test', unitId = 1, point = { x = 0, y = 0, z = 0 } }
 ---@diagnostic disable-next-line: undefined-global
 class(_testUnit, Unit)
-local _testGroup = { className_ = "Group", groupName = "Evacuee Group 2", groupId = 7, units = { _testUnit } }
+local _testGroup = { className_ = 'Group', groupName = 'Evacuee Group 2', groupId = 7, units = { _testUnit } }
 ---@diagnostic disable-next-line: undefined-global
 class(_testGroup, Group)
 
 local setUp = function()
-    mist.DBs.groupsByName["Evacuee Group 2"] = _testGroup
+    mist.DBs.groupsByName['Evacuee Group 2'] = _testGroup
     mist.DBs.MEgroupsByName = mist.DBs.groupsByName
-    mist.DBs.unitsByName["test"] = _testUnit
+    mist.DBs.unitsByName['test'] = _testUnit
     mist.DBs.MEunitsByName = mist.DBs.unitsByName
-    mist.DBs.units = { [2] = { [2] = { ["UH-1H"] = { { units = { _testUnit } } } } } }
+    mist.DBs.units = { [2] = { [2] = { ['UH-1H'] = { { units = { _testUnit } } } } } }
 
-    Evac.maxExtractable.Refugees = 250
+    Evac.maxExtractable[2].Generic = 250
     Evac.spawnRates = { _global = {
         { units = 0, per = 0, period = Gremlin.Periods.Second },
         { units = 0, per = 0, period = Gremlin.Periods.Second },
     } }
-    Evac.zones.evac.register("test", trigger.smokeColor.Green, 2)
-    Evac._state.extractableNow["test"] = { [_testUnit.unitName] = _testUnit }
-    Evac._state.extractionUnits["test"] = {
-        test = { name = "test", type = "Refugee", side = 2, text = "Evacuee: Refugee #1", unitId = 1 },
+    Evac.zones.evac.register('test', trigger.smokeColor.Green, 2)
+    Evac._state.extractableNow['test'] = { [_testUnit.unitName] = _testUnit }
+    Evac._state.extractionUnits['test'] = {
+        test = { name = 'test', type = 'Generic', side = 2, text = 'Evacuee: Generic #1', unitId = 1 },
     }
 
     table.insert(Evac._state.frequencies.vhf.free, 840000)
@@ -46,18 +51,30 @@ end
 
 local tearDown = function()
     Evac.beaconBatteryLife = 0
-    Evac.beaconSound = ""
+    Evac.beaconSound = ''
     Evac.carryLimits = {}
     Evac.idStart = 0
     Evac.loadUnloadPerIndividual = 0
+    Evac.lossFlags = { 0, 0 }
     Evac.maxExtractable = {
-        Refugees = 0,
-        Infantry = 0,
-        M249 = 0,
-        RPG = 0,
-        StingerIgla = 0,
-        ["2B11"] = 0,
-        JTAC = 0,
+        {
+            Generic = 0,
+            Infantry = 0,
+            M249 = 0,
+            RPG = 0,
+            StingerIgla = 0,
+            ['2B11'] = 0,
+            JTAC = 0,
+        },
+        {
+            Generic = 0,
+            Infantry = 0,
+            M249 = 0,
+            RPG = 0,
+            StingerIgla = 0,
+            ['2B11'] = 0,
+            JTAC = 0,
+        },
     }
     Evac.spawnRates = {}
     Evac.spawnWeight = 0
@@ -69,27 +86,43 @@ local tearDown = function()
     Evac._state.frequencies.uhf = { free = {}, used = {} }
     Evac._state.frequencies.fm = { free = {}, used = {} }
 
-    Evac._state.extractionUnits["test"] = nil
-    Evac._state.extractableNow["test"] = {}
+    Evac._state.extractionUnits['test'] = nil
+    Evac._state.extractableNow['test'] = {}
     Evac._state.zones.evac = {}
     Evac._state.spawns.alreadySpawned = {
-        Refugees = 0,
-        Infantry = 0,
-        ["2B11"] = 0,
-        StingerIgla = 0,
-        RPG = 0,
-        M249 = 0,
-        JTAC = 0,
+        {
+            Generic = 0,
+            Infantry = 0,
+            ['2B11'] = 0,
+            StingerIgla = 0,
+            RPG = 0,
+            M249 = 0,
+            JTAC = 0,
+        },
+        {
+            Generic = 0,
+            Infantry = 0,
+            ['2B11'] = 0,
+            StingerIgla = 0,
+            RPG = 0,
+            M249 = 0,
+            JTAC = 0,
+        },
     }
     Evac._state.spawns.lastChecked = {}
 
     mist.DBs.units = {}
-    mist.DBs.unitsByName["test"] = nil
+    mist.DBs.unitsByName['test'] = nil
     mist.DBs.MEunitsByName = mist.DBs.unitsByName
-    mist.DBs.groupsByName["Evacuee Group 2"] = nil
+    mist.DBs.groupsByName['Evacuee Group 2'] = nil
     mist.DBs.MEgroupsByName = mist.DBs.groupsByName
 
     mist.scheduleFunction:reset()
+    Gremlin.log.error:reset()
+    Gremlin.log.warn:reset()
+    Gremlin.log.info:reset()
+    Gremlin.log.debug:reset()
+    Gremlin.log.trace:reset()
     trigger.action.setUnitInternalCargo:reset()
     trigger.action.outText:reset()
     trigger.action.outTextForCoalition:reset()
@@ -101,49 +134,49 @@ end
 Test0ZonesEvac = {
     setUp = setUp,
     test0Register = function()
-        lu.assertEquals(Evac._state.zones.evac, { test = { active = false, mode = 1, name = "test", side = 2, smoke = 0 } })
-        lu.assertEquals(Evac.zones.evac.register("test2", trigger.smokeColor.Orange, 1), nil)
+        lu.assertEquals(Evac._state.zones.evac, { test = { active = false, mode = 1, name = 'test', side = 2, smoke = 0 } })
+        lu.assertEquals(Evac.zones.evac.register('test2', trigger.smokeColor.Orange, 1), nil)
         lu.assertEquals(Evac._state.zones.evac, {
-            test = { active = false, mode = 1, name = "test", side = 2, smoke = 0 },
-            test2 = { active = false, mode = 1, name = "test2", side = 1, smoke = 3 },
+            test = { active = false, mode = 1, name = 'test', side = 2, smoke = 0 },
+            test2 = { active = false, mode = 1, name = 'test2', side = 1, smoke = 3 },
         })
     end,
     test1Activate = function()
-        lu.assertEquals(Evac._state.zones.evac, { test = { active = false, mode = 1, name = "test", side = 2, smoke = 0 } })
-        lu.assertEquals(Evac.zones.evac.activate("test"), nil)
-        lu.assertEquals(Evac._state.zones.evac, { test = { active = true, mode = 1, name = "test", side = 2, smoke = 0 } })
+        lu.assertEquals(Evac._state.zones.evac, { test = { active = false, mode = 1, name = 'test', side = 2, smoke = 0 } })
+        lu.assertEquals(Evac.zones.evac.activate('test'), nil)
+        lu.assertEquals(Evac._state.zones.evac, { test = { active = true, mode = 1, name = 'test', side = 2, smoke = 0 } })
     end,
     test2SetRemainingNumber = function()
-        lu.assertEquals(Evac._state.extractableNow["test"], { [_testUnit.unitName] = _testUnit })
-        lu.assertEquals(Evac.zones.evac.setRemaining("test", 2, 2, 1), nil)
-        lu.assertEquals(Evac._state.extractableNow["test"],
-            { ["Evacuee: Refugee #2"] = { unitName = "Evacuee: Refugee #2", type = "Refugee", unitId = 2, weight = 0 } })
+        lu.assertEquals(Evac._state.extractableNow['test'], { [_testUnit.unitName] = _testUnit })
+        lu.assertEquals(Evac.zones.evac.setRemaining('test', 2, 2, 1), nil)
+        lu.assertEquals(Evac._state.extractableNow['test'],
+            { ['Evacuee: Generic #2'] = { unitName = 'Evacuee: Generic #2', type = 'Generic', unitId = 2, weight = 0 } })
     end,
     test3SetRemainingComposition = function()
-        lu.assertEquals(Evac._state.extractableNow["test"], { [_testUnit.unitName] = _testUnit })
-        lu.assertEquals(Evac.zones.evac.setRemaining("test", 2, 2, { {} }), nil)
-        lu.assertEquals(Evac._state.extractableNow["test"],
-            { ["Evacuee: Refugee #3"] = { unitName = "Evacuee: Refugee #3", type = "Refugee", unitId = 3, weight = 0 } })
+        lu.assertEquals(Evac._state.extractableNow['test'], { [_testUnit.unitName] = _testUnit })
+        lu.assertEquals(Evac.zones.evac.setRemaining('test', 2, 2, { {} }), nil)
+        lu.assertEquals(Evac._state.extractableNow['test'],
+            { ['Evacuee: Generic #3'] = { unitName = 'Evacuee: Generic #3', type = 'Generic', unitId = 3, weight = 0 } })
     end,
     test4Count = function()
-        lu.assertEquals(Evac._state.extractableNow["test"], { [_testUnit.unitName] = _testUnit })
-        lu.assertEquals(Evac.zones.evac.count("test"), 1)
+        lu.assertEquals(Evac._state.extractableNow['test'], { [_testUnit.unitName] = _testUnit })
+        lu.assertEquals(Evac.zones.evac.count('test'), 1)
     end,
     test5IsIn = function()
-        lu.assertEquals(Evac.zones.evac.activate("test"), nil)
-        lu.assertEquals(Evac._state.extractableNow["test"], { [_testUnit.unitName] = _testUnit })
-        lu.assertEquals(Evac.zones.evac.isIn("test"), true)
-        lu.assertEquals(Evac.zones.evac.isIn("Evacuee: Refugee #710"), false)
+        lu.assertEquals(Evac.zones.evac.activate('test'), nil)
+        lu.assertEquals(Evac._state.extractableNow['test'], { [_testUnit.unitName] = _testUnit })
+        lu.assertEquals(Evac.zones.evac.isIn('test'), true)
+        lu.assertEquals(Evac.zones.evac.isIn('Evacuee: Generic #710'), false)
     end,
     test6Deactivate = function()
-        lu.assertEquals(Evac.zones.evac.activate("test"), nil)
-        lu.assertEquals(Evac._state.zones.evac, { test = { active = true, mode = 1, name = "test", side = 2, smoke = 0 } })
-        lu.assertEquals(Evac.zones.evac.deactivate("test"), nil)
-        lu.assertEquals(Evac._state.zones.evac, { test = { active = false, mode = 1, name = "test", side = 2, smoke = 0 } })
+        lu.assertEquals(Evac.zones.evac.activate('test'), nil)
+        lu.assertEquals(Evac._state.zones.evac, { test = { active = true, mode = 1, name = 'test', side = 2, smoke = 0 } })
+        lu.assertEquals(Evac.zones.evac.deactivate('test'), nil)
+        lu.assertEquals(Evac._state.zones.evac, { test = { active = false, mode = 1, name = 'test', side = 2, smoke = 0 } })
     end,
     test7Unregister = function()
-        lu.assertEquals(Evac._state.zones.evac, { test = { active = false, mode = 1, name = "test", side = 2, smoke = 0 } })
-        lu.assertEquals(Evac.zones.evac.unregister("test"), nil)
+        lu.assertEquals(Evac._state.zones.evac, { test = { active = false, mode = 1, name = 'test', side = 2, smoke = 0 } })
+        lu.assertEquals(Evac.zones.evac.unregister('test'), nil)
         lu.assertEquals(Evac._state.zones.evac, {})
     end,
     tearDown = tearDown,
@@ -153,43 +186,43 @@ Test1ZonesRelay = {
     setUp = setUp,
     test0Register = function()
         lu.assertEquals(Evac._state.zones.relay, {})
-        lu.assertEquals(Evac.zones.relay.register("test", trigger.smokeColor.Green, 2), nil)
-        lu.assertEquals(Evac._state.zones.relay, { test = { active = false, mode = 3, name = "test", side = 2, smoke = 0 } })
+        lu.assertEquals(Evac.zones.relay.register('test', trigger.smokeColor.Green, 2), nil)
+        lu.assertEquals(Evac._state.zones.relay, { test = { active = false, mode = 3, name = 'test', side = 2, smoke = 0 } })
     end,
     test1Activate = function()
-        lu.assertEquals(Evac._state.zones.relay, { test = { active = false, mode = 3, name = "test", side = 2, smoke = 0 } })
-        lu.assertEquals(Evac.zones.relay.activate("test"), nil)
-        lu.assertEquals(Evac._state.zones.relay, { test = { active = true, mode = 3, name = "test", side = 2, smoke = 0 } })
+        lu.assertEquals(Evac._state.zones.relay, { test = { active = false, mode = 3, name = 'test', side = 2, smoke = 0 } })
+        lu.assertEquals(Evac.zones.relay.activate('test'), nil)
+        lu.assertEquals(Evac._state.zones.relay, { test = { active = true, mode = 3, name = 'test', side = 2, smoke = 0 } })
     end,
     test2SetRemainingNumber = function()
-        lu.assertEquals(Evac._state.extractableNow["test"], { [_testUnit.unitName] = _testUnit })
-        lu.assertEquals(Evac.zones.relay.setRemaining("test", 2, 2, 1), nil)
-        lu.assertEquals(Evac._state.extractableNow["test"],
-            { ["Evacuee: Refugee #4"] = { unitName = "Evacuee: Refugee #4", type = "Refugee", unitId = 4, weight = 0 } })
+        lu.assertEquals(Evac._state.extractableNow['test'], { [_testUnit.unitName] = _testUnit })
+        lu.assertEquals(Evac.zones.relay.setRemaining('test', 2, 2, 1), nil)
+        lu.assertEquals(Evac._state.extractableNow['test'],
+            { ['Evacuee: Generic #4'] = { unitName = 'Evacuee: Generic #4', type = 'Generic', unitId = 4, weight = 0 } })
     end,
     test3SetRemainingComposition = function()
-        lu.assertEquals(Evac._state.extractableNow["test"], { [_testUnit.unitName] = _testUnit })
-        lu.assertEquals(Evac.zones.relay.setRemaining("test", 2, 2, { {} }), nil)
-        lu.assertEquals(Evac._state.extractableNow["test"],
-            { ["Evacuee: Refugee #5"] = { unitName = "Evacuee: Refugee #5", type = "Refugee", unitId = 5, weight = 0 } })
+        lu.assertEquals(Evac._state.extractableNow['test'], { [_testUnit.unitName] = _testUnit })
+        lu.assertEquals(Evac.zones.relay.setRemaining('test', 2, 2, { {} }), nil)
+        lu.assertEquals(Evac._state.extractableNow['test'],
+            { ['Evacuee: Generic #5'] = { unitName = 'Evacuee: Generic #5', type = 'Generic', unitId = 5, weight = 0 } })
     end,
     test4Count = function()
-        lu.assertEquals(Evac._state.extractableNow["test"], { [_testUnit.unitName] = _testUnit })
-        lu.assertEquals(Evac.zones.relay.count("test"), 1)
+        lu.assertEquals(Evac._state.extractableNow['test'], { [_testUnit.unitName] = _testUnit })
+        lu.assertEquals(Evac.zones.relay.count('test'), 1)
     end,
     test5IsIn = function()
-        lu.assertEquals(Evac._state.extractableNow["test"], { [_testUnit.unitName] = _testUnit })
-        lu.assertEquals(Evac.zones.relay.isIn("test"), true)
-        lu.assertEquals(Evac.zones.relay.isIn("Evacuee: Refugee #710"), false)
+        lu.assertEquals(Evac._state.extractableNow['test'], { [_testUnit.unitName] = _testUnit })
+        lu.assertEquals(Evac.zones.relay.isIn('test'), true)
+        lu.assertEquals(Evac.zones.relay.isIn('Evacuee: Generic #710'), false)
     end,
     test6Deactivate = function()
-        lu.assertEquals(Evac._state.zones.relay, { test = { active = true, mode = 3, name = "test", side = 2, smoke = 0 } })
-        lu.assertEquals(Evac.zones.relay.deactivate("test"), nil)
-        lu.assertEquals(Evac._state.zones.relay, { test = { active = false, mode = 3, name = "test", side = 2, smoke = 0 } })
+        lu.assertEquals(Evac._state.zones.relay, { test = { active = true, mode = 3, name = 'test', side = 2, smoke = 0 } })
+        lu.assertEquals(Evac.zones.relay.deactivate('test'), nil)
+        lu.assertEquals(Evac._state.zones.relay, { test = { active = false, mode = 3, name = 'test', side = 2, smoke = 0 } })
     end,
     test7Unregister = function()
-        lu.assertEquals(Evac._state.zones.relay, { test = { active = false, mode = 3, name = "test", side = 2, smoke = 0 } })
-        lu.assertEquals(Evac.zones.relay.unregister("test"), nil)
+        lu.assertEquals(Evac._state.zones.relay, { test = { active = false, mode = 3, name = 'test', side = 2, smoke = 0 } })
+        lu.assertEquals(Evac.zones.relay.unregister('test'), nil)
         lu.assertEquals(Evac._state.zones.relay, {})
     end,
     tearDown = tearDown,
@@ -199,31 +232,31 @@ Test2ZonesSafe = {
     setUp = setUp,
     test0Register = function()
         lu.assertEquals(Evac._state.zones.safe, {})
-        lu.assertEquals(Evac.zones.safe.register("test", trigger.smokeColor.Green, 2), nil)
-        lu.assertEquals(Evac._state.zones.safe, { test = { active = false, mode = 2, name = "test", side = 2, smoke = 0 } })
+        lu.assertEquals(Evac.zones.safe.register('test', trigger.smokeColor.Green, 2), nil)
+        lu.assertEquals(Evac._state.zones.safe, { test = { active = false, mode = 2, name = 'test', side = 2, smoke = 0 } })
     end,
     test1Activate = function()
-        lu.assertEquals(Evac._state.zones.safe, { test = { active = false, mode = 2, name = "test", side = 2, smoke = 0 } })
-        lu.assertEquals(Evac.zones.safe.activate("test"), nil)
-        lu.assertEquals(Evac._state.zones.safe, { test = { active = true, mode = 2, name = "test", side = 2, smoke = 0 } })
+        lu.assertEquals(Evac._state.zones.safe, { test = { active = false, mode = 2, name = 'test', side = 2, smoke = 0 } })
+        lu.assertEquals(Evac.zones.safe.activate('test'), nil)
+        lu.assertEquals(Evac._state.zones.safe, { test = { active = true, mode = 2, name = 'test', side = 2, smoke = 0 } })
     end,
     test2Count = function()
-        lu.assertEquals(Evac._state.extractableNow["test"], { [_testUnit.unitName] = _testUnit })
-        lu.assertEquals(Evac.zones.safe.count("test"), 1)
+        lu.assertEquals(Evac._state.extractableNow['test'], { [_testUnit.unitName] = _testUnit })
+        lu.assertEquals(Evac.zones.safe.count('test'), 1)
     end,
     test3IsIn = function()
-        lu.assertEquals(Evac._state.extractableNow["test"], { [_testUnit.unitName] = _testUnit })
-        lu.assertEquals(Evac.zones.safe.isIn("test"), true)
-        lu.assertEquals(Evac.zones.safe.isIn("Evacuee: Refugee #710"), false)
+        lu.assertEquals(Evac._state.extractableNow['test'], { [_testUnit.unitName] = _testUnit })
+        lu.assertEquals(Evac.zones.safe.isIn('test'), true)
+        lu.assertEquals(Evac.zones.safe.isIn('Evacuee: Generic #710'), false)
     end,
     test4Deactivate = function()
-        lu.assertEquals(Evac._state.zones.safe, { test = { active = true, mode = 2, name = "test", side = 2, smoke = 0 } })
-        lu.assertEquals(Evac.zones.safe.deactivate("test"), nil)
-        lu.assertEquals(Evac._state.zones.safe, { test = { active = false, mode = 2, name = "test", side = 2, smoke = 0 } })
+        lu.assertEquals(Evac._state.zones.safe, { test = { active = true, mode = 2, name = 'test', side = 2, smoke = 0 } })
+        lu.assertEquals(Evac.zones.safe.deactivate('test'), nil)
+        lu.assertEquals(Evac._state.zones.safe, { test = { active = false, mode = 2, name = 'test', side = 2, smoke = 0 } })
     end,
     test5Unregister = function()
-        lu.assertEquals(Evac._state.zones.safe, { test = { active = false, mode = 2, name = "test", side = 2, smoke = 0 } })
-        lu.assertEquals(Evac.zones.safe.unregister("test"), nil)
+        lu.assertEquals(Evac._state.zones.safe, { test = { active = false, mode = 2, name = 'test', side = 2, smoke = 0 } })
+        lu.assertEquals(Evac.zones.safe.unregister('test'), nil)
         lu.assertEquals(Evac._state.zones.safe, {})
     end,
     tearDown = tearDown,
@@ -232,52 +265,52 @@ Test2ZonesSafe = {
 Test3Units = {
     setUp = setUp,
     test0FindEvacuees = function()
-        local _args = { mist.DBs.unitsByName["test"]:getGroup():getID(), "No Active Radio Beacons", 20 }
+        local _args = { mist.DBs.unitsByName['test']:getGroup():getID(), 'No Active Radio Beacons', 20 }
 
         trigger.action.outTextForGroup:whenCalled({ with = _args, thenReturn = nil })
 
-        lu.assertEquals(Evac.units.findEvacuees("test"), nil)
+        lu.assertEquals(Evac.units.findEvacuees('test'), nil)
 
         local _status, _result = pcall(
             trigger.action.outTextForGroup.assertAnyCallMatches,
             trigger.action.outTextForGroup,
             { arguments = _args }
         )
-        lu.assertEquals(_status, true, string.format("%s\n%s", inspect(_result), inspect(trigger.action.outTextForGroup.spy.calls)))
+        lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(trigger.action.outTextForGroup.spy.calls)))
     end,
     test1LoadEvacuees = function()
-        local _args = { mist.DBs.unitsByName["test"]:getID(), "Already full! Unload, first!", timer.getTime() + 5 }
+        local _args = { mist.DBs.unitsByName['test']:getID(), 'Already full! Unload, first!', timer.getTime() + 5 }
 
         trigger.action.outTextForUnit:whenCalled({ with = _args, thenReturn = nil })
 
-        lu.assertEquals(Evac.units.loadEvacuees("test"), nil)
+        lu.assertEquals(Evac.units.loadEvacuees('test'), nil)
 
         local _status, _result = pcall(
             trigger.action.outTextForUnit.assertAnyCallMatches,
             trigger.action.outTextForUnit,
             { arguments = _args }
         )
-        lu.assertEquals(_status, true, string.format("%s\n%s", inspect(_result), inspect(trigger.action.outTextForUnit.spy.calls)))
+        lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(trigger.action.outTextForUnit.spy.calls)))
     end,
     test2UnloadEvacuees = function()
-        lu.assertEquals(Evac.units.unloadEvacuees("test"), nil)
+        lu.assertEquals(Evac.units.unloadEvacuees('test'), nil)
     end,
     test3CountEvacuees = function()
-        local _args = { mist.DBs.unitsByName["test"]:getID(), "You are currently carrying 0 evacuees.", timer.getTime() + 5 }
+        local _args = { mist.DBs.unitsByName['test']:getID(), 'You are currently carrying 0 evacuees.', timer.getTime() + 5 }
 
         trigger.action.outTextForUnit:whenCalled({ with = _args, thenReturn = nil })
 
-        lu.assertEquals(Evac.units.countEvacuees("test"), nil)
+        lu.assertEquals(Evac.units.countEvacuees('test'), nil)
 
         local _status, _result = pcall(
             trigger.action.outTextForUnit.assertAnyCallMatches,
             trigger.action.outTextForUnit,
             { arguments = _args }
         )
-        lu.assertEquals(_status, true, string.format("%s\n%s", inspect(_result), inspect(trigger.action.outTextForUnit.spy.calls)))
+        lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(trigger.action.outTextForUnit.spy.calls)))
     end,
     test4Count = function()
-        lu.assertEquals(Evac.units.count("test"), 1)
+        lu.assertEquals(Evac.units.count('test'), 1)
     end,
     tearDown = tearDown,
 }
@@ -285,65 +318,65 @@ Test3Units = {
 Test4Groups = {
     setUp = setUp,
     test0SpawnNumber = function()
-        lu.assertAlmostEquals(Evac.groups.spawn(2, 2, 2, "test", 5), {
+        lu.assertAlmostEquals(Evac.groups.spawn(2, 2, 2, 'test', 5), {
             visible = false,
             hidden = false,
             units = {
                 {
                     heading = 0,
-                    name = "Evacuee: Refugee #6",
+                    name = 'Evacuee: Generic #6',
                     playerCanDrive = false,
-                    skill = "Excellent",
-                    type = "Refugee",
+                    skill = 'Excellent',
+                    type = 'Generic',
                     unitId = 6,
                     x = -28,
                     y = 1
                 },
                 {
                     heading = 0,
-                    name = "Evacuee: Refugee #8",
+                    name = 'Evacuee: Generic #8',
                     playerCanDrive = false,
-                    skill = "Excellent",
-                    type = "Refugee",
+                    skill = 'Excellent',
+                    type = 'Generic',
                     unitId = 8,
                     x = -26,
                     y = 2
                 },
             },
-            name = "Evacuee Group 6",
+            name = 'Evacuee Group 6',
             groupId = 6,
             category = Group.Category.GROUND,
             country = 2,
         }, 25)
     end,
     test1SpawnComposition = function()
-        lu.assertAlmostEquals(Evac.groups.spawn(2, { {} }, 2, "test", 5), {
+        lu.assertAlmostEquals(Evac.groups.spawn(2, { {} }, 2, 'test', 5), {
             visible = false,
             hidden = false,
             units = {
                 {
                     heading = 0,
-                    name = "Evacuee: Refugee #8",
+                    name = 'Evacuee: Generic #8',
                     playerCanDrive = false,
-                    skill = "Excellent",
-                    type = "Refugee",
+                    skill = 'Excellent',
+                    type = 'Generic',
                     unitId = 8,
                     x = -26,
                     y = 2
                 },
             },
-            name = "Evacuee Group 7",
+            name = 'Evacuee Group 7',
             groupId = 7,
             category = Group.Category.GROUND,
             country = 2,
         }, 25)
     end,
     test2List = function()
-        lu.assertEquals(Evac._state.extractableNow["test"], { [_testUnit.unitName] = _testUnit })
-        lu.assertEquals(Evac.groups.list("test"), { Group.getByName("Evacuee Group 2") })
+        lu.assertEquals(Evac._state.extractableNow['test'], { [_testUnit.unitName] = _testUnit })
+        lu.assertEquals(Evac.groups.list('test'), { Group.getByName('Evacuee Group 2') })
     end,
     test3Count = function()
-        lu.assertEquals(Evac.groups.count("test"), 1)
+        lu.assertEquals(Evac.groups.count('test'), 1)
     end,
     tearDown = tearDown,
 }
@@ -351,60 +384,60 @@ Test4Groups = {
 Test5Internal0Aircraft = {
     setUp = setUp,
     test0GetZone = function()
-        lu.assertEquals(Evac.zones.evac.activate("test"), nil)
-        lu.assertEquals(Evac._internal.aircraft.getZone("test"), "test")
+        lu.assertEquals(Evac.zones.evac.activate('test'), nil)
+        lu.assertEquals(Evac._internal.aircraft.getZone('test'), 'test')
     end,
     test1InZone = function()
-        lu.assertEquals(Evac.zones.evac.activate("test"), nil)
-        lu.assertEquals(Evac._internal.aircraft.inZone("test", "test"), true)
+        lu.assertEquals(Evac.zones.evac.activate('test'), nil)
+        lu.assertEquals(Evac._internal.aircraft.inZone('test', 'test'), true)
     end,
     test2InAir = function()
-        lu.assertEquals(Evac._internal.aircraft.inAir("test"), false)
+        lu.assertEquals(Evac._internal.aircraft.inAir('test'), false)
     end,
     test3HeightDifference = function()
-        lu.assertEquals(Evac._internal.aircraft.heightDifference("test"), Unit.getByName("test"):getPoint().y)
+        lu.assertEquals(Evac._internal.aircraft.heightDifference('test'), Unit.getByName('test'):getPoint().y)
     end,
     test4LoadEvacuees = function()
         Evac.loadUnloadPerIndividual = 30
 
-        lu.assertEquals(Evac._internal.aircraft.loadEvacuees("test", 1), nil)
+        lu.assertEquals(Evac._internal.aircraft.loadEvacuees('test', 1), nil)
 
         local _status, _result = pcall(
             mist.scheduleFunction.assertAnyCallMatches,
             mist.scheduleFunction,
             { arguments = { nil, { 1 }, 1, 1, 30 } }
         )
-        lu.assertEquals(_status, true, string.format("%s\n%s", inspect(_result), inspect(mist.scheduleFunction.calls)))
+        lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(mist.scheduleFunction.calls)))
     end,
     test5CountEvacuees = function()
-        lu.assertEquals(Evac._internal.aircraft.countEvacuees("test"), 0)
+        lu.assertEquals(Evac._internal.aircraft.countEvacuees('test'), 0)
     end,
     test6CalculateWeight = function()
-        lu.assertEquals(Evac._internal.aircraft.calculateWeight("test"), 0)
+        lu.assertEquals(Evac._internal.aircraft.calculateWeight('test'), 0)
     end,
     test7AdaptWeight = function()
-        trigger.action.setUnitInternalCargo:whenCalled({ with = { "test", 0 }, thenReturn = nil })
+        trigger.action.setUnitInternalCargo:whenCalled({ with = { 'test', 0 }, thenReturn = nil })
 
-        lu.assertEquals(Evac._internal.aircraft.adaptWeight("test"), nil)
+        lu.assertEquals(Evac._internal.aircraft.adaptWeight('test'), nil)
 
         local _status, _result = pcall(
             trigger.action.setUnitInternalCargo.assertAnyCallMatches,
             trigger.action.setUnitInternalCargo,
-            { arguments = { "test", 0 } }
+            { arguments = { 'test', 0 } }
         )
-        lu.assertEquals(_status, true, string.format("%s\n%s", inspect(_result), inspect(trigger.action.setUnitInternalCargo.spy.calls)))
+        lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(trigger.action.setUnitInternalCargo.spy.calls)))
     end,
     test8UnloadEvacuees = function()
         Evac.loadUnloadPerIndividual = 30
 
-        lu.assertEquals(Evac._internal.aircraft.unloadEvacuees("test"), nil)
+        lu.assertEquals(Evac._internal.aircraft.unloadEvacuees('test'), nil)
 
         local _status, _result = pcall(
             mist.scheduleFunction.assertAnyCallMatches,
             mist.scheduleFunction,
             { arguments = { nil, { 1 }, 1, 1, 30 } }
         )
-        lu.assertEquals(_status, true, string.format("%s\n%s", inspect(_result), inspect(mist.scheduleFunction.calls)))
+        lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(mist.scheduleFunction.calls)))
     end,
     tearDown = tearDown,
 }
@@ -415,42 +448,42 @@ Test5Internal1Beacons = {
         Evac.beaconBatteryLife = 30
 
         trigger.action.outTextForGroup:whenCalled({
-            with = { mist.DBs.unitsByName["test"]:getGroup():getID(), "Radio Beacons:\nGroup #8 - Beacon #1 (840.00 kHz - 277.50 / 32.15 MHz)\n", 20 },
+            with = { mist.DBs.unitsByName['test']:getGroup():getID(), 'Radio Beacons:\nGroup #8 - Beacon #1 (840.00 kHz - 277.50 / 32.15 MHz)\n', 20 },
             thenReturn = nil,
         })
 
         trigger.action.stopRadioTransmission:whenCalled({
-            with = { "840.00 kHz - 277.50 / 32.15 MHz | VHF" },
+            with = { '840.00 kHz - 277.50 / 32.15 MHz | VHF' },
             thenReturn = nil,
         })
         trigger.action.stopRadioTransmission:whenCalled({
-            with = { "840.00 kHz - 277.50 / 32.15 MHz | UHF" },
+            with = { '840.00 kHz - 277.50 / 32.15 MHz | UHF' },
             thenReturn = nil,
         })
         trigger.action.stopRadioTransmission:whenCalled({
-            with = { "840.00 kHz - 277.50 / 32.15 MHz | FM" },
+            with = { '840.00 kHz - 277.50 / 32.15 MHz | FM' },
             thenReturn = nil,
         })
 
         trigger.action.radioTransmission:whenCalled({
-            with = { "l10n/DEFAULT/", nil, 0, true, 840000, 1000, "840.00 kHz - 277.50 / 32.15 MHz | VHF" },
+            with = { 'l10n/DEFAULT/', nil, 0, true, 840000, 1000, '840.00 kHz - 277.50 / 32.15 MHz | VHF' },
             thenReturn = nil,
         })
         trigger.action.radioTransmission:whenCalled({
-            with = { "l10n/DEFAULT/", nil, 0, true, 277500000, 1000, "840.00 kHz - 277.50 / 32.15 MHz | UHF" },
+            with = { 'l10n/DEFAULT/', nil, 0, true, 277500000, 1000, '840.00 kHz - 277.50 / 32.15 MHz | UHF' },
             thenReturn = nil,
         })
         trigger.action.radioTransmission:whenCalled({
-            with = { "l10n/DEFAULT/", nil, 1, true, 32150000, 1000, "840.00 kHz - 277.50 / 32.15 MHz | FM" },
+            with = { 'l10n/DEFAULT/', nil, 1, true, 32150000, 1000, '840.00 kHz - 277.50 / 32.15 MHz | FM' },
             thenReturn = nil,
         })
 
-        lu.assertEquals(Evac._internal.beacons.spawn("test", 2, 2, nil, nil), {
+        lu.assertEquals(Evac._internal.beacons.spawn('test', 2, 2, nil, nil), {
             battery = 1800,
             fm = 32150000,
-            group = "Group #8 - Beacon #1",
+            group = 'Group #8 - Beacon #1',
             side = 2,
-            text = "840.00 kHz - 277.50 / 32.15 MHz",
+            text = '840.00 kHz - 277.50 / 32.15 MHz',
             uhf = 277500000,
             vhf = 840000
         })
@@ -465,26 +498,26 @@ Test5Internal1Beacons = {
         })
     end,
     test2List = function()
-        local _args = { mist.DBs.unitsByName["test"]:getGroup():getID(), "Radio Beacons:\nGroup #8 - Beacon #1 (840.00 kHz - 277.50 / 32.15 MHz)\n", 20 }
+        local _args = { mist.DBs.unitsByName['test']:getGroup():getID(), 'Radio Beacons:\nGroup #8 - Beacon #1 (840.00 kHz - 277.50 / 32.15 MHz)\n', 20 }
 
         trigger.action.outTextForGroup:whenCalled({ with = _args, thenReturn = nil })
 
-        lu.assertEquals(Evac._internal.beacons.list("test"), nil)
+        lu.assertEquals(Evac._internal.beacons.list('test'), nil)
 
         local _status, _result = pcall(
             trigger.action.outTextForGroup.assertAnyCallMatches,
             trigger.action.outTextForGroup,
             { arguments = _args }
         )
-        lu.assertEquals(_status, true, string.format("%s\n%s", inspect(_result), inspect(trigger.action.outTextForGroup.spy.calls)))
+        lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(trigger.action.outTextForGroup.spy.calls)))
     end,
     test3Update = function()
         local _radioGroup = {
             battery = 1800,
             fm = 32150000,
-            group = "Group #9 - Beacon #2",
+            group = 'Group #9 - Beacon #2',
             side = 2,
-            text = "840.00 kHz - 277.50 / 32.15 MHz",
+            text = '840.00 kHz - 277.50 / 32.15 MHz',
             uhf = 277500000,
             vhf = 840000
         }
@@ -492,37 +525,37 @@ Test5Internal1Beacons = {
         Evac.beaconBatteryLife = 30
 
         trigger.action.outTextForGroup:whenCalled({
-            with = { mist.DBs.unitsByName["test"]:getGroup():getID(), "Radio Beacons:\nGroup #8 - Beacon #1 (840.00 kHz - 277.50 / 32.15 MHz)\n", 20 },
+            with = { mist.DBs.unitsByName['test']:getGroup():getID(), 'Radio Beacons:\nGroup #8 - Beacon #1 (840.00 kHz - 277.50 / 32.15 MHz)\n', 20 },
             thenReturn = nil,
         })
 
         trigger.action.stopRadioTransmission:whenCalled({
-            with = { "840.00 kHz - 277.50 / 32.15 MHz | VHF" },
+            with = { '840.00 kHz - 277.50 / 32.15 MHz | VHF' },
             thenReturn = nil,
         })
         trigger.action.stopRadioTransmission:whenCalled({
-            with = { "840.00 kHz - 277.50 / 32.15 MHz | UHF" },
+            with = { '840.00 kHz - 277.50 / 32.15 MHz | UHF' },
             thenReturn = nil,
         })
         trigger.action.stopRadioTransmission:whenCalled({
-            with = { "840.00 kHz - 277.50 / 32.15 MHz | FM" },
+            with = { '840.00 kHz - 277.50 / 32.15 MHz | FM' },
             thenReturn = nil,
         })
 
         trigger.action.radioTransmission:whenCalled({
-            with = { "l10n/DEFAULT/", nil, 0, true, 840000, 1000, "840.00 kHz - 277.50 / 32.15 MHz | VHF" },
+            with = { 'l10n/DEFAULT/', nil, 0, true, 840000, 1000, '840.00 kHz - 277.50 / 32.15 MHz | VHF' },
             thenReturn = nil,
         })
         trigger.action.radioTransmission:whenCalled({
-            with = { "l10n/DEFAULT/", nil, 0, true, 277500000, 1000, "840.00 kHz - 277.50 / 32.15 MHz | UHF" },
+            with = { 'l10n/DEFAULT/', nil, 0, true, 277500000, 1000, '840.00 kHz - 277.50 / 32.15 MHz | UHF' },
             thenReturn = nil,
         })
         trigger.action.radioTransmission:whenCalled({
-            with = { "l10n/DEFAULT/", nil, 1, true, 32150000, 1000, "840.00 kHz - 277.50 / 32.15 MHz | FM" },
+            with = { 'l10n/DEFAULT/', nil, 1, true, 32150000, 1000, '840.00 kHz - 277.50 / 32.15 MHz | FM' },
             thenReturn = nil,
         })
 
-        lu.assertEquals(Evac._internal.beacons.spawn("test", 2, 2, nil, nil), _radioGroup)
+        lu.assertEquals(Evac._internal.beacons.spawn('test', 2, 2, nil, nil), _radioGroup)
 
         lu.assertEquals(Evac._internal.beacons.update(_radioGroup), true)
 
@@ -536,7 +569,7 @@ Test5Internal1Beacons = {
             timer.scheduleFunction,
             { arguments = { nil, {}, 0.01 } }
         )
-        lu.assertEquals(_status, true, string.format("%s\n%s", inspect(_result), inspect(timer.scheduleFunction.calls)))
+        lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(timer.scheduleFunction.calls)))
     end,
     test5GenerateVHFrequencies = function()
         lu.assertEquals(Evac._internal.beacons.generateVHFrequencies(), nil)
@@ -1572,7 +1605,7 @@ Test5Internal2Smoke = {
     test0Refresh = function()
         trigger.action.smoke:whenCalled({ with = { nil, trigger.smokeColor.Green }, thenReturn = nil })
 
-        lu.assertEquals(Evac._internal.zones.activate("test", Evac.modes.EVAC))
+        lu.assertEquals(Evac._internal.zones.activate('test', Evac.modes.EVAC))
 
         lu.assertEquals(Evac._internal.smoke.refresh(), nil)
 
@@ -1581,14 +1614,14 @@ Test5Internal2Smoke = {
             trigger.action.smoke,
             { arguments = { nil, trigger.smokeColor.Green } }
         )
-        lu.assertEquals(_status, true, string.format("%s\n%s", inspect(_result), inspect(trigger.action.smoke.spy.calls)))
+        lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(trigger.action.smoke.spy.calls)))
 
         local _status, _result = pcall(
             timer.scheduleFunction.assertAnyCallMatches,
             timer.scheduleFunction,
             { arguments = { nil, nil, 300 } }
         )
-        lu.assertEquals(_status, true, string.format("%s\n%s", inspect(_result), inspect(timer.scheduleFunction.calls)))
+        lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(timer.scheduleFunction.calls)))
     end,
     tearDown = tearDown,
 }
@@ -1596,25 +1629,25 @@ Test5Internal2Smoke = {
 Test5Internal3Zones = {
     setUp = setUp,
     test0Register = function()
-        lu.assertEquals(Evac._state.zones.evac["register"], nil)
-        lu.assertEquals(Evac._state.extractableNow["register"], nil)
+        lu.assertEquals(Evac._state.zones.evac['register'], nil)
+        lu.assertEquals(Evac._state.extractableNow['register'], nil)
 
-        lu.assertEquals(Evac._internal.zones.register("register", trigger.smokeColor.Green, coalition.side.BLUE, Evac.modes.EVAC), nil)
+        lu.assertEquals(Evac._internal.zones.register('register', trigger.smokeColor.Green, coalition.side.BLUE, Evac.modes.EVAC), nil)
 
-        lu.assertEquals(Evac._state.zones.evac["register"], {
+        lu.assertEquals(Evac._state.zones.evac['register'], {
             active = false,
-            name = "register",
+            name = 'register',
             side = coalition.side.BLUE,
             smoke = trigger.smokeColor.Green,
             mode = Evac.modes.EVAC
         })
-        lu.assertEquals(Evac._state.extractableNow["register"], {})
+        lu.assertEquals(Evac._state.extractableNow['register'], {})
     end,
     test1GenerateEvacueesByNumber = function()
         lu.assertAlmostEquals(Evac._internal.zones.generateEvacuees(coalition.side.BLUE, 1, country.USA), {
-            units = { { type = "Refugee", unitId = 11, unitName = "Evacuee: Refugee #11", weight = 0 } },
+            units = { { type = 'Generic', unitId = 11, unitName = 'Evacuee: Generic #11', weight = 0 } },
             groupId = 10,
-            groupName = "Evacuee Group 10",
+            groupName = 'Evacuee Group 10',
             side = coalition.side.BLUE,
             country = country.USA,
             weight = 0,
@@ -1622,68 +1655,68 @@ Test5Internal3Zones = {
     end,
     test2GenerateEvacueesByComposition = function()
         lu.assertAlmostEquals(Evac._internal.zones.generateEvacuees(coalition.side.BLUE, { {} }, country.USA), {
-            units = { { type = "Refugee", unitId = 12, unitName = "Evacuee: Refugee #12", weight = 0 } },
+            units = { { type = 'Generic', unitId = 12, unitName = 'Evacuee: Generic #12', weight = 0 } },
             groupId = 11,
-            groupName = "Evacuee Group 11",
+            groupName = 'Evacuee Group 11',
             side = coalition.side.BLUE,
             country = country.USA,
             weight = 0,
         }, 50)
     end,
     test3Activate = function()
-        lu.assertEquals(Evac._state.zones.evac["test"].active, false)
+        lu.assertEquals(Evac._state.zones.evac['test'].active, false)
 
-        lu.assertEquals(Evac._internal.zones.activate("test", Evac.modes.EVAC), nil)
+        lu.assertEquals(Evac._internal.zones.activate('test', Evac.modes.EVAC), nil)
 
-        lu.assertEquals(Evac._state.zones.evac["test"].active, true)
+        lu.assertEquals(Evac._state.zones.evac['test'].active, true)
     end,
     test4SetRemainingNumber = function()
-        lu.assertEquals(Evac._state.extractableNow["test"], { test = _testUnit })
+        lu.assertEquals(Evac._state.extractableNow['test'], { test = _testUnit })
 
-        lu.assertEquals(Evac._internal.zones.setRemaining("test", coalition.side.BLUE, country.USA, 1), nil)
+        lu.assertEquals(Evac._internal.zones.setRemaining('test', coalition.side.BLUE, country.USA, 1), nil)
 
-        lu.assertEquals(Evac._state.extractableNow["test"], { ["Evacuee: Refugee #13"] = { type = "Refugee", unitId = 13, unitName = "Evacuee: Refugee #13", weight = 0 } })
+        lu.assertEquals(Evac._state.extractableNow['test'], { ['Evacuee: Generic #13'] = { type = 'Generic', unitId = 13, unitName = 'Evacuee: Generic #13', weight = 0 } })
     end,
     test5SetRemainingComposition = function()
-        lu.assertEquals(Evac._state.extractableNow["test"], { test = _testUnit })
+        lu.assertEquals(Evac._state.extractableNow['test'], { test = _testUnit })
 
-        lu.assertEquals(Evac._internal.zones.setRemaining("test", coalition.side.BLUE, country.USA, {{}}), nil)
+        lu.assertEquals(Evac._internal.zones.setRemaining('test', coalition.side.BLUE, country.USA, {{}}), nil)
 
-        lu.assertEquals(Evac._state.extractableNow["test"], { ["Evacuee: Refugee #14"] = { type = "Refugee", unitId = 14, unitName = "Evacuee: Refugee #14", weight = 0 } })
+        lu.assertEquals(Evac._state.extractableNow['test'], { ['Evacuee: Generic #14'] = { type = 'Generic', unitId = 14, unitName = 'Evacuee: Generic #14', weight = 0 } })
     end,
     test6Count = function()
-        lu.assertEquals(Evac._internal.zones.count("test", Evac.modes.EVAC), 1)
+        lu.assertEquals(Evac._internal.zones.count('test', Evac.modes.EVAC), 1)
     end,
     test7IsIn = function()
-        lu.assertEquals(Evac._internal.zones.activate("test", Evac.modes.EVAC), nil)
+        lu.assertEquals(Evac._internal.zones.activate('test', Evac.modes.EVAC), nil)
 
         lu.assertEquals(Evac._internal.zones.isIn(_testUnit.unitName, Evac.modes.EVAC), true)
     end,
     test8Deactivate = function()
-        lu.assertEquals(Evac._state.zones.evac["test"].active, false)
+        lu.assertEquals(Evac._state.zones.evac['test'].active, false)
 
-        lu.assertEquals(Evac._internal.zones.activate("test", Evac.modes.EVAC), nil)
+        lu.assertEquals(Evac._internal.zones.activate('test', Evac.modes.EVAC), nil)
 
-        lu.assertEquals(Evac._state.zones.evac["test"].active, true)
+        lu.assertEquals(Evac._state.zones.evac['test'].active, true)
 
-        lu.assertEquals(Evac._internal.zones.deactivate("test", Evac.modes.EVAC), nil)
+        lu.assertEquals(Evac._internal.zones.deactivate('test', Evac.modes.EVAC), nil)
 
-        lu.assertEquals(Evac._state.zones.evac["test"].active, false)
+        lu.assertEquals(Evac._state.zones.evac['test'].active, false)
     end,
     test9Unregister = function()
-        lu.assertEquals(Evac._state.zones.evac["test"], {
+        lu.assertEquals(Evac._state.zones.evac['test'], {
             active = false,
-            name = "test",
+            name = 'test',
             side = coalition.side.BLUE,
             smoke = trigger.smokeColor.Green,
             mode = Evac.modes.EVAC
         })
-        lu.assertEquals(Evac._state.extractableNow["test"], { test = _testUnit })
+        lu.assertEquals(Evac._state.extractableNow['test'], { test = _testUnit })
 
-        lu.assertEquals(Evac._internal.zones.unregister("test", Evac.modes.EVAC), nil)
+        lu.assertEquals(Evac._internal.zones.unregister('test', Evac.modes.EVAC), nil)
 
-        lu.assertEquals(Evac._state.zones.evac["test"], nil)
-        lu.assertEquals(Evac._state.extractableNow["test"], nil)
+        lu.assertEquals(Evac._state.zones.evac['test'], nil)
+        lu.assertEquals(Evac._state.extractableNow['test'], nil)
     end,
     tearDown = tearDown,
 }
@@ -1691,10 +1724,10 @@ Test5Internal3Zones = {
 Test5Internal4Menu = {
     setUp = setUp,
     testAddToF10 = function()
-        missionCommands.addSubMenuForGroup:whenCalled({ with = { 7, "Gremlin Evac" }, thenReturn = { "Gremlin Evac" } })
+        missionCommands.addSubMenuForGroup:whenCalled({ with = { 7, 'Gremlin Evac' }, thenReturn = { 'Gremlin Evac' } })
         missionCommands.removeItemForGroup:whenCalled({ with = { 7, nil }, thenReturn = nil })
         for _, _command in pairs(Evac._internal.menu.commands) do
-            missionCommands.addCommandForGroup:whenCalled({ with = { 7, _command.text, "Gremlin Evac", nil, {} }, thenReturn = { "Gremlin Evac", _command.text } })
+            missionCommands.addCommandForGroup:whenCalled({ with = { 7, _command.text, 'Gremlin Evac', nil, {} }, thenReturn = { 'Gremlin Evac', _command.text } })
         end
 
         lu.assertEquals(Evac._internal.menu.addToF10(), nil)
@@ -1702,25 +1735,25 @@ Test5Internal4Menu = {
         local _status, _result = pcall(
             missionCommands.addSubMenuForGroup.assertAnyCallMatches,
             missionCommands.addSubMenuForGroup,
-            { arguments = { 7, "Gremlin Evac" } }
+            { arguments = { 7, 'Gremlin Evac' } }
         )
-        lu.assertEquals(_status, true, string.format("%s\n%s", inspect(_result), inspect(missionCommands.addSubMenuForGroup.spy.calls)))
+        lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(missionCommands.addSubMenuForGroup.spy.calls)))
 
         local _status, _result = pcall(
             missionCommands.removeItemForGroup.assertAnyCallMatches,
             missionCommands.removeItemForGroup,
             { arguments = { 7, nil } }
         )
-        lu.assertEquals(_status, true, string.format("%s\n%s", inspect(_result), inspect(missionCommands.removeItemForGroup.spy.calls)))
+        lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(missionCommands.removeItemForGroup.spy.calls)))
 
         for _, _command in pairs(Evac._internal.menu.commands) do
-            if _command.text ~= "Unload Evacuees" then
+            if _command.text ~= 'Unload Evacuees' then
                 local _status, _result = pcall(
                     missionCommands.addCommandForGroup.assertAnyCallMatches,
                     missionCommands.addCommandForGroup,
-                    { arguments = { 7, _command.text, "Gremlin Evac", nil, {} } }
+                    { arguments = { 7, _command.text, 'Gremlin Evac', nil, {} } }
                 )
-                lu.assertEquals(_status, true, string.format("%s\n%s", inspect(_result), inspect(missionCommands.addCommandForGroup.spy.calls)))
+                lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(missionCommands.addCommandForGroup.spy.calls)))
             end
         end
     end,
@@ -1729,28 +1762,70 @@ Test5Internal4Menu = {
 
 Test5Internal5Utils = {
     setUp = setUp,
-    test0GetNextGroupId = function()
+    test0EndIfLossesTooHigh = function()
+        trigger.action.setUserFlag:whenCalled({ with = { 1, true }, thenReturn = nil })
+        trigger.action.setUserFlag:whenCalled({ with = { 2, true }, thenReturn = nil })
+
+        Evac.lossFlags = { 1, 2 }
+        Evac._state.lostEvacuees = {
+            {
+                Generic = 25,
+                Infantry = 25,
+                ['2B11'] = 25,
+                M249 = 25,
+                RPG = 25,
+                StingerIgla = 25,
+                JTAC = 25,
+            },
+            {
+                Generic = 25,
+                Infantry = 25,
+                ['2B11'] = 25,
+                M249 = 25,
+                RPG = 25,
+                StingerIgla = 25,
+                JTAC = 25,
+            },
+        }
+
+        lu.assertEquals(Evac._internal.utils.endIfLossesTooHigh(), nil)
+
+        local _status, _result = pcall(
+            trigger.action.setUserFlag.assertAnyCallMatches,
+            trigger.action.setUserFlag,
+            { arguments = { 1, true } }
+        )
+        lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(trigger.action.setUserFlag.spy.calls)))
+
+        _status, _result = pcall(
+            trigger.action.setUserFlag.assertAnyCallMatches,
+            trigger.action.setUserFlag,
+            { arguments = { 2, true } }
+        )
+        lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(trigger.action.setUserFlag.spy.calls)))
+    end,
+    test1GetNextGroupId = function()
         lu.assertEquals(Evac._internal.utils.getNextGroupId(), Evac._internal.utils.currentGroup)
     end,
-    test1GetNextUnitId = function()
+    test2GetNextUnitId = function()
         lu.assertEquals(Evac._internal.utils.getNextUnitId(), Evac._internal.utils.currentUnit)
     end,
-    test2RandomizeWeight = function()
+    test3RandomizeWeight = function()
         lu.assertEquals(Evac._internal.utils.randomizeWeight(), 0)
         lu.assertEquals(Evac._internal.utils.randomizeWeight(0), 0)
 
         lu.assertAlmostEquals(Evac._internal.utils.randomizeWeight(100), 100, 30)
     end,
-    test3UnitDataToList = function()
+    test4UnitDataToList = function()
         lu.assertAlmostEquals(Evac._internal.utils.unitDataToList({{
-            type = "Test",
+            type = 'Test',
             unitId = 0,
-            unitName = "Test Unit"
+            unitName = 'Test Unit'
         }}, { x = 0, y = 0, z = 0 }, 5), { {
-            type = "Test",
+            type = 'Test',
             unitId = 0,
-            name = "Test Unit",
-            skill = "Excellent",
+            name = 'Test Unit',
+            skill = 'Excellent',
             playerCanDrive = false,
             x = 0,
             y = 0,
@@ -1763,33 +1838,55 @@ Test5Internal5Utils = {
 Test5Internal6DoSpawns = {
     setUp = setUp,
     test0DoSpawnsFirstPass = function()
-        Evac.zones.evac.activate("test")
+        Evac.zones.evac.activate('test')
 
         lu.assertEquals(Evac._internal.doSpawns(), nil)
         lu.assertNotEquals(Evac._state.spawns.lastChecked[0], nil)
         lu.assertEquals(Evac._state.spawns.alreadySpawned, {
-            Refugees = 0,
-            Infantry = 0,
-            ["2B11"] = 0,
-            StingerIgla = 0,
-            RPG = 0,
-            M249 = 0,
-            JTAC = 0,
+            {
+                Generic = 0,
+                Infantry = 0,
+                ['2B11'] = 0,
+                StingerIgla = 0,
+                RPG = 0,
+                M249 = 0,
+                JTAC = 0,
+            },
+            {
+                Generic = 0,
+                Infantry = 0,
+                ['2B11'] = 0,
+                StingerIgla = 0,
+                RPG = 0,
+                M249 = 0,
+                JTAC = 0,
+            },
         })
     end,
     test1DoSpawnsEverything = function()
-        Evac.zones.evac.activate("test")
+        Evac.zones.evac.activate('test')
 
         lu.assertEquals(Evac._internal.doSpawns(), nil)
         lu.assertNotEquals(Evac._state.spawns.lastChecked[0], nil)
         lu.assertEquals(Evac._state.spawns.alreadySpawned, {
-            Refugees = 0,
-            Infantry = 0,
-            ["2B11"] = 0,
-            StingerIgla = 0,
-            RPG = 0,
-            M249 = 0,
-            JTAC = 0,
+            {
+                Generic = 0,
+                Infantry = 0,
+                ['2B11'] = 0,
+                StingerIgla = 0,
+                RPG = 0,
+                M249 = 0,
+                JTAC = 0,
+            },
+            {
+                Generic = 0,
+                Infantry = 0,
+                ['2B11'] = 0,
+                StingerIgla = 0,
+                RPG = 0,
+                M249 = 0,
+                JTAC = 0,
+            },
         })
 
         lu.assertEquals(Evac._internal.doSpawns(), nil)
@@ -1799,90 +1896,184 @@ Test5Internal6DoSpawns = {
     tearDown = tearDown,
 }
 
+Test5Internal7Handlers = {
+    setUp = setUp,
+    test0LogEvents = function()
+        lu.assertEquals(Evac._internal.handlers.logEvents.fn({ id = 0 }), nil)
+
+        local _status, _result = pcall(
+            Gremlin.log.info.assertAnyCallMatches,
+            Gremlin.log.info,
+            { arguments = { Evac.Id, 'S_EVENT_INVALID: {\n["id"] = 0,\n}\n' } }
+        )
+        lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(Gremlin.log.info.calls)))
+    end,
+    test1FullLoss = function()
+        trigger.action.setUserFlag:whenCalled({ with = { 1, true }, thenReturn = nil })
+        trigger.action.setUserFlag:whenCalled({ with = { 2, true }, thenReturn = nil })
+
+        Evac.lossFlags = { 1, 2 }
+        Evac._state.lostEvacuees = {
+            {
+                Generic = 25,
+                Infantry = 25,
+                ['2B11'] = 25,
+                M249 = 25,
+                RPG = 25,
+                StingerIgla = 25,
+                JTAC = 25,
+            },
+            {
+                Generic = 25,
+                Infantry = 25,
+                ['2B11'] = 25,
+                M249 = 25,
+                RPG = 25,
+                StingerIgla = 25,
+                JTAC = 25,
+            },
+        }
+
+        lu.assertEquals(Evac._internal.handlers.fullLoss.fn({ id = world.event.S_EVENT_UNIT_LOST, initiator = _testUnit }))
+
+        lu.assertEquals(Evac._state.extractionUnits['test'], nil)
+        lu.assertEquals(Evac._state.lostEvacuees[2].Generic, 26)
+
+        local _status, _result = pcall(
+            trigger.action.setUserFlag.assertAnyCallMatches,
+            trigger.action.setUserFlag,
+            { arguments = { 1, true } }
+        )
+        lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(trigger.action.setUserFlag.spy.calls)))
+
+        _status, _result = pcall(
+            trigger.action.setUserFlag.assertAnyCallMatches,
+            trigger.action.setUserFlag,
+            { arguments = { 2, true } }
+        )
+        lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(trigger.action.setUserFlag.spy.calls)))
+    end,
+    test2ToggleZones = function()
+        -- // TODO
+    end,
+    tearDown = tearDown,
+}
+
 Test6TopLevel = {
     setUp = setUp,
-    test0OnEvent = function()
-        lu.assertEquals(Evac:onEvent({}), nil)
-    end,
-    test1SetupNone = function()
+    test0SetupNone = function()
+        trigger.action.setUserFlag:whenCalled({ with = { 'GremlinEvacRedLoss', false }, thenReturn = nil })
+        trigger.action.setUserFlag:whenCalled({ with = { 'GremlinEvacBlueLoss', false }, thenReturn = nil })
+
         lu.assertEquals(Evac:setup(), nil)
 
         lu.assertEquals(Evac.beaconBatteryLife, 30)
-        lu.assertEquals(Evac.beaconSound, "beacon.ogg")
+        lu.assertEquals(Evac.beaconSound, 'beacon.ogg')
         lu.assertEquals(Evac.carryLimits, {
-            ["C-130"] = 90,
-            ["CH-47D"] = 44,
-            ["CH-43E"] = 55,
-            ["Mi-8MT"] = 24,
-            ["Mi-24P"] = 5,
-            ["Mi-24V"] = 5,
-            ["Mi-26"] = 70,
-            ["SH60B"] = 5,
-            ["UH-1H"] = 8,
-            ["UH-60A"] = 11,
+            ['C-130'] = 90,
+            ['CH-47D'] = 44,
+            ['CH-43E'] = 55,
+            ['Mi-8MT'] = 24,
+            ['Mi-24P'] = 5,
+            ['Mi-24V'] = 5,
+            ['Mi-26'] = 70,
+            ['SH60B'] = 5,
+            ['UH-1H'] = 8,
+            ['UH-60A'] = 11,
         })
         lu.assertEquals(Evac.idStart, 500)
         lu.assertEquals(Evac.loadUnloadPerIndividual, 30)
         lu.assertEquals(Evac.maxExtractable, {
-            Refugees = 250,
-            Infantry = 0,
-            M249 = 0,
-            RPG = 0,
-            StingerIgla = 0,
-            ["2B11"] = 0,
-            JTAC = 0,
+            {
+                Generic = 0,
+                Infantry = 0,
+                M249 = 0,
+                RPG = 0,
+                StingerIgla = 0,
+                ['2B11'] = 0,
+                JTAC = 0,
+            },
+            {
+                Generic = 250,
+                Infantry = 0,
+                M249 = 0,
+                RPG = 0,
+                StingerIgla = 0,
+                ['2B11'] = 0,
+                JTAC = 0,
+            },
         })
         lu.assertEquals(Evac.spawnRates, { _global = { { per = 0, period = 1, units = 0 }, { per = 0, period = 1, units = 0 } } })
         lu.assertEquals(Evac.spawnWeight, 100)
     end,
-    test2SetupBlank = function()
+    test1SetupBlank = function()
+        trigger.action.setUserFlag:whenCalled({ with = { 'GremlinEvacRedLoss', false }, thenReturn = nil })
+        trigger.action.setUserFlag:whenCalled({ with = { 'GremlinEvacBlueLoss', false }, thenReturn = nil })
+
         lu.assertEquals(Evac:setup({}), nil)
 
         lu.assertEquals(Evac.beaconBatteryLife, 30)
-        lu.assertEquals(Evac.beaconSound, "beacon.ogg")
+        lu.assertEquals(Evac.beaconSound, 'beacon.ogg')
         lu.assertEquals(Evac.carryLimits, {
-            ["C-130"] = 90,
-            ["CH-47D"] = 44,
-            ["CH-43E"] = 55,
-            ["Mi-8MT"] = 24,
-            ["Mi-24P"] = 5,
-            ["Mi-24V"] = 5,
-            ["Mi-26"] = 70,
-            ["SH60B"] = 5,
-            ["UH-1H"] = 8,
-            ["UH-60A"] = 11,
+            ['C-130'] = 90,
+            ['CH-47D'] = 44,
+            ['CH-43E'] = 55,
+            ['Mi-8MT'] = 24,
+            ['Mi-24P'] = 5,
+            ['Mi-24V'] = 5,
+            ['Mi-26'] = 70,
+            ['SH60B'] = 5,
+            ['UH-1H'] = 8,
+            ['UH-60A'] = 11,
         })
         lu.assertEquals(Evac.idStart, 500)
         lu.assertEquals(Evac.loadUnloadPerIndividual, 30)
         lu.assertEquals(Evac.maxExtractable, {
-            Refugees = 250,
-            Infantry = 0,
-            M249 = 0,
-            RPG = 0,
-            StingerIgla = 0,
-            ["2B11"] = 0,
-            JTAC = 0,
+            {
+                Generic = 0,
+                Infantry = 0,
+                M249 = 0,
+                RPG = 0,
+                StingerIgla = 0,
+                ['2B11'] = 0,
+                JTAC = 0,
+            },
+            {
+                Generic = 250,
+                Infantry = 0,
+                M249 = 0,
+                RPG = 0,
+                StingerIgla = 0,
+                ['2B11'] = 0,
+                JTAC = 0,
+            },
         })
         lu.assertEquals(Evac.spawnRates, { _global = { { per = 0, period = 1, units = 0 }, { per = 0, period = 1, units = 0 } } })
         lu.assertEquals(Evac.spawnWeight, 100)
     end,
-    test3SetupConfig = function()
+    test2SetupConfig = function()
+        trigger.action.setUserFlag:whenCalled({ with = { 'GremlinEvacRedLoss', false }, thenReturn = nil })
+        trigger.action.setUserFlag:whenCalled({ with = { 'GremlinEvacBlueLoss', false }, thenReturn = nil })
+
         lu.assertEquals(Evac:setup({
             beaconBatteryLife = 2,
-            beaconSound = "test.ogg",
+            beaconSound = 'test.ogg',
             carryLimits = {
-                ["Test"] = 15,
+                ['Test'] = 15,
             },
             idStart = 5,
             loadUnloadPerIndividual = 2,
             maxExtractable = {
-                Refugees = 12,
-                Infantry = 12,
-                M249 = 12,
-                RPG = 12,
-                StingerIgla = 12,
-                ["2B11"] = 12,
-                JTAC = 3,
+                nil,
+                {
+                    Generic = 12,
+                    Infantry = 12,
+                    M249 = 12,
+                    RPG = 12,
+                    StingerIgla = 12,
+                    ['2B11'] = 12,
+                    JTAC = 3,
+                },
             },
             spawnWeight = 50,
             spawnRates = {
@@ -1901,18 +2092,29 @@ Test6TopLevel = {
         }), nil)
 
         lu.assertEquals(Evac.beaconBatteryLife, 2)
-        lu.assertEquals(Evac.beaconSound, "test.ogg")
+        lu.assertEquals(Evac.beaconSound, 'test.ogg')
         lu.assertEquals(Evac.carryLimits, { Test = 15 })
         lu.assertEquals(Evac.idStart, 5)
         lu.assertEquals(Evac.loadUnloadPerIndividual, 2)
         lu.assertEquals(Evac.maxExtractable, {
-            Refugees = 12,
-            Infantry = 12,
-            M249 = 12,
-            RPG = 12,
-            StingerIgla = 12,
-            ["2B11"] = 12,
-            JTAC = 3,
+            {
+                Generic = 0,
+                Infantry = 0,
+                ['2B11'] = 0,
+                StingerIgla = 0,
+                RPG = 0,
+                M249 = 0,
+                JTAC = 0,
+            },
+            {
+                Generic = 250,
+                Infantry = 0,
+                ['2B11'] = 0,
+                StingerIgla = 0,
+                RPG = 0,
+                M249 = 0,
+                JTAC = 0,
+            },
         })
         lu.assertEquals(Evac.spawnRates, { test = { { per = 0, period = 1, units = 0 }, { per = 5, period = 60, units = 12 } } })
         lu.assertEquals(Evac.spawnWeight, 50)
