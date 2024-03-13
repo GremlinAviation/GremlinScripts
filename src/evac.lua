@@ -309,7 +309,7 @@ Evac.groups = {
 -- Aircraft
 Evac._internal.aircraft = {
     getZone = function(_unit)
-        local _unitObj = Unit:getByName(_unit)
+        local _unitObj = Unit.getByName(_unit)
 
         if _unitObj ~= nil then
             local _unitPoint = _unitObj:getPoint()
@@ -441,7 +441,7 @@ Evac._internal.aircraft = {
                 local _groups = {}
                 for _, _evacuee in pairs(Evac._state.extractionUnits[_unit]) do
                     Evac._state.extractableNow[_zone][_evacuee.name] = _evacuee
-                    _groups[Unit:getByName(_evacuee.name):getGroup():getName()] = true
+                    _groups[Unit.getByName(_evacuee.name):getGroup():getName()] = true
                 end
 
                 for _groupName, _ in pairs(_groups) do
@@ -625,6 +625,7 @@ Evac._internal.beacons = {
     end,
     killDead = function()
         if Gremlin.haveCTLD then
+            ---@diagnostic disable-next-line: undefined-global
             return ctld.refreshRadioBeacons()
         end
 
@@ -948,9 +949,11 @@ Evac._internal.menu = {
                     if type(_command.when) == "boolean" then
                         _when = _command.when
                     elseif type(_command.when) == "table" then
+                        ---@diagnostic disable-next-line: undefined-field
                         local _whenArgs = Gremlin.parseFuncArgs(_command.when.args,
                             { unit = _unit, group = _unit:getGroup() })
 
+                        ---@diagnostic disable-next-line: undefined-field
                         if _command.when.func(_whenArgs) == _command.when.value and _command.when.comp == "equal" then
                             _when = true
                         end
@@ -1011,6 +1014,7 @@ Evac._internal.utils = {
     currentUnit = Evac.idStart + 1,
     getNextGroupId = function()
         if Gremlin.haveCTLD then
+            ---@diagnostic disable-next-line: undefined-global
             Evac._internal.utils.currentGroup = ctld.getNextGroupId() + Evac.idStart
         else
             Evac._internal.utils.currentGroup = mist.getNextGroupId() + Evac.idStart
@@ -1020,6 +1024,7 @@ Evac._internal.utils = {
     end,
     getNextUnitId = function()
         if Gremlin.haveCTLD then
+            ---@diagnostic disable-next-line: undefined-global
             Evac._internal.utils.currentUnit = ctld.getNextUnitId() + Evac.idStart
         else
             Evac._internal.utils.currentUnit = mist.getNextUnitId() + Evac.idStart

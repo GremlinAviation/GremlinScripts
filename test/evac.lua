@@ -15,8 +15,10 @@ mist.scheduleFunction = Spy(mist.scheduleFunction)
 Gremlin:setup()
 
 local _testUnit = { className_ = "Unit", groupName = "Evacuee Group 2", type = "UH-1H", unitName = "test", unitId = 1, point = { x = 0, y = 0, z = 0 } }
+---@diagnostic disable-next-line: undefined-global
 class(_testUnit, Unit)
 local _testGroup = { className_ = "Group", groupName = "Evacuee Group 2", groupId = 7, units = { _testUnit } }
+---@diagnostic disable-next-line: undefined-global
 class(_testGroup, Group)
 
 local setUp = function()

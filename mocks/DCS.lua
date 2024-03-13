@@ -1,3 +1,4 @@
+---@diagnostic disable: lowercase-global
 local Mock = require("lib.mock.Mock")
 local Spy = require("lib.mock.Spy")
 require("Scripts.Common.LuaClass")
@@ -20,6 +21,7 @@ Object = {
     isExist = function(self) return true end,
     getByName = function(name)
         local _myObj = { className_ = "Object", name = "test" }
+        ---@diagnostic disable-next-line: undefined-global
         class(_myObj, Object)
         return _myObj
     end,
@@ -414,12 +416,14 @@ AI = {
 coalition = {
     addGroup = function(_country, _category, _group)
         local _groupObj = mist.utils.deepCopy(_group)
+        ---@diagnostic disable-next-line: undefined-global
         class(_groupObj, Group)
 
         _groupObj.country = _country
         _groupObj.groupName = _groupObj.name
 
         for _idx, _unit in pairs(_groupObj.units) do
+            ---@diagnostic disable-next-line: undefined-global
             class(_unit, Unit)
 
             _groupObj.units[_idx] = _unit
