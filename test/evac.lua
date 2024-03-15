@@ -1,6 +1,7 @@
 local lu = require('luaunit_3_4')
 local inspect = require('inspect')
 local Spy = require('lib.mock.Spy')
+local ValueMatcher = require('lib.mock.ValueMatcher')
 
 table.unpack = table.unpack or unpack
 unpack = table.unpack
@@ -22,6 +23,9 @@ Gremlin:setup()
 local _testUnit = { className_ = 'Unit', groupName = 'Evacuee Group 2', type = 'UH-1H', unitName = 'test', unitId = 1, point = { x = 0, y = 0, z = 0 } }
 ---@diagnostic disable-next-line: undefined-global
 class(_testUnit, Unit)
+local _testUnit2 = { className_ = 'Unit', groupName = 'Evacuee Group 2', type = 'UH-1H', unitName = 'tester', unitId = 2, point = { x = 0, y = 0, z = 0 } }
+---@diagnostic disable-next-line: undefined-global
+class(_testUnit2, Unit)
 local _testGroup = { className_ = 'Group', groupName = 'Evacuee Group 2', groupId = 7, units = { _testUnit } }
 ---@diagnostic disable-next-line: undefined-global
 class(_testGroup, Group)
@@ -41,7 +45,7 @@ local setUp = function()
     Evac.zones.evac.register('test', trigger.smokeColor.Green, 2)
     Evac._state.extractableNow['test'] = { [_testUnit.unitName] = _testUnit }
     Evac._state.extractionUnits['test'] = {
-        test = { name = 'test', type = 'Generic', side = 2, text = 'Evacuee: Generic #1', unitId = 1 },
+        test = { name = 'test', type = 'Generic', side = 2, text = 'Evacuee: Generic #1', unitId = 1, object = _testUnit },
     }
 
     table.insert(Evac._state.frequencies.vhf.free, 840000)
@@ -264,7 +268,14 @@ Test2ZonesSafe = {
 
 Test3Units = {
     setUp = setUp,
-    test0FindEvacuees = function()
+    test0Register = function()
+        lu.assertEquals(Evac._state.extractionUnits['tester'], nil)
+
+        lu.assertEquals(Evac.units.register(_testUnit2), nil)
+
+        lu.assertNotEquals(Evac._state.extractionUnits['tester'], nil)
+    end,
+    test1FindEvacuees = function()
         local _args = { mist.DBs.unitsByName['test']:getGroup():getID(), 'No Active Radio Beacons', 20 }
 
         trigger.action.outTextForGroup:whenCalled({ with = _args, thenReturn = nil })
@@ -278,7 +289,7 @@ Test3Units = {
         )
         lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(trigger.action.outTextForGroup.spy.calls)))
     end,
-    test1LoadEvacuees = function()
+    test2LoadEvacuees = function()
         local _args = { mist.DBs.unitsByName['test']:getID(), 'Already full! Unload, first!', timer.getTime() + 5 }
 
         trigger.action.outTextForUnit:whenCalled({ with = _args, thenReturn = nil })
@@ -292,10 +303,10 @@ Test3Units = {
         )
         lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(trigger.action.outTextForUnit.spy.calls)))
     end,
-    test2UnloadEvacuees = function()
+    test3UnloadEvacuees = function()
         lu.assertEquals(Evac.units.unloadEvacuees('test'), nil)
     end,
-    test3CountEvacuees = function()
+    test4CountEvacuees = function()
         local _args = { mist.DBs.unitsByName['test']:getID(), 'You are currently carrying 0 evacuees.', timer.getTime() + 5 }
 
         trigger.action.outTextForUnit:whenCalled({ with = _args, thenReturn = nil })
@@ -309,8 +320,16 @@ Test3Units = {
         )
         lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(trigger.action.outTextForUnit.spy.calls)))
     end,
-    test4Count = function()
+    test5Count = function()
         lu.assertEquals(Evac.units.count('test'), 1)
+    end,
+    test6Unregister = function()
+        lu.assertEquals(Evac.units.register(_testUnit2), nil)
+        lu.assertNotEquals(Evac._state.extractionUnits['tester'], nil)
+
+        lu.assertEquals(Evac.units.unregister(_testUnit2), nil)
+
+        lu.assertEquals(Evac._state.extractionUnits['tester'], nil)
     end,
     tearDown = tearDown,
 }
@@ -1724,10 +1743,22 @@ Test5Internal3Zones = {
 Test5Internal4Menu = {
     setUp = setUp,
     testAddToF10 = function()
-        missionCommands.addSubMenuForGroup:whenCalled({ with = { 7, 'Gremlin Evac' }, thenReturn = { 'Gremlin Evac' } })
-        missionCommands.removeItemForGroup:whenCalled({ with = { 7, nil }, thenReturn = nil })
+        local argsToMatcher = function(_args)
+            for _pos, _arg in pairs(_args.arguments) do
+                if type(_arg) == "table" then
+                    _args.arguments[_pos] = ValueMatcher.anyTable
+                elseif type(_arg) == "function" then
+                    _args.arguments[_pos] = ValueMatcher.anyFunction
+                end
+            end
+
+            return _args.arguments
+        end
+
+        missionCommands.addSubMenuForGroup:whenCalled({ with = { 7, 'Gremlin Evac' }, thenReturn = { { 'Gremlin Evac' } } })
+        missionCommands.removeItemForGroup:whenCalled({ with = { 7, ValueMatcher.anyFunction }, thenReturn = nil })
         for _, _command in pairs(Evac._internal.menu.commands) do
-            missionCommands.addCommandForGroup:whenCalled({ with = { 7, _command.text, 'Gremlin Evac', nil, {} }, thenReturn = { 'Gremlin Evac', _command.text } })
+            missionCommands.addCommandForGroup:whenCalled({ with = { 7, _command.text, ValueMatcher.anyTable, ValueMatcher.anyFunction, ValueMatcher.anyTable }, thenReturn = { { 'Gremlin Evac', _command.text }, _command.text } })
         end
 
         lu.assertEquals(Evac._internal.menu.addToF10(), nil)
@@ -1739,21 +1770,16 @@ Test5Internal4Menu = {
         )
         lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(missionCommands.addSubMenuForGroup.spy.calls)))
 
-        local _status, _result = pcall(
-            missionCommands.removeItemForGroup.assertAnyCallMatches,
-            missionCommands.removeItemForGroup,
-            { arguments = { 7, nil } }
-        )
-        lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(missionCommands.removeItemForGroup.spy.calls)))
-
         for _, _command in pairs(Evac._internal.menu.commands) do
             if _command.text ~= 'Unload Evacuees' then
-                local _status, _result = pcall(
+                local _args = { arguments = { 7, _command.text, { 'Gremlin Evac' }, _command.func, {} } }
+
+                _status, _result = pcall(
                     missionCommands.addCommandForGroup.assertAnyCallMatches,
                     missionCommands.addCommandForGroup,
-                    { arguments = { 7, _command.text, 'Gremlin Evac', nil, {} } }
+                    argsToMatcher(_args)
                 )
-                lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(missionCommands.addCommandForGroup.spy.calls)))
+                lu.assertEquals(_status, true, string.format('%s\n%s\n%s', inspect(_result), inspect(_args), inspect(missionCommands.addCommandForGroup.spy.calls)))
             end
         end
     end,
@@ -1902,8 +1928,8 @@ Test5Internal7Handlers = {
         lu.assertEquals(Evac._internal.handlers.logEvents.fn({ id = 0 }), nil)
 
         local _status, _result = pcall(
-            Gremlin.log.info.assertAnyCallMatches,
-            Gremlin.log.info,
+            Gremlin.log.debug.assertAnyCallMatches,
+            Gremlin.log.debug,
             { arguments = { Evac.Id, 'S_EVENT_INVALID: {\n["id"] = 0,\n}\n' } }
         )
         lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(Gremlin.log.info.calls)))

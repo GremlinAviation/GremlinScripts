@@ -196,7 +196,7 @@ Unit = {
 
         for _, _units in pairs(Evac._state.extractableNow) do
             if _units[_name] ~= nil then
-                return _units[_name]
+                return _units[_name].object or _units[_name]
             end
         end
 

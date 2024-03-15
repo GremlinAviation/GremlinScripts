@@ -154,30 +154,48 @@ Evac.zones = {
     evac = {
         -- Mark a zone as part of the Evac ecosystem, and give it the evac mode
         register = function(_zone, _smoke, _side)
+            Gremlin.log.trace(Evac.Id, string.format('Registering Evac Zone : %s, %i, %i', _zone, _smoke, _side))
+
             return Evac._internal.zones.register(_zone, _smoke, _side, Evac.modes.EVAC)
         end,
         -- Activate a zone for evacuation operations
         activate = function(_zone)
+            Gremlin.log.trace(Evac.Id, string.format('Activating Evac Zone : %s', _zone))
+
             return Evac._internal.zones.activate(_zone, Evac.modes.EVAC)
         end,
         -- Manually override the remaining units in a zone
         setRemaining = function(_zone, _side, _country, _numberOrComposition)
+            if type(_numberOrComposition) == "table" then
+                Gremlin.log.trace(Evac.Id, string.format('Setting Remaining In Evac Zone : %s, %i, %i, %s', _zone, _side, _country, mist.utils.tableShowSorted(_numberOrComposition)))
+            else
+                Gremlin.log.trace(Evac.Id, string.format('Setting Remaining In Evac Zone : %s, %i, %i, %i', _zone, _side, _country, _numberOrComposition))
+            end
+
             return Evac._internal.zones.setRemaining(_zone, _side, _country, _numberOrComposition)
         end,
         -- Count the number of evacuees in a zone
         count = function(_zone)
+            Gremlin.log.trace(Evac.Id, string.format('Counting Evacuees In Evac Zone : %s', _zone))
+
             return Evac._internal.zones.count(_zone, Evac.modes.EVAC)
         end,
         -- Check whether a given unit is in an evac zone
         isIn = function(_unit)
+            Gremlin.log.trace(Evac.Id, string.format('Checking For Unit In Evac Zones : %s', _unit))
+
             return Evac._internal.zones.isIn(_unit, Evac.modes.EVAC)
         end,
         -- Deactivate a zone for evacuation operations
         deactivate = function(_zone)
+            Gremlin.log.trace(Evac.Id, string.format('Deactivating Evac Zone : %s', _zone))
+
             return Evac._internal.zones.deactivate(_zone, Evac.modes.EVAC)
         end,
         -- Forget a zone once it should no longer be used as part of the Evac ecosystem
         unregister = function(_zone)
+            Gremlin.log.trace(Evac.Id, string.format('Unregistering Evac Zone : %s', _zone))
+
             return Evac._internal.zones.unregister(_zone, Evac.modes.EVAC)
         end,
     },
@@ -185,30 +203,48 @@ Evac.zones = {
     relay = {
         -- Mark a zone as part of the Evac ecosystem, and give it the relay mode
         register = function(_zone, _smoke, _side)
+            Gremlin.log.trace(Evac.Id, string.format('Registering Relay Zone : %s, %i, %i', _zone, _smoke, _side))
+
             return Evac._internal.zones.register(_zone, _smoke, _side, Evac.modes.RELAY)
         end,
         -- Activate a zone for evacuation operations
         activate = function(_zone)
+            Gremlin.log.trace(Evac.Id, string.format('Activating Relay Zone : %s', _zone))
+
             return Evac._internal.zones.activate(_zone, Evac.modes.RELAY)
         end,
         -- Manually override the remaining units in a zone
         setRemaining = function(_zone, _side, _country, _numberOrComposition)
+            if type(_numberOrComposition) == "table" then
+                Gremlin.log.trace(Evac.Id, string.format('Setting Remaining In Relay Zone : %s, %i, %i, %s', _zone, _side, _country, mist.utils.tableShowSorted(_numberOrComposition)))
+            else
+                Gremlin.log.trace(Evac.Id, string.format('Setting Remaining In Relay Zone : %s, %i, %i, %i', _zone, _side, _country, _numberOrComposition))
+            end
+
             return Evac._internal.zones.setRemaining(_zone, _side, _country, _numberOrComposition)
         end,
         -- Count the number of evacuees in a zone
         count = function(_zone)
+            Gremlin.log.trace(Evac.Id, string.format('Counting Evacuees In Relay Zone : %s', _zone))
+
             return Evac._internal.zones.count(_zone, Evac.modes.RELAY)
         end,
         -- Check whether a given unit is in a relay zone
         isIn = function(_unit)
+            Gremlin.log.trace(Evac.Id, string.format('Checking For Unit In Relay Zones : %s', _unit))
+
             return Evac._internal.zones.isIn(_unit, Evac.modes.RELAY)
         end,
         -- Deactivate a zone for evacuation operations
         deactivate = function(_zone)
+            Gremlin.log.trace(Evac.Id, string.format('Deactivating Relay Zone : %s', _zone))
+
             return Evac._internal.zones.deactivate(_zone, Evac.modes.RELAY)
         end,
         -- Forget a zone once it should no longer be used as part of the Evac ecosystem
         unregister = function(_zone)
+            Gremlin.log.trace(Evac.Id, string.format('Unregistering Relay Zone : %s', _zone))
+
             return Evac._internal.zones.unregister(_zone, Evac.modes.RELAY)
         end,
     },
@@ -216,26 +252,38 @@ Evac.zones = {
     safe = {
         -- Mark a zone as part of the Evac ecosystem, and give it the safe mode
         register = function(_zone, _smoke, _side)
+            Gremlin.log.trace(Evac.Id, string.format('Registering Safe Zone : %s, %i, %i', _zone, _smoke, _side))
+
             return Evac._internal.zones.register(_zone, _smoke, _side, Evac.modes.SAFE)
         end,
         -- Activate a zone for evacuation operations
         activate = function(_zone)
+            Gremlin.log.trace(Evac.Id, string.format('Activating Safe Zone : %s', _zone))
+
             return Evac._internal.zones.activate(_zone, Evac.modes.SAFE)
         end,
         -- Count the number of evacuees in a zone
         count = function(_zone)
+            Gremlin.log.trace(Evac.Id, string.format('Count Evacuees In Safe Zone : %s', _zone))
+
             return Evac._internal.zones.count(_zone, Evac.modes.SAFE)
         end,
         -- Check whether a given unit is in a safe zone
         isIn = function(_unit)
+            Gremlin.log.trace(Evac.Id, string.format('Checking For Unit In Safe Zones : %s', _unit))
+
             return Evac._internal.zones.isIn(_unit, Evac.modes.SAFE)
         end,
         -- Deactivate a zone for evacuation operations
         deactivate = function(_zone)
+            Gremlin.log.trace(Evac.Id, string.format('Deactivating Safe Zone : %s', _zone))
+
             return Evac._internal.zones.deactivate(_zone, Evac.modes.SAFE)
         end,
         -- Forget a zone once it should no longer be used as part of the Evac ecosystem
         unregister = function(_zone)
+            Gremlin.log.trace(Evac.Id, string.format('Unregistering Safe Zone : %s', _zone))
+
             return Evac._internal.zones.unregister(_zone, Evac.modes.SAFE)
         end,
     },
@@ -243,12 +291,29 @@ Evac.zones = {
 
 --- Unit methods
 Evac.units = {
+    -- Registers a unit as an evacuation unit, capable of performing evacutions
+    register = function(_unit)
+        local _unitObj
+
+        if type(_unit) == 'table' and _unit.getName ~= nil then
+            _unitObj = _unit
+            _unit = _unitObj:getName()
+        else
+            _unitObj = Unit.getByName(_unit)
+        end
+
+        Evac._state.extractionUnits[_unit] = _unitObj
+    end,
     -- Lists the currently active beacons broadcasting for the player's coalition
     findEvacuees = function(_unit)
+        Gremlin.log.trace(Evac.Id, string.format('Searching For Evacuation Beacons : %s', _unit))
+
         Evac._internal.beacons.list(_unit)
     end,
     -- Starts the evacuee loading process for a unit
     loadEvacuees = function(_unit)
+        Gremlin.log.trace(Evac.Id, string.format('Starting Evacuee Loading Process : %s', _unit))
+
         local _unitObj = Unit.getByName(_unit)
         if _unitObj ~= nil then
             local _free = Evac.carryLimits[_unitObj:getTypeName()] or 0
@@ -267,17 +332,31 @@ Evac.units = {
     end,
     -- Starts the evacuee unloading process for a unit
     unloadEvacuees = function(_unit)
+        Gremlin.log.trace(Evac.Id, string.format('Starting Evacuee Unloading Process : %s', _unit))
+
         Evac._internal.aircraft.unloadEvacuees(_unit)
     end,
     -- Count the number of evacuees on board a given unit
     countEvacuees = function(_unit)
+        Gremlin.log.trace(Evac.Id, string.format('Counting Evacuees Aboard : %s', _unit))
+
         local _count = Evac._internal.aircraft.countEvacuees(_unit)
 
         Gremlin.utils.displayMessageTo(_unit, 'You are currently carrying ' .. _count .. ' evacuees.', timer.getTime() + 5)
     end,
     -- Count the number of units in a given zone
     count = function(_zone)
+        Gremlin.log.trace(Evac.Id, string.format('Counting Units In Zone : %s', _zone))
+
         return #(mist.getUnitsInZones(mist.makeUnitTable({ '[all]' }, false), { _zone }, 'c'))
+    end,
+    -- Registers a unit as an evacuation unit, capable of performing evacutions
+    unregister = function(_unit)
+        if type(_unit) == 'table' and _unit.getName ~= nil then
+            _unit = _unit:getName()
+        end
+
+        Evac._state.extractionUnits[_unit] = nil
     end,
 }
 
@@ -286,6 +365,12 @@ Evac.groups = {
     -- Spawns generic evacuees when given a number for `_numberOrComposition`.
     -- For a mix of evac targets, pass a list of units to add instead.
     spawn = function(_side, _numberOrComposition, _country, _zone, _scatterRadius)
+        if type(_numberOrComposition) == 'table' then
+            Gremlin.log.trace(Evac.Id, string.format('Spawning New Evacuee Group : %i, %s, %i, %s, %i', _side, mist.utils.tableShowSorted(_numberOrComposition), _country, _zone, _scatterRadius))
+        else
+            Gremlin.log.trace(Evac.Id, string.format('Spawning New Evacuee Group : %i, %i, %i, %s, %i', _side, _numberOrComposition, _country, _zone, _scatterRadius))
+        end
+
         local _groupData = Evac._internal.zones.generateEvacuees(_side, _numberOrComposition, _country)
         local _spawnZone = trigger.misc.getZone(_zone)
 
@@ -323,6 +408,8 @@ Evac.groups = {
     end,
     -- Returns a list of all groups in a zone
     list = function(_zone)
+        Gremlin.log.trace(Evac.Id, string.format('Listing Groups In Zone : %s', _zone))
+
         local groupsFound = {}
         local _unitsInZone = mist.getUnitsInZones(mist.makeUnitTable({ '[all]' }, false), { _zone }, 'c')
 
@@ -344,6 +431,8 @@ Evac.groups = {
     end,
     -- Returns a count of all groups in a zone
     count = function(_zone)
+        Gremlin.log.trace(Evac.Id, string.format('Counting Groups In Zone : %s', _zone))
+
         return #(Evac.groups.list(_zone))
     end,
 }
@@ -355,24 +444,14 @@ Evac.groups = {
 -- Aircraft
 Evac._internal.aircraft = {
     getZone = function(_unit)
+        Gremlin.log.trace(Evac.Id, string.format('Grabbing Unit Zone Name : %s', _unit))
+
         local _unitObj = Unit.getByName(_unit)
 
         if _unitObj ~= nil then
             local _unitPoint = _unitObj:getPoint()
 
-            for _, _zoneData in pairs(Evac._state.zones.evac) do
-                if mist.pointInZone(_unitPoint, _zoneData.name) then
-                    return _zoneData.name
-                end
-            end
-
-            for _, _zoneData in pairs(Evac._state.zones.relay) do
-                if mist.pointInZone(_unitPoint, _zoneData.name) then
-                    return _zoneData.name
-                end
-            end
-
-            for _, _zoneData in pairs(Evac._state.zones.safe) do
+            for _, _zoneData in pairs(Gremlin.utils.mergeTables(Evac._state.zones.evac, Evac._state.zones.relay, Evac._state.zones.safe)) do
                 if mist.pointInZone(_unitPoint, _zoneData.name) then
                     return _zoneData.name
                 end
@@ -382,9 +461,13 @@ Evac._internal.aircraft = {
         return nil
     end,
     inZone = function(_unit, _evacMode)
+        Gremlin.log.trace(Evac.Id, string.format('Checking For Unit In Zones : %s, %s', _unit, tostring(_evacMode)))
+
         return Evac._internal.zones.isIn(_unit, _evacMode)
     end,
     inAir = function(_unit)
+        Gremlin.log.trace(Evac.Id, string.format('Checking Whether Unit Is In Air : %s', _unit))
+
         if type(_unit) == 'string' then
             _unit = Unit.getByName(_unit)
         end
@@ -401,6 +484,8 @@ Evac._internal.aircraft = {
         return true
     end,
     heightDifference = function(_unit)
+        Gremlin.log.trace(Evac.Id, string.format('Calculating Unit Distance To Ground : %s', _unit))
+
         if type(_unit) == 'string' then
             _unit = Unit.getByName(_unit)
         end
@@ -410,6 +495,8 @@ Evac._internal.aircraft = {
         return _point.y - land.getHeight({ x = _point.x, y = _point.z })
     end,
     loadEvacuees = function(_unit, _number)
+        Gremlin.log.trace(Evac.Id, string.format('Loading Evacuees Onto Unit : %s, %i', _unit, _number))
+
         local _zone = Evac._internal.aircraft.getZone(_unit)
         local _timeout = Evac.loadUnloadPerIndividual * _number
         mist.scheduleFunction(
@@ -444,9 +531,18 @@ Evac._internal.aircraft = {
         )
     end,
     countEvacuees = function(_unit)
+        if type(_unit) == 'table' and _unit.getName ~= nil then
+            _unit = _unit:getName()
+            Gremlin.log.trace(Evac.Id, string.format('Counting Evacuees Aboard Unit : %s', _unit:getName()))
+        else
+            Gremlin.log.trace(Evac.Id, string.format('Counting Evacuees Aboard Unit : %s', tostring(_unit)))
+        end
+
         return #(Evac._state.extractionUnits[_unit] or {})
     end,
     calculateWeight = function(_unit)
+        Gremlin.log.trace(Evac.Id, string.format('Calculating Weight Of Unit : %s', _unit))
+
         local _calculated = 0
 
         if Gremlin.haveCSAR then
@@ -470,11 +566,14 @@ Evac._internal.aircraft = {
         return _calculated
     end,
     adaptWeight = function(_unit)
-        -- Adapted from CTLD
+        Gremlin.log.trace(Evac.Id, string.format('Adapting Unit Weight : %s', _unit))
+
         local _weight = Evac._internal.aircraft.calculateWeight(_unit)
         trigger.action.setUnitInternalCargo(_unit, _weight)
     end,
     unloadEvacuees = function(_unit)
+        Gremlin.log.trace(Evac.Id, string.format('Unloading Evacuees From Unit : %s', _unit))
+
         local _zone = Evac._internal.aircraft.getZone(_unit)
         local _number = Evac._internal.aircraft.countEvacuees(_unit)
         local _timeout = Evac.loadUnloadPerIndividual * _number
@@ -509,13 +608,15 @@ Evac._internal.aircraft = {
 -- Beacons
 Evac._internal.beacons = {
     spawn = function(_zone, _side, _country, _batteryLife, _name)
+        if _name == nil or _name == '' then
+            _name = 'Beacon #' .. (#(Evac._state.beacons) + 1)
+        end
+
+        Gremlin.log.trace(Evac.Id, string.format('Spawning Evacuation Beacons : %s, %i, %i, %i, %s', _zone, _side, _country, _batteryLife or -2, _name))
+
         if Gremlin.haveCTLD then
             ---@diagnostic disable-next-line: undefined-global
             return ctld.createRadioBeaconAtZone(_zone, _side, _batteryLife, _name)
-        end
-
-        if _name == nil or _name == '' then
-            _name = 'Beacon #' .. (#(Evac._state.beacons) + 1)
         end
 
         local _battery
@@ -588,6 +689,8 @@ Evac._internal.beacons = {
         return _beaconDetails
     end,
     getFreeADFFrequencies = function()
+        Gremlin.log.trace(Evac.Id, string.format('Looking Up Free ADF Frequencies'))
+
         if #Evac._state.frequencies.uhf.free <= 0 then
             Evac._state.frequencies.uhf.free = Evac._state.frequencies.uhf.used
             Evac._state.frequencies.uhf.used = {}
@@ -616,6 +719,8 @@ Evac._internal.beacons = {
         return { uhf = _uhf, vhf = _vhf, fm = _fm }
     end,
     list = function(_unit)
+        Gremlin.log.trace(Evac.Id, string.format('Listing Beacons For Unit : %s', _unit))
+
         local _message
 
         if _unit ~= nil and type(_unit) == 'string' then
@@ -637,6 +742,8 @@ Evac._internal.beacons = {
         end
     end,
     update = function(_beaconDetails)
+        Gremlin.log.trace(Evac.Id, string.format('Updating Beacon Lifecycles : %s', mist.utils.tableShowSorted(_beaconDetails)))
+
         local _radioGroup = Group.getByName(_beaconDetails.group)
         if _radioGroup == nil then
             return false
@@ -670,6 +777,8 @@ Evac._internal.beacons = {
         return true
     end,
     killDead = function()
+        Gremlin.log.trace(Evac.Id, string.format('Destroying Dead Beacons'))
+
         if Gremlin.haveCTLD then
             ---@diagnostic disable-next-line: undefined-global
             return ctld.refreshRadioBeacons()
@@ -705,6 +814,8 @@ Evac._internal.beacons = {
         end
     end,
     generateVHFrequencies = function()
+        Gremlin.log.trace(Evac.Id, string.format('Calculating VHF Frequencies'))
+
         local _skipFrequencies = {
             745, --Astrahan
             381,
@@ -804,6 +915,8 @@ Evac._internal.beacons = {
         end
     end,
     generateUHFrequencies = function()
+        Gremlin.log.trace(Evac.Id, string.format('Calculating UHF Frequencies'))
+
         Evac._state.frequencies.uhf.free = {}
         local _start = 220000000
 
@@ -813,6 +926,8 @@ Evac._internal.beacons = {
         end
     end,
     generateFMFrequencies = function()
+        Gremlin.log.trace(Evac.Id, string.format('Calculating FM Frequencies'))
+
         Evac._state.frequencies.fm.free = {}
         local _start = 220000000
 
@@ -836,6 +951,8 @@ Evac._internal.beacons = {
 -- Smoke
 Evac._internal.smoke = {
     refresh = function()
+        Gremlin.log.trace(Evac.Id, string.format('Refreshing Smoke'))
+
         for _, _zoneData in pairs(Gremlin.utils.mergeTables(Evac._state.zones.evac, Evac._state.zones.relay, Evac._state.zones.safe)) do
             local _zone = trigger.misc.getZone(_zoneData.name)
             if _zone ~= nil and _zoneData.active then
@@ -854,6 +971,8 @@ Evac._internal.smoke = {
 -- Zones
 Evac._internal.zones = {
     register = function(_zone, _smoke, _side, _evacMode)
+        Gremlin.log.trace(Evac.Id, string.format('Registering Zone Internally : %s, %i, %i, %i', _zone, _smoke, _side, _evacMode))
+
         Evac._state.zones[Evac.modeToText[_evacMode]][_zone] = {
             active = false,
             name = _zone,
@@ -864,6 +983,12 @@ Evac._internal.zones = {
         Evac._state.extractableNow[_zone] = {}
     end,
     generateEvacuees = function(_side, _numberOrComposition, _country)
+        if type(_numberOrComposition) == 'table' then
+            Gremlin.log.trace(Evac.Id, string.format('Generating Evacuees : %i, %s, %i', _side, mist.utils.tableShowSorted(_numberOrComposition), _country))
+        else
+            Gremlin.log.trace(Evac.Id, string.format('Generating Evacuees : %i, %i, %i', _side, _numberOrComposition, _country))
+        end
+
         local _groupName = 'Evacuee Group'
         local _unitType = 'Generic'
         local _groupId = Evac._internal.utils.getNextGroupId()
@@ -907,9 +1032,17 @@ Evac._internal.zones = {
         }
     end,
     activate = function(_zone, _evacMode)
+        Gremlin.log.trace(Evac.Id, string.format('Activating Zone Internally : %s, %i', _zone, _evacMode))
+
         Evac._state.zones[Evac.modeToText[_evacMode]][_zone].active = true
     end,
     setRemaining = function(_zone, _side, _country, _numberOrComposition)
+        if type(_numberOrComposition) == 'table' then
+            Gremlin.log.trace(Evac.Id, string.format('Setting Remaning Evacuees Internally : %s, %i, %i, %s', _zone, _side, _country, mist.utils.tableShowSorted(_numberOrComposition)))
+        else
+            Gremlin.log.trace(Evac.Id, string.format('Setting Remaning Evacuees Internally : %s, %i, %i, %i', _zone, _side, _country, _numberOrComposition))
+        end
+
         for _unitName, _unit in pairs(Evac._state.extractableNow[_zone]) do
             if not Evac._internal.aircraft.inZone(_unitName, _zone) then
                 local _newZone = Evac._internal.aircraft.getZone(_unitName)
@@ -927,9 +1060,12 @@ Evac._internal.zones = {
         Evac.groups.spawn(_side, _numberOrComposition, _country, _zone, 5)
     end,
     count = function(_zone, _evacMode)
+        Gremlin.log.trace(Evac.Id, string.format('Counting Units In Zone Internally : %s, %i', _zone, _evacMode))
+
         local _count = 0
 
         if Evac._state.zones[Evac.modeToText[_evacMode]][_zone] ~= nil then
+            -- Can't use # here, since the keys on this table are not integers, so we count instead
             for _, _ in pairs(Evac._state.extractableNow[_zone]) do
                 _count = _count + 1
             end
@@ -938,6 +1074,8 @@ Evac._internal.zones = {
         return _count
     end,
     isIn = function(_unit, _evacMode)
+        Gremlin.log.trace(Evac.Id, string.format('Checking Whether Unit Is In Zones Internally : %s, %s', _unit, tostring(_evacMode)))
+
         local _unitObj = Unit.getByName(_unit)
 
         if _unitObj ~= nil then
@@ -960,9 +1098,13 @@ Evac._internal.zones = {
         return false
     end,
     deactivate = function(_zone, _evacMode)
+        Gremlin.log.trace(Evac.Id, string.format('Deactivating Zone Internally : %s, %i', _zone, _evacMode))
+
         Evac._state.zones[Evac.modeToText[_evacMode]][_zone].active = false
     end,
     unregister = function(_zone, _evacMode)
+        Gremlin.log.trace(Evac.Id, string.format('Unregistering Zone Internally : %s, %i', _zone, _evacMode))
+
         for _unit, _ in pairs(Evac._state.extractableNow[_zone]) do
             Unit.getByName(_unit):destroy()
         end
@@ -975,6 +1117,8 @@ Evac._internal.zones = {
 -- Menu
 Evac._internal.menu = {
     addToF10 = function()
+        Gremlin.log.trace(Evac.Id, string.format('Updating F10 Menu'))
+
         timer.scheduleFunction(Evac._internal.menu.addToF10, nil, timer.getTime() + 10)
 
         for _unitName, _ in pairs(Evac._state.extractionUnits) do
@@ -1005,7 +1149,9 @@ Evac._internal.menu = {
                         end
                     end
 
-                    missionCommands.removeItemForGroup(_groupId, Evac._state.menuAdded[_groupId][_cmdIdx])
+                    if Evac._state.menuAdded[_groupId][_cmdIdx] ~= nil then
+                        missionCommands.removeItemForGroup(_groupId, Evac._state.menuAdded[_groupId][_cmdIdx])
+                    end
 
                     local _args = Gremlin.utils.parseFuncArgs(_command.args, { unit = _unit, group = _unit:getGroup() })
                     if _when then
@@ -1059,6 +1205,8 @@ Evac._internal.utils = {
     currentGroup = Evac.idStart + 1,
     currentUnit = Evac.idStart + 1,
     endIfLossesTooHigh = function()
+        Gremlin.log.trace(Evac.Id, string.format('Checking Whether To End The Mission'))
+
         for _side, _maxExtract in pairs(Evac.maxExtractable) do
             local _lost = Evac._state.lostEvacuees[_side]
 
@@ -1077,6 +1225,8 @@ Evac._internal.utils = {
         end
     end,
     getNextGroupId = function()
+        Gremlin.log.trace(Evac.Id, string.format('Getting Next Group ID'))
+
         if Gremlin.haveCTLD then
             ---@diagnostic disable-next-line: undefined-global
             Evac._internal.utils.currentGroup = ctld.getNextGroupId() + Evac.idStart
@@ -1087,6 +1237,8 @@ Evac._internal.utils = {
         return Evac._internal.utils.currentGroup
     end,
     getNextUnitId = function()
+        Gremlin.log.trace(Evac.Id, string.format('Getting Next Unit ID'))
+
         if Gremlin.haveCTLD then
             ---@diagnostic disable-next-line: undefined-global
             Evac._internal.utils.currentUnit = ctld.getNextUnitId() + Evac.idStart
@@ -1097,9 +1249,13 @@ Evac._internal.utils = {
         return Evac._internal.utils.currentUnit
     end,
     randomizeWeight = function(_weight)
+        Gremlin.log.trace(Evac.Id, string.format('Randomizing Weight : %i', _weight or -1))
+
         return (math.random(90, 120) * (_weight or Evac.spawnWeight)) / 100
     end,
     unitDataToList = function(_units, _point, _scatterRadius)
+        Gremlin.log.trace(Evac.Id, string.format('Converting Evac Unit Descriptions To DCS Internal Specs'))
+
         local _unitsOut = {}
         ---@diagnostic disable-next-line: deprecated
         local _angle = math.atan2(_point.z, _point.x)
@@ -1123,7 +1279,10 @@ Evac._internal.utils = {
     end,
 }
 
+-- Auto-spawn
 Evac._internal.doSpawns = function()
+    Gremlin.log.trace(Evac.Id, string.format('Auto-Spawning Units Check'))
+
     local _anyOver = function(_side)
         if Evac._state.spawns.alreadySpawned[_side].Generic > 0 and Evac._state.spawns.alreadySpawned[_side].Generic >= Evac.maxExtractable[_side].Generic then
             return true
@@ -1254,12 +1413,14 @@ Evac._internal.handlers = {
     logEvents = {
         event = -1,
         fn = function(_event)
-            Gremlin.log.info(Evac.Id, string.format('%s: %s\n', Gremlin.events.idToName[_event.id], mist.utils.tableShowSorted(_event)))
+            Gremlin.log.debug(Evac.Id, string.format('%s: %s\n', Gremlin.events.idToName[_event.id], mist.utils.tableShowSorted(_event)))
         end,
     },
     fullLoss = {
         event = world.event.S_EVENT_UNIT_LOST,
         fn = function(_event)
+            Gremlin.log.trace(Evac.Id, string.format('Handling Loss Event'))
+
             local _unit = _event.initiator
 
             if _unit ~= nil then
@@ -1286,6 +1447,8 @@ Evac._internal.handlers = {
     toggleZones = {
         event = world.event.S_EVENT_TRIGGER_ZONE,
         fn = function(_event)
+            Gremlin.log.trace(Evac.Id, string.format('Checking Whether To Activate Or Deactivate A Zone'))
+
             -- // TODO
         end,
     }
