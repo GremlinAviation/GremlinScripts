@@ -15,13 +15,24 @@ Evac:setup({
     lossFlags = { 'GremlinEvacRedLoss', 'GremlinEvacBlueLoss' }
     lossThresholds = { 25, 25 },
     maxExtractable = {
-        Generic = 12,
-        Infantry = 12,
-        M249 = 12,
-        RPG = 12,
-        StingerIgla = 12,
-        ["2B11"] = 12,
-        JTAC = 3,
+        {
+            Generic = 12,
+            Infantry = 12,
+            M249 = 12,
+            RPG = 12,
+            StingerIgla = 12,
+            ["2B11"] = 12,
+            JTAC = 3,
+        },
+        {
+            Generic = 12,
+            Infantry = 12,
+            M249 = 12,
+            RPG = 12,
+            StingerIgla = 12,
+            ["2B11"] = 12,
+            JTAC = 3,
+        },
     },
     spawnWeight = 50,
     spawnRates = {
@@ -39,6 +50,8 @@ Evac:setup({
         { mode = Evac.modes.RELAY, name = "Test 2", smoke = trigger.smokeColor.Orange, side = coalition.side.BLUE, active = true },
         { mode = Evac.modes.SAFE, name = "Test 3", smoke = trigger.smokeColor.White, side = coalition.side.BLUE },
     },
+    winFlags = { 'GremlinEvacRedWin', 'GremlinEvacBlueWin' }
+    winThresholds = { 75, 75 },
 })
 ```
 
@@ -49,7 +62,7 @@ Evac:setup({
   - Default: `beacon.ogg`
 
 - `carryLimits`: Specifies the maximum capacity loadout per aircraft designator
-  - Default: `{ ["C-130"] = 90, ["CH-47D"] = 44, ["CH-43E"] = 55, ["Mi-8MT"] = 24, ["Mi-24P"] = 5, ["Mi-24V"] = 5, ["Mi-26"] = 70, ["SH-60B"] = 5, ["UH-1H"] = 8, ["UH-60A"] = 11 }`
+  - Default: `{ ["C-130"] = 90, ["CH-47D"] = 44, ["CH-43E"] = 55, ["Mi-8MT"] = 24, ["Mi-24P"] = 5, ["Mi-24V"] = 5, ["Mi-26"] = 70, ["SH60B"] = 5, ["UH-1H"] = 8, ["UH-60L"] = 11 }`
 
 - `idStart`: The lowest ID number that Gremlin Evac will use to create units and groups
   - Default: `500`
@@ -92,3 +105,9 @@ Evac:setup({
       - `name`: Zone name - MUST MATCH THE MISSION EDITOR'S NAME FOR THE ZONE EXACTLY!
       - `smoke`: Smoke color, taken from `trigger.smokeColor`
       - `side`: Coalition, taken from `coalition.side`
+
+- `winFlags`: Flags to tell the Mission Editor that one side or the other (or both!) has won
+  - Default: `{ 'GremlinEvacRedWin', 'GremlinEvacBlueWin' }`
+
+- `winThresholds`: The minimum percentage of evacuees that must be saved to win, per side
+  - Default: `{ 75, 75 }`

@@ -44,6 +44,9 @@ Object = {
 
         return Object.Category.VOID
     end,
+    getCoalition = function(self)
+        return coalition.side.BLUE
+    end,
     getCountry = function(name) return 2 end,
     getID = function(self) return 1 end,
     getName = function(self)
@@ -119,12 +122,17 @@ Group = {
 
         return Group.Category.HELICOPTER
     end,
+    getCoalition = function(self)
+        return coalition.side.BLUE
+    end,
     getController = function(self)
         return Controller
     end,
     getID = function(self)
         if self.id ~= nil then
             return self.id
+        elseif self.groupId ~= nil then
+            return self.groupId
         end
 
         return 1
@@ -194,9 +202,13 @@ Unit = {
             _name = name:getName()
         end
 
+        if mist.DBs.unitsByName[_name] ~= nil then
+            return mist.DBs.unitsByName[_name]
+        end
+
         for _, _units in pairs(Evac._state.extractableNow) do
-            if _units[_name] ~= nil then
-                return _units[_name].object or _units[_name]
+            if _units[_name] ~= nil and _units[_name][0] ~= nil then
+                return _units[_name][0].object or _units[_name][0]
             end
         end
 
@@ -204,9 +216,6 @@ Unit = {
     end,
     getCallsign = function(self)
         return "Test-1-1"
-    end,
-    getCoalition = function(self)
-        return coalition.side.BLUE
     end,
     getGroup = function(self)
         if self.groupName ~= nil then
@@ -237,7 +246,7 @@ Unit = {
             return self.type
         end
 
-        return "test"
+        return "UH-1H"
     end,
     isActive = function(self)
         return true
@@ -1775,6 +1784,7 @@ missionCommands = {
 }
 timer = {
     getTime = function() return 0 end,
+    getAbsTime = function() return 0 end,
     scheduleFunction = Spy(function(func, args, time) end),
 }
 trigger = {
@@ -1859,6 +1869,8 @@ world = {
 
 require("Scripts.ScriptingSystem")
 
+trigger.action.activateGroup = Mock()
+trigger.action.deactivateGroup = Mock()
 trigger.action.smoke = Mock()
 trigger.action.outText = Mock()
 trigger.action.outTextForCoalition = Mock()

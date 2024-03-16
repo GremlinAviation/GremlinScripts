@@ -71,6 +71,8 @@ Evac:setup({
         { mode = Evac.modes.RELAY, name = "Test 2", smoke = trigger.smokeColor.Orange, side = coalition.side.BLUE, active = true },
         { mode = Evac.modes.SAFE, name = "Test 3", smoke = trigger.smokeColor.White, side = coalition.side.BLUE },
     },
+    winFlags = { 3, 4 },
+    winThresholds = { 0, 75 },
 })
 ```
 
@@ -87,6 +89,8 @@ Initializes Gremlin Evac, overriding all the defaults:
 - the average spawn weight is dropped from 100kg to 50kg
 - the spawn rates are configured to spawn 12 Blue generic evacuees every 5 minutes in the `Test 1` Zone (default is spawn all across all Zones at mission start)
 - the starting Zones are set to three Blue Zones, two of which (evacuation and relay/staging) are active from mission start (default is no registered Zones)
+- the flags used to indicate evacuation mission success are set to 3 and 4, respectively (default is `GremlinEvacRedWin` and `GremlinEvacBlueWin`)
+- the percentage of evacuees that need to be evacuated to win is set to 0 for red, and 75 for blue (default is 75 for both)
 
 ### Manual Setup
 

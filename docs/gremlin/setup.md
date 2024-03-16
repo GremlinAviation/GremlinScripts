@@ -17,15 +17,22 @@ Of course, there are a couple of things that you can configure:
 
 ```lua,editable
 Gremlin:setup({
-    trace: false,
-    debug: true,
+    trace = false,
+    debug = true,
+    optionalFeatures = {
+      logEvents = false,
+    },
 })
 ```
 
 - `trace`: boolean
   Turn on trace level logs if `true`
+
 - `debug`: boolean
   Turn on debug level logs if `true`
+
+- `optionalFeatures`: table
+  Enable or disable optional features
 
 If you aren't building your own script, you can still configure these by passing them to any Gremlin Script's `:setup()` method, instead.
 
