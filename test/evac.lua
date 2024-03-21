@@ -2486,7 +2486,7 @@ Test5Internal7Handlers = {
         lu.assertEquals(Evac._internal.handlers.fullLoss.fn({ id = world.event.S_EVENT_UNIT_LOST, initiator = _testUnit }))
 
         -- SIDE EFFECTS
-        lu.assertEquals(Evac._state.extractionUnits[_testUnit.unitName], nil)
+        lu.assertEquals(Evac._state.extractionUnits[_testUnit.unitName], { [0] = _testUnit })
         lu.assertEquals(Evac._state.lostEvacuees[2]['Ejected Pilot'], 26)
 
         local _status, _result = pcall(
@@ -2502,16 +2502,6 @@ Test5Internal7Handlers = {
             { arguments = { 2, true } }
         )
         lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(trigger.action.setUserFlag.spy.calls)))
-    end,
-    test1ToggleZones = function()
-        -- INIT
-        -- // TODO
-
-        -- TEST
-        -- // TODO
-
-        -- SIDE EFFECTS
-        -- // TODO
     end,
     tearDown = tearDown,
 }
@@ -2535,6 +2525,7 @@ Test6TopLevel = {
             ['C-130'] = 90,
             ['CH-47D'] = 44,
             ['CH-43E'] = 55,
+            ['Hercules'] = 90,
             ['Mi-8MT'] = 24,
             ['Mi-24P'] = 5,
             ['Mi-24V'] = 5,
@@ -2585,6 +2576,7 @@ Test6TopLevel = {
             ['C-130'] = 90,
             ['CH-47D'] = 44,
             ['CH-43E'] = 55,
+            ['Hercules'] = 90,
             ['Mi-8MT'] = 24,
             ['Mi-24P'] = 5,
             ['Mi-24V'] = 5,

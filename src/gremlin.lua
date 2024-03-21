@@ -3,8 +3,8 @@ if table.unpack == nil then
 end
 
 Gremlin = {
-    Id = "Gremlin Script Tools",
-    Version = "202403.01",
+    Id = 'Gremlin Script Tools',
+    Version = '202403.01',
 
     -- Config
     Debug = false,
@@ -23,9 +23,9 @@ Gremlin = {
         Day = 86400
     },
     SideToText = {
-        [0] = "Neutral",
-        [1] = "Red",
-        [2] = "Blue"
+        [0] = 'Neutral',
+        [1] = 'Red',
+        [2] = 'Blue'
     },
 
     -- Methods
@@ -70,7 +70,7 @@ Gremlin = {
                 _toolId = Gremlin.Id
                 _message = toolId
             end
-            env.error(tostring(_toolId) .. " | " .. tostring(message))
+            env.error(tostring(_toolId) .. ' | ' .. tostring(message))
         end,
         warn = function(toolId, message)
             local _toolId = toolId
@@ -79,7 +79,7 @@ Gremlin = {
                 _toolId = Gremlin.Id
                 _message = toolId
             end
-            env.warning(tostring(_toolId) .. " | " .. tostring(message))
+            env.warning(tostring(_toolId) .. ' | ' .. tostring(message))
         end,
         info = function(toolId, message)
             local _toolId = toolId
@@ -88,7 +88,7 @@ Gremlin = {
                 _toolId = Gremlin.Id
                 _message = toolId
             end
-            env.info(tostring(_toolId) .. " | " .. tostring(message))
+            env.info(tostring(_toolId) .. ' | ' .. tostring(message))
         end,
         debug = function(toolId, message)
             if Gremlin.Debug then
@@ -98,7 +98,7 @@ Gremlin = {
                     _toolId = Gremlin.Id
                     _message = toolId
                 end
-                env.info("DEBUG: " .. tostring(_toolId) .. " | " .. tostring(message))
+                env.info('DEBUG: ' .. tostring(_toolId) .. ' | ' .. tostring(message))
             end
         end,
         trace = function(toolId, message)
@@ -109,7 +109,7 @@ Gremlin = {
                     _toolId = Gremlin.Id
                     _message = toolId
                 end
-                env.info("TRACE: " .. tostring(_toolId) .. " | " .. tostring(message))
+                env.info('TRACE: ' .. tostring(_toolId) .. ' | ' .. tostring(message))
             end
         end
     },
@@ -122,30 +122,30 @@ Gremlin = {
             return _count
         end,
         displayMessageTo = function(_name, _text, _time)
-            if _name == "all" or _name == nil then
+            if _name == 'all' or _name == 'Neutral' or _name == nil then
                 trigger.action.outText(_text, _time)
             elseif coalition.side[_name] ~= nil then
                 trigger.action.outTextForCoalition(coalition.side[_name], _text, _time)
             elseif country.by_country[_name] ~= nil then
                 trigger.action.outTextForCountry(country.by_country[_name].WorldID, _text, _time)
-            elseif type(_name) == "table" and _name.className_ == "Group" then
+            elseif type(_name) == 'table' and _name.className_ == 'Group' then
                 trigger.action.outTextForGroup(_name:getID(), _text, _time)
             elseif Group.getByName(_name) ~= nil then
                 trigger.action.outTextForGroup(Group.getByName(_name):getID(), _text, _time)
-            elseif type(_name) == "table" and _name.className_ == "Unit" then
+            elseif type(_name) == 'table' and _name.className_ == 'Unit' then
                 trigger.action.outTextForUnit(_name:getID(), _text, _time)
             elseif Unit.getByName(_name) ~= nil then
                 trigger.action.outTextForUnit(Unit.getByName(_name):getID(), _text, _time)
             else
                 Gremlin.log.error(Gremlin.Id, "Can't find object named " .. tostring(_name) ..
-                    " to display message to!\nMessage was: " .. _text)
+                    ' to display message to!\nMessage was: ' .. _text)
             end
         end,
         parseFuncArgs = function(_args, _objs)
             local _out = {}
             for _, _arg in pairs(_args) do
-                if type(_arg) == "string" then
-                    if string.sub(_arg, 1, 7) == "{unit}:" then
+                if type(_arg) == 'string' then
+                    if string.sub(_arg, 1, 7) == '{unit}:' then
                         local _key = string.sub(_arg, 8)
 
                         Gremlin.log.trace(Gremlin.Id, string.format('Parsing Unit : %s, %s', _key, mist.utils.tableShowSorted(_objs.unit)))
@@ -155,7 +155,7 @@ Gremlin = {
                         else
                             table.insert(_out, _objs.unit[_key])
                         end
-                    elseif string.sub(_arg, 1, 8) == "{group}:" then
+                    elseif string.sub(_arg, 1, 8) == '{group}:' then
                         local _key = string.sub(_arg, 9)
 
                         Gremlin.log.trace(Gremlin.Id, string.format('Parsing Group : %s, %s', _key, mist.utils.tableShowSorted(_objs.group)))
@@ -184,7 +184,7 @@ Gremlin = {
 
             for _, tbl2 in pairs({...}) do
                 for k, v in pairs(tbl2) do
-                    if type(k) == "number" then
+                    if type(k) == 'number' then
                         table.insert(tbl1, v)
                     else
                         tbl1[k] = v
@@ -199,10 +199,10 @@ Gremlin = {
 
 function Gremlin:setup(config)
     assert(mist ~= nil,
-        "\n\n** HEY MISSION-DESIGNER! **\n\nMission Script Tools (MiST) has not been loaded!\n\nMake sure MiST is running *before* running this script!\n")
+        '\n\n** HEY MISSION-DESIGNER! **\n\nMission Script Tools (MiST) has not been loaded!\n\nMake sure MiST is running *before* running this script!\n')
 
     if Gremlin.alreadyInitialized and not config.forceReload then
-        Gremlin.log.info(Gremlin.Id, string.format("Bypassing initialization because Gremlin.alreadyInitialized = true"))
+        Gremlin.log.info(Gremlin.Id, string.format('Bypassing initialization because Gremlin.alreadyInitialized = true'))
         return
     end
 
@@ -216,7 +216,7 @@ function Gremlin:setup(config)
         Gremlin.haveCTLD = true
     end
 
-    local _level = "info"
+    local _level = 'info'
 
     if config ~= nil then
         if config.debug ~= nil then

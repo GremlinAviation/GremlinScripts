@@ -16,7 +16,7 @@ Preps arguments for things like scheduled functions, with some limited autocompl
 
 For `_objs`, simply pass a table with the appropriate structure:
 
-```lua,editable
+```lua
 {
     unit = {
         [unitName] = Unit.getByName(unitName),
