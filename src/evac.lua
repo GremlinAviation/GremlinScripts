@@ -113,7 +113,6 @@ Evac = {
             ['2B11'] = 0,
             JTAC = 0
         }},
-        menuAdded = {},
         smoke = {},
         spawns = {
             alreadySpawned = {{
@@ -1194,71 +1193,6 @@ Evac._internal.zones = {
 
 -- Menu
 Evac._internal.menu = {
-    addToF10 = function()
-        Gremlin.log.trace(Evac.Id, string.format('Updating F10 Menu For %i Units', Gremlin.utils.countTableEntries(Evac._state.extractionUnits)))
-
-        timer.scheduleFunction(Evac._internal.menu.addToF10, nil, timer.getTime() + 10)
-
-        for _unitName, _extractorList in pairs(Evac._state.extractionUnits) do
-            local _unit = _extractorList[0] or Unit.getByName(_unitName)
-            if _unit ~= nil and _unit:isExist() then
-                if _extractorList[0] == nil then
-                    Evac._state.extractionUnits[_unitName][0] = _unit
-                end
-
-                local _groupId = _unit:getGroup():getID()
-                local _groupName = _unit:getGroup():getName()
-
-                local _rootPath
-                if Evac._state.menuAdded[_groupId] == nil then
-                    _rootPath = missionCommands.addSubMenuForGroup(_groupId, 'Gremlin Evac')
-                    Evac._state.menuAdded[_groupId] = { root = _rootPath }
-                    Gremlin.log.trace(Evac.Id, string.format('Added Root Menu'))
-                else
-                    _rootPath = Evac._state.menuAdded[_groupId].root
-                end
-
-                for _cmdIdx, _command in pairs(Evac._internal.menu.commands) do
-                    local _when = false
-                    if type(_command.when) == 'boolean' then
-                        _when = _command.when
-                    elseif type(_command.when) == 'table' then
-                        ---@diagnostic disable-next-line: undefined-field
-                        local _whenArgs = Gremlin.utils.parseFuncArgs(_command.when.args, {
-                            unit = _unit,
-                            group = _unit:getGroup()
-                        })
-
-                        ---@diagnostic disable-next-line: undefined-field
-                        if _command.when.func(table.unpack(_whenArgs)) == _command.when.value and _command.when.comp == 'equal' then
-                            _when = true
-                        ---@diagnostic disable-next-line: undefined-field
-                        elseif _command.when.func(table.unpack(_whenArgs)) ~= _command.when.value and _command.when.comp == 'inequal' then
-                            _when = true
-                        end
-                    end
-
-                    if Evac._state.menuAdded[_groupId][_cmdIdx] ~= nil then
-                        missionCommands.removeItemForGroup(_groupId, Evac._state.menuAdded[_groupId][_cmdIdx])
-                    end
-
-                    local _args = Gremlin.utils.parseFuncArgs(_command.args, {
-                        unit = _unit,
-                        group = _unit:getGroup()
-                    })
-                    if _when then
-                        if type(_command.text) == "string" then
-                            Evac._state.menuAdded[_groupId][_cmdIdx] = missionCommands.addCommandForGroup(_groupId, _command.text, _rootPath, function(_args) _command.func(table.unpack(_args)) end, _args)
-                            Gremlin.log.trace(Evac.Id, string.format('Added Menu Item To Group %s (%s) : "%s"', _groupName, _unitName, _command.text))
-                        else
-                            Evac._state.menuAdded[_groupId][_cmdIdx] = missionCommands.addCommandForGroup(_groupId, _command.text(table.unpack(_args)), _rootPath, function(_args) _command.func(table.unpack(_args)) end, _args)
-                            Gremlin.log.trace(Evac.Id, string.format('Added Menu Item To Group %s (%s) : "%s"', _groupName, _unitName, _command.text(table.unpack(_args))))
-                        end
-                    end
-                end
-            end
-        end
-    end,
     commands = {{
         text = 'Scan For Evacuation Beacons',
         func = Evac.units.findEvacuees,
@@ -1336,6 +1270,15 @@ Evac._internal.utils = {
                 trigger.action.setUserFlag(Evac.lossFlags[_side], true)
             end
         end
+    end,
+    extractionUnitsToMenuUnits = function()
+        local _menuUnits = {}
+
+        for _unitName, _onBoard in pairs(Evac._state.extractionUnits) do
+            _menuUnits[_unitName] = _onBoard[0]
+        end
+
+        return _menuUnits
     end,
     getNextGroupId = function()
         Gremlin.log.trace(Evac.Id, string.format('Getting Next Group ID'))
@@ -1850,7 +1793,7 @@ function Evac:setup(config)
         timer.scheduleFunction(Evac._internal.doSpawns, nil, timer.getTime() + 5)
         timer.scheduleFunction(Evac._internal.beacons.killDead, nil, timer.getTime() + 5)
         timer.scheduleFunction(Evac._internal.smoke.refresh, nil, timer.getTime() + 5)
-        timer.scheduleFunction(Evac._internal.menu.addToF10, nil, timer.getTime() + 5)
+        timer.scheduleFunction(Gremlin.menu.updateF10, { Evac.Id, Evac._internal.menu.commands, Evac._internal.utils.extractionUnitsToMenuUnits }, timer.getTime() + 5)
     end, nil, timer.getTime() + 1)
 
     for _name, _def in pairs(Evac._internal.handlers) do

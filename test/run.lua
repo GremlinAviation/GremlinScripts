@@ -15,6 +15,10 @@ end
 
 local testsLoaded = false
 
+if testName == "gremlin" or testName == "all" then
+    dofile(PATH .. "gremlin.lua")
+    testsLoaded = true
+end
 if testName == "evac" or testName == "all" then
     dofile(PATH .. "evac.lua")
     testsLoaded = true

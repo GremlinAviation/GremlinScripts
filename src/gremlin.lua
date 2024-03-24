@@ -113,6 +113,75 @@ Gremlin = {
             end
         end
     },
+    menu = {
+        updateF10 = function(args)
+            local toolId, commands, getForUnits = table.unpack(args)
+            local forUnits = getForUnits()
+
+            Gremlin.log.trace(Gremlin.Id, string.format('Updating F10 Menu For %i Units', Gremlin.utils.countTableEntries(forUnits)))
+
+            timer.scheduleFunction(Gremlin.menu.updateF10, {toolId, commands, forUnits}, timer.getTime() + 10)
+
+            for _unitName, _extractor in pairs(forUnits) do
+                local _unit = _extractor or Unit.getByName(_unitName)
+                if _unit ~= nil and _unit:isExist() then
+                    local _groupId = _unit:getGroup():getID()
+                    local _groupName = _unit:getGroup():getName()
+
+                    local _rootPath
+                    if Gremlin._state.menuAdded[toolId] == nil then
+                        Gremlin._state.menuAdded[toolId] = {}
+                    end
+                    if Gremlin._state.menuAdded[toolId][_groupId] == nil then
+                        _rootPath = missionCommands.addSubMenuForGroup(_groupId, toolId)
+                        Gremlin._state.menuAdded[toolId][_groupId] = { root = _rootPath }
+                        Gremlin.log.trace(Gremlin.Id, string.format('Added Root Menu For %s', toolId))
+                    else
+                        _rootPath = Gremlin._state.menuAdded[toolId][_groupId].root
+                    end
+
+                    for _cmdIdx, _command in pairs(commands) do
+                        local _when = false
+                        if type(_command.when) == 'boolean' then
+                            _when = _command.when
+                        elseif type(_command.when) == 'table' then
+                            ---@diagnostic disable-next-line: undefined-field
+                            local _whenArgs = Gremlin.utils.parseFuncArgs(_command.when.args, {
+                                unit = _unit,
+                                group = _unit:getGroup()
+                            })
+
+                            ---@diagnostic disable-next-line: undefined-field
+                            if _command.when.func(table.unpack(_whenArgs)) == _command.when.value and _command.when.comp == 'equal' then
+                                _when = true
+                            ---@diagnostic disable-next-line: undefined-field
+                            elseif _command.when.func(table.unpack(_whenArgs)) ~= _command.when.value and _command.when.comp == 'inequal' then
+                                _when = true
+                            end
+                        end
+
+                        if Gremlin._state.menuAdded[toolId][_groupId][_cmdIdx] ~= nil then
+                            missionCommands.removeItemForGroup(_groupId, Gremlin._state.menuAdded[toolId][_groupId][_cmdIdx])
+                        end
+
+                        local _args = Gremlin.utils.parseFuncArgs(_command.args, {
+                            unit = _unit,
+                            group = _unit:getGroup()
+                        })
+                        if _when then
+                            if type(_command.text) == "string" then
+                                Gremlin._state.menuAdded[toolId][_groupId][_cmdIdx] = missionCommands.addCommandForGroup(_groupId, _command.text, _rootPath, function(_args) _command.func(table.unpack(_args)) end, _args)
+                                Gremlin.log.trace(Gremlin.Id, string.format('Added Menu Item To Group %s (%s) : "%s"', _groupName, _unitName, _command.text))
+                            else
+                                Gremlin._state.menuAdded[toolId][_groupId][_cmdIdx] = missionCommands.addCommandForGroup(_groupId, _command.text(table.unpack(_args)), _rootPath, function(_args) _command.func(table.unpack(_args)) end, _args)
+                                Gremlin.log.trace(Gremlin.Id, string.format('Added Menu Item To Group %s (%s) : "%s"', _groupName, _unitName, _command.text(table.unpack(_args))))
+                            end
+                        end
+                    end
+                end
+            end
+        end,
+    },
     utils = {
         countTableEntries = function (_tbl)
             local _count = 0
@@ -194,7 +263,12 @@ Gremlin = {
 
             return tbl1
         end
-    }
+    },
+
+    -- Internal State
+    _state = {
+        menuAdded = {},
+    },
 }
 
 function Gremlin:setup(config)

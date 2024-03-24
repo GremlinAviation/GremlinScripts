@@ -1,7 +1,6 @@
 local lu = require('luaunit_3_4')
 local inspect = require('inspect')
 local Spy = require('lib.mock.Spy')
-local ValueMatcher = require('lib.mock.ValueMatcher')
 
 table.unpack = table.unpack or unpack
 unpack = table.unpack
@@ -2255,56 +2254,7 @@ Test5Internal3Zones = {
     tearDown = tearDown,
 }
 
-Test5Internal4Menu = {
-    setUp = setUp,
-    testAddToF10 = function()
-        -- INIT
-        local argsToMatcher = function(_args)
-            for _pos, _arg in pairs(_args.arguments) do
-                if type(_arg) == "table" then
-                    _args.arguments[_pos] = ValueMatcher.anyTable
-                elseif type(_arg) == "function" then
-                    _args.arguments[_pos] = ValueMatcher.anyFunction
-                end
-            end
-
-            return _args.arguments
-        end
-
-        missionCommands.addSubMenuForGroup:whenCalled({ with = { 1, 'Gremlin Evac' }, thenReturn = { { 'Gremlin Evac' } } })
-        missionCommands.removeItemForGroup:whenCalled({ with = { 1, ValueMatcher.anyFunction }, thenReturn = nil })
-        for _, _command in pairs(Evac._internal.menu.commands) do
-            missionCommands.addCommandForGroup:whenCalled({ with = { 1, _command.text, ValueMatcher.anyTable, ValueMatcher.anyFunction, ValueMatcher.anyTable }, thenReturn = { { 'Gremlin Evac', _command.text }, _command.text } })
-        end
-
-        -- TEST
-        lu.assertEquals(Evac._internal.menu.addToF10(), nil)
-
-        -- SIDE EFFECTS
-        local _status, _result = pcall(
-            missionCommands.addSubMenuForGroup.assertAnyCallMatches,
-            missionCommands.addSubMenuForGroup,
-            { arguments = { 1, 'Gremlin Evac' } }
-        )
-        lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(missionCommands.addSubMenuForGroup.spy.calls)))
-
-        for _, _command in pairs(Evac._internal.menu.commands) do
-            if _command.text ~= 'Unload Evacuees' then
-                local _args = { arguments = { 1, _command.text, { 'Gremlin Evac' }, _command.func, {} } }
-
-                _status, _result = pcall(
-                    missionCommands.addCommandForGroup.assertAnyCallMatches,
-                    missionCommands.addCommandForGroup,
-                    argsToMatcher(_args)
-                )
-                lu.assertEquals(_status, true, string.format('%s\n%s\n%s', inspect(_result), inspect(_args), inspect(missionCommands.addCommandForGroup.spy.calls)))
-            end
-        end
-    end,
-    tearDown = tearDown,
-}
-
-Test5Internal5Utils = {
+Test5Internal4Utils = {
     setUp = setUp,
     test0EndIfLossesTooHigh = function()
         -- INIT
@@ -2413,7 +2363,7 @@ Test5Internal5Utils = {
     tearDown = tearDown,
 }
 
-Test5Internal6DoSpawns = {
+Test5Internal5DoSpawns = {
     setUp = setUp,
     test0DoSpawnsFirstPass = function()
         -- INIT
@@ -2447,7 +2397,7 @@ Test5Internal6DoSpawns = {
     tearDown = tearDown,
 }
 
-Test5Internal7Handlers = {
+Test5Internal6Handlers = {
     setUp = setUp,
     test0FullLoss = function()
         -- INIT
