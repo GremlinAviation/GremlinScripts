@@ -178,6 +178,7 @@ local tearDown = function()
     Gremlin.log.debug:reset()
     Gremlin.log.trace:reset()
     trigger.action.setUnitInternalCargo:reset()
+    trigger.action.setUserFlag:reset()
     trigger.action.outText:reset()
     trigger.action.outTextForCoalition:reset()
     trigger.action.outTextForCountry:reset()
@@ -185,9 +186,9 @@ local tearDown = function()
     trigger.action.outTextForUnit:reset()
 end
 
-Test0ZonesEvac = {
+TestEvacZonesEvac = {
     setUp = setUp,
-    test0Register = function()
+    testRegister = function()
         -- INIT
         lu.assertEquals(Evac._state.zones.evac, { [_testZone] = { active = false, mode = 1, name = _testZone, side = 2, smoke = 0 } })
 
@@ -200,7 +201,7 @@ Test0ZonesEvac = {
             test2 = { active = false, mode = 1, name = 'test2', side = 1, smoke = 3 },
         })
     end,
-    test1Activate = function()
+    testActivate = function()
         -- INIT
         lu.assertEquals(Evac._state.zones.evac, { [_testZone] = { active = false, mode = 1, name = _testZone, side = 2, smoke = 0 } })
 
@@ -210,7 +211,7 @@ Test0ZonesEvac = {
         -- SIDE EFFECTS
         lu.assertEquals(Evac._state.zones.evac, { [_testZone] = { active = true, mode = 1, name = _testZone, side = 2, smoke = 0 } })
     end,
-    test2SetRemainingNumber = function()
+    testSetRemainingNumber = function()
         -- INIT
         Evac.beaconBatteryLife = 30
 
@@ -255,7 +256,7 @@ Test0ZonesEvac = {
 
         Evac.beaconBatteryLife = 0
     end,
-    test3SetRemainingComposition = function()
+    testSetRemainingComposition = function()
         -- INIT
         Evac.beaconBatteryLife = 30
 
@@ -299,7 +300,7 @@ Test0ZonesEvac = {
         lu.assertEquals(Evac._state.extractableNow[_testZone],
             { ['Evacuee: Ejected Pilot #2'] = { unitName = 'Evacuee: Ejected Pilot #2', type = 'Ejected Pilot', unitId = 2, weight = 0 } })
     end,
-    test4Count = function()
+    testCount = function()
         -- INIT
         lu.assertEquals(Evac._state.extractableNow[_testZone], { [_testUnit3.unitName] = _testEvacuee })
 
@@ -309,7 +310,7 @@ Test0ZonesEvac = {
         -- SIDE EFFECTS
         -- N/A?
     end,
-    test5IsIn = function()
+    testIsIn = function()
         -- INIT
         lu.assertEquals(Evac.zones.evac.activate(_testZone), nil)
         lu.assertEquals(Evac._state.extractableNow[_testZone], { [_testUnit3.unitName] = _testEvacuee })
@@ -321,7 +322,7 @@ Test0ZonesEvac = {
         -- SIDE EFFECTS
         -- N/A?
     end,
-    test6Deactivate = function()
+    testDeactivate = function()
         -- INIT
         lu.assertEquals(Evac.zones.evac.activate(_testZone), nil)
         lu.assertEquals(Evac._state.zones.evac, { [_testZone] = { active = true, mode = 1, name = _testZone, side = 2, smoke = 0 } })
@@ -332,7 +333,7 @@ Test0ZonesEvac = {
         -- SIDE EFFECTS
         lu.assertEquals(Evac._state.zones.evac, { [_testZone] = { active = false, mode = 1, name = _testZone, side = 2, smoke = 0 } })
     end,
-    test7Unregister = function()
+    testUnregister = function()
         -- INIT
         lu.assertEquals(Evac._state.zones.evac, { [_testZone] = { active = false, mode = 1, name = _testZone, side = 2, smoke = 0 } })
 
@@ -345,9 +346,9 @@ Test0ZonesEvac = {
     tearDown = tearDown,
 }
 
-Test1ZonesRelay = {
+TestEvacZonesRelay = {
     setUp = setUp,
-    test0Register = function()
+    testRegister = function()
         -- INIT
         lu.assertEquals(Evac._state.zones.relay, {})
 
@@ -357,7 +358,7 @@ Test1ZonesRelay = {
         -- SIDE EFFECTS
         lu.assertEquals(Evac._state.zones.relay, { [_testZone] = { active = false, mode = 3, name = _testZone, side = 2, smoke = 0 } })
     end,
-    test1Activate = function()
+    testActivate = function()
         -- INIT
         lu.assertEquals(Evac.zones.relay.register(_testZone, trigger.smokeColor.Green, 2), nil)
         lu.assertEquals(Evac._state.zones.relay, { [_testZone] = { active = false, mode = 3, name = _testZone, side = 2, smoke = 0 } })
@@ -368,7 +369,7 @@ Test1ZonesRelay = {
         -- SIDE EFFECTS
         lu.assertEquals(Evac._state.zones.relay, { [_testZone] = { active = true, mode = 3, name = _testZone, side = 2, smoke = 0 } })
     end,
-    test2SetRemainingNumber = function()
+    testSetRemainingNumber = function()
         -- INIT
         lu.assertEquals(Evac._state.extractableNow[_testZone], { [_testUnit3.unitName] = _testEvacuee })
 
@@ -379,7 +380,7 @@ Test1ZonesRelay = {
         lu.assertEquals(Evac._state.extractableNow[_testZone],
             { ['Evacuee: Ejected Pilot #2'] = { unitName = 'Evacuee: Ejected Pilot #2', type = 'Ejected Pilot', unitId = 2, weight = 0 } })
     end,
-    test3SetRemainingComposition = function()
+    testSetRemainingComposition = function()
         -- INIT
         lu.assertEquals(Evac._state.extractableNow[_testZone], { [_testUnit3.unitName] = _testEvacuee })
 
@@ -390,7 +391,7 @@ Test1ZonesRelay = {
         lu.assertEquals(Evac._state.extractableNow[_testZone],
             { ['Evacuee: Ejected Pilot #2'] = { unitName = 'Evacuee: Ejected Pilot #2', type = 'Ejected Pilot', unitId = 2, weight = 0 } })
     end,
-    test4Count = function()
+    testCount = function()
         -- INIT
         Evac._state.zones.relay[_testZone] = _testZoneData
         lu.assertEquals(Evac._state.extractableNow[_testZone], { [_testUnit3.unitName] = _testEvacuee })
@@ -401,7 +402,7 @@ Test1ZonesRelay = {
         -- SIDE EFFECTS
         -- N/A?
     end,
-    test5IsIn = function()
+    testIsIn = function()
         -- INIT
         Evac._state.zones.relay[_testZone] = _testZoneData
         lu.assertEquals(Evac.zones.relay.register(_testZone, trigger.smokeColor.Green, 2), nil)
@@ -415,7 +416,7 @@ Test1ZonesRelay = {
         -- SIDE EFFECTS
         -- N/A?
     end,
-    test6Deactivate = function()
+    testDeactivate = function()
         -- INIT
         Evac._state.zones.relay[_testZone] = _testZoneData
         lu.assertEquals(Evac.zones.relay.activate(_testZone), nil)
@@ -427,7 +428,7 @@ Test1ZonesRelay = {
         -- SIDE EFFECTS
         lu.assertEquals(Evac._state.zones.relay, { [_testZone] = _testZoneData })
     end,
-    test7Unregister = function()
+    testUnregister = function()
         -- INIT
         Evac._state.zones.relay[_testZone] = _testZoneData
         lu.assertEquals(Evac._state.zones.relay, { [_testZone] = _testZoneData })
@@ -441,9 +442,9 @@ Test1ZonesRelay = {
     tearDown = tearDown,
 }
 
-Test2ZonesSafe = {
+TestEvacZonesSafe = {
     setUp = setUp,
-    test0Register = function()
+    testRegister = function()
         -- INIT
         lu.assertEquals(Evac._state.zones.safe, {})
 
@@ -453,7 +454,7 @@ Test2ZonesSafe = {
         -- SIDE EFFECTS
         lu.assertEquals(Evac._state.zones.safe, { [_testZone] = { active = false, mode = 2, name = _testZone, side = 2, smoke = 0 } })
     end,
-    test1Activate = function()
+    testActivate = function()
         -- INIT
         lu.assertEquals(Evac._state.zones.safe, {})
         lu.assertEquals(Evac.zones.safe.register(_testZone, trigger.smokeColor.Green, 2), nil)
@@ -465,7 +466,7 @@ Test2ZonesSafe = {
         -- SIDE EFFECTS
         lu.assertEquals(Evac._state.zones.safe, { [_testZone] = { active = true, mode = 2, name = _testZone, side = 2, smoke = 0 } })
     end,
-    test2Count = function()
+    testCount = function()
         -- INIT
         Evac._state.zones.safe[_testZone] = _testZoneData
         lu.assertEquals(Evac._state.extractableNow[_testZone], { [_testUnit3.unitName] = _testEvacuee })
@@ -476,7 +477,7 @@ Test2ZonesSafe = {
         -- SIDE EFFECTS
         -- N/A?
     end,
-    test3IsIn = function()
+    testIsIn = function()
         -- INIT
         lu.assertEquals(Evac.zones.safe.register(_testZone, trigger.smokeColor.Green, 2), nil)
         lu.assertEquals(Evac.zones.safe.activate(_testZone), nil)
@@ -491,7 +492,7 @@ Test2ZonesSafe = {
         -- SIDE EFFECTS
         -- N/A?
     end,
-    test4Deactivate = function()
+    testDeactivate = function()
         -- INIT
         lu.assertEquals(Evac.zones.safe.register(_testZone, trigger.smokeColor.Green, 2), nil)
         lu.assertEquals(Evac.zones.safe.activate(_testZone), nil)
@@ -503,7 +504,7 @@ Test2ZonesSafe = {
         -- SIDE EFFECTS
         lu.assertEquals(Evac._state.zones.safe, { [_testZone] = { active = false, mode = 2, name = _testZone, side = 2, smoke = 0 } })
     end,
-    test5Unregister = function()
+    testUnregister = function()
         -- INIT
         Evac._state.zones.safe[_testZone] = _testZoneData
         lu.assertEquals(Evac._state.zones.safe, { [_testZone] = _testZoneData })
@@ -517,9 +518,9 @@ Test2ZonesSafe = {
     tearDown = tearDown,
 }
 
-Test3Units = {
+TestEvacUnits = {
     setUp = setUp,
-    test0Register = function()
+    testRegister = function()
         -- INIT
         Evac._state.extractionUnits = {}
         lu.assertEquals(Evac._state.extractionUnits[_testUnit2.unitName], nil)
@@ -530,7 +531,7 @@ Test3Units = {
         -- SIDE EFFECTS
         lu.assertNotEquals(Evac._state.extractionUnits[_testUnit2.unitName], nil)
     end,
-    test1FindEvacuees = function()
+    testFindEvacuees = function()
         -- INIT
         local _args = { _testUnit:getGroup():getID(), 'No Active Evacuation Beacons', 15 }
         trigger.action.outTextForGroup:whenCalled({ with = _args, thenReturn = nil })
@@ -546,7 +547,7 @@ Test3Units = {
         )
         lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(trigger.action.outTextForGroup.spy.calls)))
     end,
-    test2LoadEvacuees = function()
+    testLoadEvacuees = function()
         -- INIT
         local _args = {_testUnit:getID(), "Your aircraft isn't rated for evacuees in this mission!", timer.getTime() + 1 }
         trigger.action.outTextForUnit:whenCalled({ with = _args, thenReturn = nil })
@@ -562,7 +563,7 @@ Test3Units = {
         )
         lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(trigger.action.outTextForUnit.spy.calls)))
     end,
-    test3UnloadEvacuees = function()
+    testUnloadEvacuees = function()
         -- INIT
         local _args = {_testUnit:getID(), 'Not in an active relay or safe zone! Try looking elsewhere.', 5 }
         trigger.action.outTextForUnit:whenCalled({ with = _args, thenReturn = nil })
@@ -578,7 +579,7 @@ Test3Units = {
         )
         lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(trigger.action.outTextForUnit.spy.calls)))
     end,
-    test4CountEvacuees = function()
+    testCountEvacuees = function()
         -- INIT
         local _args = {_testUnit:getID(), 'You are currently carrying 0 evacuees.', timer.getTime() + 1 }
         trigger.action.outTextForUnit:whenCalled({ with = _args, thenReturn = nil })
@@ -594,7 +595,7 @@ Test3Units = {
         )
         lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(trigger.action.outTextForUnit.spy.calls)))
     end,
-    test5Count = function()
+    testCount = function()
         -- INIT
         -- N/A?
 
@@ -604,7 +605,7 @@ Test3Units = {
         -- SIDE EFFECTS
         -- N/A?
     end,
-    test6Unregister = function()
+    testUnregister = function()
         -- INIT
         lu.assertEquals(Evac.units.register(_testUnit2), nil)
         lu.assertNotEquals(Evac._state.extractionUnits[_testUnit2.unitName], nil)
@@ -618,9 +619,9 @@ Test3Units = {
     tearDown = tearDown,
 }
 
-Test4Groups = {
+TestEvacGroups = {
     setUp = setUp,
-    test0SpawnNumber = function()
+    testSpawnNumber = function()
         -- INIT
         Evac.beaconBatteryLife = 30
 
@@ -692,7 +693,7 @@ Test4Groups = {
         -- SIDE EFFECTS
         Evac.beaconBatteryLife = 0
     end,
-    test1SpawnComposition = function()
+    testSpawnComposition = function()
         -- INIT
         Evac.beaconBatteryLife = 30
 
@@ -754,7 +755,7 @@ Test4Groups = {
         -- SIDE EFFECTS
         Evac.beaconBatteryLife = 0
     end,
-    test2List = function()
+    testList = function()
         -- INIT
         lu.assertEquals(Evac._state.extractableNow[_testZone], { [_testUnit3.unitName] = _testEvacuee })
 
@@ -764,7 +765,7 @@ Test4Groups = {
         -- SIDE EFFECTS
         -- N/A?
     end,
-    test3Count = function()
+    testCount = function()
         -- INIT
         -- N/A?
 
@@ -777,19 +778,9 @@ Test4Groups = {
     tearDown = tearDown,
 }
 
-Test5Internal0Aircraft = {
+TestEvacInternalAircraft = {
     setUp = setUp,
-    test0GetZone = function()
-        -- INIT
-        lu.assertEquals(Evac.zones.evac.activate(_testZone), nil)
-
-        -- TEST
-        lu.assertEquals(Evac._internal.aircraft.getZone(_testUnit.unitName), _testZone)
-
-        -- SIDE EFFECTS
-        -- N/A?
-    end,
-    test1InZone = function()
+    testInZone = function()
         -- INIT
         lu.assertEquals(Evac.zones.evac.activate(_testZone), nil)
 
@@ -799,7 +790,7 @@ Test5Internal0Aircraft = {
         -- SIDE EFFECTS
         -- N/A?
     end,
-    test2InAir = function()
+    testInAir = function()
         -- INIT
         -- N/A?
 
@@ -809,7 +800,7 @@ Test5Internal0Aircraft = {
         -- SIDE EFFECTS
         -- N/A?
     end,
-    test3HeightDifference = function()
+    testHeightDifference = function()
         -- INIT
         -- N/A?
 
@@ -819,7 +810,7 @@ Test5Internal0Aircraft = {
         -- SIDE EFFECTS
         -- N/A?
     end,
-    test4LoadEvacuees = function()
+    testLoadEvacuees = function()
         -- INIT
         local _args = {_testUnit:getID(), 'Not in an active evac or relay zone! Try looking elsewhere.', 5 }
         trigger.action.outTextForUnit:whenCalled({ with = _args, thenReturn = nil })
@@ -835,7 +826,7 @@ Test5Internal0Aircraft = {
         )
         lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(trigger.action.outTextForUnit.spy.calls)))
     end,
-    test5CountEvacuees = function()
+    testCountEvacuees = function()
         -- INIT
         -- N/A?
 
@@ -845,7 +836,7 @@ Test5Internal0Aircraft = {
         -- SIDE EFFECTS
         -- N/A?
     end,
-    test6CalculateWeight = function()
+    testCalculateWeight = function()
         -- INIT
         -- N/A?
 
@@ -855,7 +846,7 @@ Test5Internal0Aircraft = {
         -- SIDE EFFECTS
         -- N/A?
     end,
-    test7AdaptWeight = function()
+    testAdaptWeight = function()
         -- INIT
         trigger.action.setUnitInternalCargo:whenCalled({ with = { _testUnit.unitName, 0 }, thenReturn = nil })
 
@@ -870,7 +861,7 @@ Test5Internal0Aircraft = {
         )
         lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(trigger.action.setUnitInternalCargo.spy.calls)))
     end,
-    test8UnloadEvacuees = function()
+    testUnloadEvacuees = function()
         -- INIT
         local _args = {_testUnit:getID(), 'Not in an active relay or safe zone! Try looking elsewhere.', 5 }
         trigger.action.outTextForUnit:whenCalled({ with = _args, thenReturn = nil })
@@ -889,9 +880,9 @@ Test5Internal0Aircraft = {
     tearDown = tearDown,
 }
 
-Test5Internal1Beacons = {
+TestEvacInternalBeacons = {
     setUp = setUp,
-    test0Spawn = function()
+    testSpawn = function()
         -- INIT
         Evac.beaconBatteryLife = 30
 
@@ -940,7 +931,7 @@ Test5Internal1Beacons = {
         -- SIDE EFFECTS
         Evac.beaconBatteryLife = 0
     end,
-    test1GetFreeADFFrequencies = function()
+    testGetFreeADFFrequencies = function()
         -- INIT
         -- N/A?
 
@@ -954,7 +945,7 @@ Test5Internal1Beacons = {
         -- SIDE EFFECTS
         -- N/A?
     end,
-    test2List = function()
+    testList = function()
         -- INIT
         local _args = {_testUnit:getGroup():getID(), 'Evacuation Beacons:\nGroup #2 - Beacon #1 (840.00 kHz - 277.50 / 32.15 MHz)\n', 15 }
 
@@ -972,7 +963,7 @@ Test5Internal1Beacons = {
         )
         lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(trigger.action.outTextForGroup.spy.calls)))
     end,
-    test3Update = function()
+    testUpdate = function()
         -- INIT
         local _radioGroup = {
             battery = 1800,
@@ -1025,7 +1016,7 @@ Test5Internal1Beacons = {
         -- SIDE EFFECTS
         Evac.beaconBatteryLife = 0
     end,
-    test4KillDead = function()
+    testKillDead = function()
         -- INIT
         -- N/A?
 
@@ -1040,7 +1031,7 @@ Test5Internal1Beacons = {
         )
         lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(timer.scheduleFunction.calls)))
     end,
-    test5GenerateVHFrequencies = function()
+    testGenerateVHFrequencies = function()
         -- INIT
         -- N/A?
 
@@ -1104,7 +1095,7 @@ Test5Internal1Beacons = {
             1250000
         })
     end,
-    test6GenerateUHFrequencies = function()
+    testGenerateUHFrequencies = function()
         -- INIT
         -- N/A?
 
@@ -1473,7 +1464,7 @@ Test5Internal1Beacons = {
             398500000
         })
     end,
-    test7GenerateFMFrequencies = function()
+    testGenerateFMFrequencies = function()
         -- INIT
         -- N/A?
 
@@ -2087,9 +2078,9 @@ Test5Internal1Beacons = {
     tearDown = tearDown,
 }
 
-Test5Internal2Smoke = {
+TestEvacInternalSmoke = {
     setUp = setUp,
-    test0Refresh = function()
+    testRefresh = function()
         -- INIT
         trigger.action.smoke:whenCalled({ with = { nil, trigger.smokeColor.Green }, thenReturn = nil })
         lu.assertEquals(Evac._internal.zones.activate(_testZone, Evac.modes.EVAC))
@@ -2115,9 +2106,9 @@ Test5Internal2Smoke = {
     tearDown = tearDown,
 }
 
-Test5Internal3Zones = {
+TestEvacInternalZones = {
     setUp = setUp,
-    test0Register = function()
+    testRegister = function()
         -- INIT
         local _testName = 'register'
 
@@ -2137,7 +2128,7 @@ Test5Internal3Zones = {
         })
         lu.assertEquals(Evac._state.extractableNow[_testName], {})
     end,
-    test1GenerateEvacueesByNumber = function()
+    testGenerateEvacueesByNumber = function()
         -- INIT
         -- N/A?
 
@@ -2154,7 +2145,7 @@ Test5Internal3Zones = {
         -- SIDE EFFECTS
         -- N/A?
     end,
-    test2GenerateEvacueesByComposition = function()
+    testGenerateEvacueesByComposition = function()
         -- INIT
         -- N/A?
 
@@ -2171,7 +2162,7 @@ Test5Internal3Zones = {
         -- SIDE EFFECTS
         -- N/A?
     end,
-    test3Activate = function()
+    testActivate = function()
         -- INIT
         lu.assertEquals(Evac._state.zones.evac[_testZone].active, false)
 
@@ -2181,7 +2172,7 @@ Test5Internal3Zones = {
         -- SIDE EFFECTS
         lu.assertEquals(Evac._state.zones.evac[_testZone].active, true)
     end,
-    test4SetRemainingNumber = function()
+    testSetRemainingNumber = function()
         -- INIT
         lu.assertEquals(Evac._state.extractableNow[_testZone], { [_testUnit3.unitName] = _testEvacuee })
 
@@ -2191,7 +2182,7 @@ Test5Internal3Zones = {
         -- SIDE EFFECTS
         lu.assertEquals(Evac._state.extractableNow[_testZone], { ['Evacuee: Ejected Pilot #2'] = { type = 'Ejected Pilot', unitId = 2, unitName = 'Evacuee: Ejected Pilot #2', weight = 0 } })
     end,
-    test5SetRemainingComposition = function()
+    testSetRemainingComposition = function()
         -- INIT
         lu.assertEquals(Evac._state.extractableNow[_testZone], { [_testUnit3.unitName] = _testEvacuee })
 
@@ -2201,7 +2192,7 @@ Test5Internal3Zones = {
         -- SIDE EFFECTS
         lu.assertEquals(Evac._state.extractableNow[_testZone], { ['Evacuee: Ejected Pilot #2'] = { type = 'Ejected Pilot', unitId = 2, unitName = 'Evacuee: Ejected Pilot #2', weight = 0 } })
     end,
-    test6Count = function()
+    testCount = function()
         -- INIT
         -- N/A?
 
@@ -2211,7 +2202,7 @@ Test5Internal3Zones = {
         -- SIDE EFFECTS
         -- N/A?
     end,
-    test7IsIn = function()
+    testIsIn = function()
         -- INIT
         lu.assertEquals(Evac._internal.zones.activate(_testZone, Evac.modes.EVAC), nil)
 
@@ -2221,7 +2212,7 @@ Test5Internal3Zones = {
         -- SIDE EFFECTS
         -- N/A?
     end,
-    test8Deactivate = function()
+    testDeactivate = function()
         -- INIT
         lu.assertEquals(Evac._state.zones.evac[_testZone].active, false)
         lu.assertEquals(Evac._internal.zones.activate(_testZone, Evac.modes.EVAC), nil)
@@ -2233,7 +2224,7 @@ Test5Internal3Zones = {
         -- SIDE EFFECTS
         lu.assertEquals(Evac._state.zones.evac[_testZone].active, false)
     end,
-    test9Unregister = function()
+    testUnregister = function()
         -- INIT
         lu.assertEquals(Evac._state.zones.evac[_testZone], {
             active = false,
@@ -2254,9 +2245,9 @@ Test5Internal3Zones = {
     tearDown = tearDown,
 }
 
-Test5Internal4Utils = {
+TestEvacInternalUtils = {
     setUp = setUp,
-    test0EndIfLossesTooHigh = function()
+    testEndIfLossesTooHigh = function()
         -- INIT
         trigger.action.setUserFlag:whenCalled({ with = { 1, true }, thenReturn = nil })
         trigger.action.setUserFlag:whenCalled({ with = { 2, true }, thenReturn = nil })
@@ -2301,7 +2292,7 @@ Test5Internal4Utils = {
         )
         lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(trigger.action.setUserFlag.spy.calls)))
     end,
-    test1GetNextGroupId = function()
+    testGetNextGroupId = function()
         -- INIT
         -- N/A?
 
@@ -2311,7 +2302,7 @@ Test5Internal4Utils = {
         -- SIDE EFFECTS
         -- N/A?
     end,
-    test2GetNextUnitId = function()
+    testGetNextUnitId = function()
         -- INIT
         -- N/A?
 
@@ -2321,7 +2312,7 @@ Test5Internal4Utils = {
         -- SIDE EFFECTS
         -- N/A?
     end,
-    test3RandomizeWeight = function()
+    testRandomizeWeight = function()
         -- INIT
         -- N/A?
 
@@ -2337,7 +2328,7 @@ Test5Internal4Utils = {
         -- SIDE EFFECTS
         -- N/A?
     end,
-    test4UnitDataToList = function()
+    testUnitDataToList = function()
         -- INIT
         -- N/A?
 
@@ -2363,9 +2354,9 @@ Test5Internal4Utils = {
     tearDown = tearDown,
 }
 
-Test5Internal5DoSpawns = {
+TestEvacInternalDoSpawns = {
     setUp = setUp,
-    test0DoSpawnsFirstPass = function()
+    testDoSpawnsFirstPass = function()
         -- INIT
         Evac.zones.evac.activate(_testZone)
 
@@ -2376,7 +2367,7 @@ Test5Internal5DoSpawns = {
         lu.assertNotEquals(Evac._state.spawns.lastChecked[0], nil)
         lu.assertEquals(Evac._state.spawns.alreadySpawned, Evac.maxExtractable)
     end,
-    test1DoSpawnsSecondPass = function()
+    testDoSpawnsSecondPass = function()
         -- INIT
         Evac.zones.evac.activate(_testZone)
 
@@ -2397,10 +2388,11 @@ Test5Internal5DoSpawns = {
     tearDown = tearDown,
 }
 
-Test5Internal6Handlers = {
+TestEvacInternalHandlers = {
     setUp = setUp,
-    test0FullLoss = function()
+    testFullLoss = function()
         -- INIT
+        trigger.action.outTextForCoalition:whenCalled({ with = { 2, 'We just lost 1 evacuee(s)! Step it up, pilots!', 15 }, thenReturn = nil })
         trigger.action.setUserFlag:whenCalled({ with = { 1, true }, thenReturn = nil })
         trigger.action.setUserFlag:whenCalled({ with = { 2, true }, thenReturn = nil })
 
@@ -2453,12 +2445,27 @@ Test5Internal6Handlers = {
         )
         lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(trigger.action.setUserFlag.spy.calls)))
     end,
+    testTakeControl = function()
+        -- INIT
+        Evac._state.extractionUnits[_testUnit.unitName] = {}
+
+        -- TEST
+        lu.assertEquals(Evac._internal.handlers.takeControl.fn({ id = world.event.S_EVENT_BIRTH, initiator = _testUnit }))
+
+        -- SIDE EFFECTS
+        local _status, _result = pcall(
+            Gremlin.log.debug.assertAnyCallMatches,
+            Gremlin.log.debug,
+            { arguments = { Evac.Id, string.format('Everyone welcome our newest pilot! : Unit %s Spawned by %s', _testUnit:getName(), _testUnit:getPlayerName()) } }
+        )
+        lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(Gremlin.log.debug.calls)))
+    end,
     tearDown = tearDown,
 }
 
-Test6TopLevel = {
+TestEvacTopLevel = {
     setUp = setUp,
-    test0SetupNone = function()
+    testSetupNone = function()
         -- INIT
         trigger.action.setUserFlag:whenCalled({ with = { 'GremlinEvacRedLoss', false }, thenReturn = nil })
         trigger.action.setUserFlag:whenCalled({ with = { 'GremlinEvacBlueLoss', false }, thenReturn = nil })
@@ -2509,7 +2516,7 @@ Test6TopLevel = {
         lu.assertEquals(Evac.spawnRates, { _global = { { per = 0, period = 1, units = 0 }, { per = 0, period = 1, units = 0 } } })
         lu.assertEquals(Evac.spawnWeight, 100)
     end,
-    test1SetupBlank = function()
+    testSetupBlank = function()
         -- INIT
         trigger.action.setUserFlag:whenCalled({ with = { 'GremlinEvacRedLoss', false }, thenReturn = nil })
         trigger.action.setUserFlag:whenCalled({ with = { 'GremlinEvacBlueLoss', false }, thenReturn = nil })
@@ -2560,7 +2567,7 @@ Test6TopLevel = {
         lu.assertEquals(Evac.spawnRates, { _global = { { per = 0, period = 1, units = 0 }, { per = 0, period = 1, units = 0 } } })
         lu.assertEquals(Evac.spawnWeight, 100)
     end,
-    test2SetupConfig = function()
+    testSetupConfig = function()
         -- INIT
         trigger.action.setUserFlag:whenCalled({ with = { 'GremlinEvacRedLoss', false }, thenReturn = nil })
         trigger.action.setUserFlag:whenCalled({ with = { 'GremlinEvacBlueLoss', false }, thenReturn = nil })

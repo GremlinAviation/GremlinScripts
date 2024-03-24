@@ -101,6 +101,7 @@ local tearDown = function()
     Gremlin.log.debug:reset()
     Gremlin.log.trace:reset()
     trigger.action.setUnitInternalCargo:reset()
+    trigger.action.setUserFlag:reset()
     trigger.action.outText:reset()
     trigger.action.outTextForCoalition:reset()
     trigger.action.outTextForCountry:reset()
@@ -108,9 +109,9 @@ local tearDown = function()
     trigger.action.outTextForUnit:reset()
 end
 
-Test0Menu = {
+TestGremlinMenu = {
     setUp = setUp,
-    test0UpdateF10 = function()
+    testUpdateF10 = function()
         -- INIT
         local _testCommands = {
             {
@@ -190,6 +191,21 @@ Test0Menu = {
                 lu.assertEquals(_status, true, string.format('%s\n%s\n%s', inspect(_result), inspect(_args), inspect(missionCommands.addCommandForGroup.spy.calls)))
             end
         end
+    end,
+    tearDown = tearDown,
+}
+
+TestGremlinUtils = {
+    setUp = setUp,
+    testGetUnitZones = function()
+        -- INIT
+        -- N/A?
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.getUnitZones(_testUnit.unitName), { _testZone })
+
+        -- SIDE EFFECTS
+        -- N/A?
     end,
     tearDown = tearDown,
 }

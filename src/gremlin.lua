@@ -70,7 +70,7 @@ Gremlin = {
                 _toolId = Gremlin.Id
                 _message = toolId
             end
-            env.error(tostring(_toolId) .. ' | ' .. tostring(message))
+            env.error(tostring(_toolId) .. ' | ' .. tostring(timer.getTime()) .. ' | ' .. tostring(message))
         end,
         warn = function(toolId, message)
             local _toolId = toolId
@@ -79,7 +79,7 @@ Gremlin = {
                 _toolId = Gremlin.Id
                 _message = toolId
             end
-            env.warning(tostring(_toolId) .. ' | ' .. tostring(message))
+            env.warning(tostring(_toolId) .. ' | ' .. tostring(timer.getTime()) .. ' | ' .. tostring(message))
         end,
         info = function(toolId, message)
             local _toolId = toolId
@@ -88,7 +88,7 @@ Gremlin = {
                 _toolId = Gremlin.Id
                 _message = toolId
             end
-            env.info(tostring(_toolId) .. ' | ' .. tostring(message))
+            env.info(tostring(_toolId) .. ' | ' .. tostring(timer.getTime()) .. ' | ' .. tostring(message))
         end,
         debug = function(toolId, message)
             if Gremlin.Debug then
@@ -98,7 +98,7 @@ Gremlin = {
                     _toolId = Gremlin.Id
                     _message = toolId
                 end
-                env.info('DEBUG: ' .. tostring(_toolId) .. ' | ' .. tostring(message))
+                env.info('DEBUG: ' .. tostring(_toolId) .. ' | ' .. tostring(timer.getTime()) .. ' | ' .. tostring(message))
             end
         end,
         trace = function(toolId, message)
@@ -109,7 +109,7 @@ Gremlin = {
                     _toolId = Gremlin.Id
                     _message = toolId
                 end
-                env.info('TRACE: ' .. tostring(_toolId) .. ' | ' .. tostring(message))
+                env.info('TRACE: ' .. tostring(_toolId) .. ' | ' .. tostring(timer.getTime()) .. ' | ' .. tostring(message))
             end
         end
     },
@@ -120,7 +120,7 @@ Gremlin = {
 
             Gremlin.log.trace(Gremlin.Id, string.format('Updating F10 Menu For %i Units', Gremlin.utils.countTableEntries(forUnits)))
 
-            timer.scheduleFunction(Gremlin.menu.updateF10, {toolId, commands, forUnits}, timer.getTime() + 10)
+            timer.scheduleFunction(Gremlin.menu.updateF10, args, timer.getTime() + 10)
 
             for _unitName, _extractor in pairs(forUnits) do
                 local _unit = _extractor or Unit.getByName(_unitName)
@@ -193,22 +193,39 @@ Gremlin = {
         displayMessageTo = function(_name, _text, _time)
             if _name == 'all' or _name == 'Neutral' or _name == nil then
                 trigger.action.outText(_text, _time)
-            elseif coalition.side[_name] ~= nil then
-                trigger.action.outTextForCoalition(coalition.side[_name], _text, _time)
-            elseif country.by_country[_name] ~= nil then
-                trigger.action.outTextForCountry(country.by_country[_name].WorldID, _text, _time)
+            elseif type(_name) == 'string' and coalition.side[string.upper(_name)] ~= nil then
+                trigger.action.outTextForCoalition(coalition.side[string.upper(_name)], _text, _time)
+            elseif type(_name) == 'string' and country[string.upper(_name)] ~= nil then
+                trigger.action.outTextForCountry(country[string.upper(_name)], _text, _time)
             elseif type(_name) == 'table' and _name.className_ == 'Group' then
                 trigger.action.outTextForGroup(_name:getID(), _text, _time)
-            elseif Group.getByName(_name) ~= nil then
+            elseif type(_name) == 'string' and Group.getByName(_name) ~= nil then
                 trigger.action.outTextForGroup(Group.getByName(_name):getID(), _text, _time)
             elseif type(_name) == 'table' and _name.className_ == 'Unit' then
                 trigger.action.outTextForUnit(_name:getID(), _text, _time)
-            elseif Unit.getByName(_name) ~= nil then
+            elseif type(_name) == 'string' and Unit.getByName(_name) ~= nil then
                 trigger.action.outTextForUnit(Unit.getByName(_name):getID(), _text, _time)
             else
-                Gremlin.log.error(Gremlin.Id, "Can't find object named " .. tostring(_name) ..
-                    ' to display message to!\nMessage was: ' .. _text)
+                Gremlin.log.error(Gremlin.Id, string.format("Can't find object named %s to display message to!\nMessage was: %s", tostring(_name), _text))
             end
+        end,
+        getUnitZones = function(_unit)
+            Gremlin.log.trace(Gremlin.Id, string.format('Grabbing Unit Zone Names : %s', _unit))
+
+            local _outZones = {}
+            local _unitObj = Unit.getByName(_unit)
+
+            if _unitObj ~= nil then
+                local _unitPoint = _unitObj:getPoint()
+
+                for _zoneName, _ in pairs(mist.DBs.zonesByName) do
+                    if mist.pointInZone(_unitPoint, _zoneName) then
+                        table.insert(_outZones, _zoneName)
+                    end
+                end
+            end
+
+            return _outZones
         end,
         parseFuncArgs = function(_args, _objs)
             local _out = {}

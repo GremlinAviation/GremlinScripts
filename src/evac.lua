@@ -466,23 +466,6 @@ Evac.groups = {
 
 -- Aircraft
 Evac._internal.aircraft = {
-    getZone = function(_unit)
-        Gremlin.log.trace(Evac.Id, string.format('Grabbing Unit Zone Name : %s', _unit))
-
-        local _unitObj = Unit.getByName(_unit)
-
-        if _unitObj ~= nil then
-            local _unitPoint = _unitObj:getPoint()
-
-            for _, _zoneData in pairs(Gremlin.utils.mergeTables(Evac._state.zones.evac, Evac._state.zones.relay, Evac._state.zones.safe)) do
-                if mist.pointInZone(_unitPoint, _zoneData.name) then
-                    return _zoneData.name
-                end
-            end
-        end
-
-        return nil
-    end,
     inZone = function(_unit, _evacMode)
         Gremlin.log.trace(Evac.Id, string.format('Checking For Unit In Zones : %s, %s', _unit, tostring(_evacMode)))
 
@@ -528,7 +511,7 @@ Evac._internal.aircraft = {
     loadEvacuees = function(_unit, _number)
         Gremlin.log.trace(Evac.Id, string.format('Loading Evacuees Onto Unit : %s, %i', _unit, _number))
 
-        local _zone = Evac._internal.aircraft.getZone(_unit)
+        local _zone = Evac._internal.utils.getUnitZone(_unit)
 
         if Evac._state.extractableNow[_zone] == nil or ((Evac._state.zones.evac[_zone] == nil or Evac._state.zones.evac[_zone].active == false) and (Evac._state.zones.relay[_zone] == nil or Evac._state.zones.relay[_zone].active == false)) then
             Gremlin.log.debug(Evac.Id, string.format('Loading Evacuees : %s is not an active or registered zone\nextractable - %s\nevac zone - %s\nrelay zone - %s', _zone, mist.utils.tableShowSorted(Evac._state.extractableNow[_zone]), mist.utils.tableShowSorted(Evac._state.zones.evac[_zone]), mist.utils.tableShowSorted(Evac._state.zones.relay[_zone])))
@@ -552,14 +535,14 @@ Evac._internal.aircraft = {
         local _timeout = Evac.loadUnloadPerIndividual * _number
         local _timeNow = math.floor(timer.getTime())
         mist.scheduleFunction(function(_start)
-            local _left = (_start + _timeout) - timer.getTime()
+            local _left = math.floor((_start + _timeout) - timer.getTime())
 
             Gremlin.log.debug(Evac.Id, string.format('Loading Evacuees : %i seconds to finish', _left))
 
-            local _displayTime = 1
-            local _message
+            local _message = string.format('%i seconds remaining to load %i evacuees', _left, _number)
+            local _displayFor = 1
 
-            if math.floor(_left) <= 0 then
+            if _left <= 0 then
                 local _evacNameList = {}
                 for _evacName, _ in pairs(Evac._state.extractableNow[_zone]) do
                     table.insert(_evacNameList, _evacName)
@@ -574,16 +557,28 @@ Evac._internal.aircraft = {
                     Evac._state.extractionUnits[_unit][_randomName] = _evacuee
                 end
 
-                Evac._internal.aircraft.adaptWeight(_unit)
                 _message = 'Evacuee loading complete!'
-                _displayTime = 5
-            else
-                _message = string.format('%i seconds remaining in evacuee loading process', _left)
+                _displayFor = 5
+            elseif math.fmod(_left, Evac.loadUnloadPerIndividual) == 0 then
+                local _evacNameList = {}
+                for _evacName, _ in pairs(Evac._state.extractableNow[_zone]) do
+                    table.insert(_evacNameList, _evacName)
+                end
+
+                local _randomIdx = math.random(#_evacNameList)
+                local _randomName = _evacNameList[_randomIdx]
+                local _evacuee = Evac._state.extractableNow[_zone][_randomName]
+                table.remove(_evacNameList, _randomIdx)
+                Evac._state.extractableNow[_zone][_randomName] = nil
+                Evac._state.extractionUnits[_unit][_randomName] = _evacuee
+                _number = _number - 1
             end
+
+            Evac._internal.aircraft.adaptWeight(_unit)
 
             Gremlin.log.debug(Evac.Id, string.format('Loading Evacuees : Sending %s to %s', _message, tostring(_unit)))
 
-            Gremlin.utils.displayMessageTo(_unit, _message, _displayTime)
+            Gremlin.utils.displayMessageTo(_unit, _message, _displayFor)
         end, {_timeNow + 0.01}, _timeNow + 0.01, 1, _timeNow + _timeout + 0.02)
     end,
     countEvacuees = function(_unit)
@@ -620,8 +615,7 @@ Evac._internal.aircraft = {
         if _extracted ~= nil then
             for _i, _evacuee in pairs(_extracted) do
                 if _i ~= 0 then
-                    _calculated = _calculated +
-                                      (_evacuee.weight or Evac._internal.utils.randomizeWeight(Evac.spawnWeight))
+                    _calculated = _calculated + (_evacuee.weight or Evac._internal.utils.randomizeWeight(Evac.spawnWeight))
                 end
             end
         end
@@ -637,7 +631,7 @@ Evac._internal.aircraft = {
     unloadEvacuees = function(_unit)
         Gremlin.log.trace(Evac.Id, string.format('Unloading Evacuees From Unit : %s', _unit))
 
-        local _zone = Evac._internal.aircraft.getZone(_unit)
+        local _zone = Evac._internal.utils.getUnitZone(_unit)
 
         if (Evac._state.zones.safe[_zone] == nil or Evac._state.zones.safe[_zone].active == false) and (Evac._state.zones.relay[_zone] == nil or Evac._state.zones.relay[_zone].active == false) then
             Gremlin.log.debug(Evac.Id, string.format('Unloading Evacuees : %s is not an active or registered zone\nrelay zone - %s\nsafe zone - %s', _zone, mist.utils.tableShowSorted(Evac._state.zones.relay[_zone]), mist.utils.tableShowSorted(Evac._state.zones.safe[_zone])))
@@ -661,14 +655,14 @@ Evac._internal.aircraft = {
         local _timeout = Evac.loadUnloadPerIndividual * _number
         local _timeNow = math.floor(timer.getTime())
         mist.scheduleFunction(function(_start)
-            local _left = (_start + _timeout) - timer.getTime()
+            local _left = math.floor((_start + _timeout) - timer.getTime())
 
             Gremlin.log.debug(Evac.Id, string.format('Unloading Evacuees : %f seconds to finish', _left))
 
-            local _displayTime = 1
-            local _message
+            local _displayFor = 1
+            local _message = string.format('%i seconds remaining to unload %i evacuees', _left, _number)
 
-            if math.floor(_left) <= 0 then
+            if _left <= 0 then
                 local _groups = {}
                 for _evacueeName, _evacuee in pairs(Evac._state.extractionUnits[_unit]) do
                     if _evacueeName ~= 0 then
@@ -686,15 +680,26 @@ Evac._internal.aircraft = {
                 }
                 Evac._internal.aircraft.adaptWeight(_unit)
                 _message = 'Evacuee unloading complete!'
-                _displayTime = 5
-            else
-                _message = string.format('%i seconds remaining in evacuee unloading process', _left)
+                _displayFor = 5
+            elseif math.fmod(_left, Evac.loadUnloadPerIndividual) == 0 then
+                for _evacueeName, _evacuee in pairs(Evac._state.extractionUnits[_unit]) do
+                    if _evacueeName ~= 0 then
+                        Evac._state.extractableNow[_zone][_evacueeName] = _evacuee
+                        Evac._state.extractionUnits[_unit][_evacueeName] = nil
+                        break
+                    end
+                end
+
+                Evac._internal.aircraft.adaptWeight(_unit)
+
+                _number = _number - 1
             end
 
             Gremlin.log.debug(Evac.Id, string.format('Unloading Evacuees : Sending %s to %s', _message, tostring(_unit)))
 
-            Gremlin.utils.displayMessageTo(_unit, _message, _displayTime)
-        end, {_timeNow + 0.01}, _timeNow + 0.01, 1, _timeNow + _timeout + 0.02)
+            Gremlin.utils.displayMessageTo(_unit, _message, _displayFor)
+            Evac._internal.utils.endIfEnoughGotOut()
+        end, { _timeNow + 0.01 }, _timeNow + 0.01, 1, _timeNow + _timeout + 0.02)
     end
 }
 
@@ -1116,7 +1121,7 @@ Evac._internal.zones = {
 
         for _unitName, _unit in pairs(Evac._state.extractableNow[_zone]) do
             if not Evac._internal.aircraft.inZone(_unitName, _zone) then
-                local _newZone = Evac._internal.aircraft.getZone(_unitName)
+                local _newZone = Evac._internal.utils.getUnitZone(_unitName)
 
                 if _newZone ~= nil and Evac._state.extractableNow[_newZone] ~= nil then
                     Evac._state.extractableNow[_newZone][_unitName] = _unit
@@ -1202,8 +1207,8 @@ Evac._internal.menu = {
         text = function(_unit)
             local _unitObj = Unit.getByName(_unit)
             if _unitObj ~= nil then
-                local _zone = Evac._internal.aircraft.getZone(_unit)
-                return string.format('Load %i Evacuees', math.min((Evac.carryLimits[_unitObj:getTypeName()] or 0), Gremlin.utils.countTableEntries(Evac._state.extractableNow[_zone])))
+                local _zone = Evac._internal.utils.getUnitZone(_unit)
+                return string.format('Load %i Evacuees (%i In Zone)', math.min((Evac.carryLimits[_unitObj:getTypeName()] or 0), Gremlin.utils.countTableEntries(Evac._state.extractableNow[_zone])), Gremlin.utils.countTableEntries(Evac._state.extractableNow[_zone]))
             end
         end,
         func = Evac.units.loadEvacuees,
@@ -1213,9 +1218,11 @@ Evac._internal.menu = {
                 if not Evac._internal.aircraft.inAir(_unit) and (Evac.zones.evac.isIn(_unit) or Evac.zones.relay.isIn(_unit)) then
                     local _unitObj = Unit.getByName(_unit)
                     if _unitObj ~= nil then
-                        local _zone = Evac._internal.aircraft.getZone(_unit)
-                        local _seats = math.min((Evac.carryLimits[_unitObj:getTypeName()] or 0), Gremlin.utils.countTableEntries(Evac._state.extractableNow[_zone]))
-                        return _seats > Evac._internal.aircraft.countEvacuees(_unit)
+                        local _zone = Evac._internal.utils.getUnitZone(_unit)
+                        if _zone ~= nil then
+                            local _seats = math.min((Evac.carryLimits[_unitObj:getTypeName()] or 0), Gremlin.utils.countTableEntries(Evac._state.extractableNow[_zone]))
+                            return _seats > Evac._internal.aircraft.countEvacuees(_unit)
+                        end
                     end
                 end
 
@@ -1250,23 +1257,44 @@ Evac._internal.menu = {
 Evac._internal.utils = {
     currentGroup = Evac.idStart + 0,
     currentUnit = Evac.idStart + 0,
+    endIfEnoughGotOut = function()
+        Gremlin.log.trace(Evac.Id, string.format('Checking Whether To End The Mission'))
+
+        for _side, _maxExtract in pairs(Evac.maxExtractable) do
+            local _saved = Evac._internal.utils.tallyEvacueesInZones(Evac._state.zones.safe)
+
+            local _pilot = _saved['Ejected Pilot'] / _maxExtract['Ejected Pilot']
+            local _infantry = _saved.Infantry / _maxExtract.Infantry
+            local _2b11 = _saved['2B11'] / _maxExtract['2B11']
+            local _m249 = _saved.M249 / _maxExtract.M249
+            local _rpg = _saved.RPG / _maxExtract.RPG
+            local _stingerIgla = _saved.StingerIgla / _maxExtract.StingerIgla
+            local _jtac = _saved.JTAC / _maxExtract.JTAC
+            local _combined = (_pilot + _infantry + _2b11 + _m249 + _rpg + _stingerIgla + _jtac) / 7
+
+            if (_combined > 0 and _combined >= (Evac.winThresholds[_side] / 100)) or
+                (_pilot > 0 and _pilot >= (Evac.winThresholds[_side] / 100)) then
+                trigger.action.setUserFlag(Evac.winFlags[_side], true)
+            end
+        end
+    end,
     endIfLossesTooHigh = function()
         Gremlin.log.trace(Evac.Id, string.format('Checking Whether To End The Mission'))
 
         for _side, _maxExtract in pairs(Evac.maxExtractable) do
             local _lost = Evac._state.lostEvacuees[_side]
 
-            local _generic = _lost['Ejected Pilot'] / _maxExtract['Ejected Pilot']
+            local _pilot = _lost['Ejected Pilot'] / _maxExtract['Ejected Pilot']
             local _infantry = _lost.Infantry / _maxExtract.Infantry
             local _2b11 = _lost['2B11'] / _maxExtract['2B11']
             local _m249 = _lost.M249 / _maxExtract.M249
             local _rpg = _lost.RPG / _maxExtract.RPG
             local _stingerIgla = _lost.StingerIgla / _maxExtract.StingerIgla
             local _jtac = _lost.JTAC / _maxExtract.JTAC
-            local _combined = (_generic + _infantry + _2b11 + _m249 + _rpg + _stingerIgla + _jtac) / 7
+            local _combined = (_pilot + _infantry + _2b11 + _m249 + _rpg + _stingerIgla + _jtac) / 7
 
             if (_combined > 0 and _combined >= (Evac.lossThresholds[_side] / 100)) or
-                (_generic > 0 and _generic >= (Evac.lossThresholds[_side] / 100)) then
+                (_pilot > 0 and _pilot >= (Evac.lossThresholds[_side] / 100)) then
                 trigger.action.setUserFlag(Evac.lossFlags[_side], true)
             end
         end
@@ -1279,6 +1307,20 @@ Evac._internal.utils = {
         end
 
         return _menuUnits
+    end,
+    getUnitZone = function(_unit)
+        Gremlin.log.trace(Evac.Id, string.format('Getting Unit Zone : %s', _unit))
+
+        local _zones = Gremlin.utils.getUnitZones(_unit)
+        local _outZones = {}
+
+        for _, _zone in pairs(_zones) do
+            if Evac._state.zones.evac[_zone] ~= nil or Evac._state.zones.relay[_zone] ~= nil or Evac._state.zones.safe[_zone] ~= nil then
+                table.insert(_outZones, _zone)
+            end
+        end
+
+        return _outZones[1]
     end,
     getNextGroupId = function()
         Gremlin.log.trace(Evac.Id, string.format('Getting Next Group ID'))
@@ -1309,6 +1351,25 @@ Evac._internal.utils = {
 
         return (math.random(90, 120) * (_weight or Evac.spawnWeight)) / 100
     end,
+    tallyEvacueesInZones = function(_zoneList)
+        local _evacCounter = {
+            ['Ejected Pilot'] = 0,
+            Infantry = 0,
+            ['2B11'] = 0,
+            M249 = 0,
+            RPG = 0,
+            StingerIgla = 0,
+            JTAC = 0,
+        }
+
+        for _zone, _ in pairs(_zoneList) do
+            for _, _evacuee in pairs(Evac._state.extractableNow[_zone]) do
+                _evacCounter[_evacuee.type] = (_evacCounter[_evacuee.type] or 0) + 1
+            end
+        end
+
+        return _evacCounter
+    end,
     unitDataToList = function(_units, _point, _scatterRadius)
         Gremlin.log.trace(Evac.Id, string.format('Converting Evac Unit Descriptions To DCS Internal Specs'))
 
@@ -1332,7 +1393,7 @@ Evac._internal.utils = {
         end
 
         return _unitsOut
-    end
+    end,
 }
 
 -- Auto-spawn
@@ -1503,7 +1564,7 @@ Evac._internal.doSpawns = function()
             ---@diagnostic disable-next-line: redefined-local
             for _zone, _zoneData in pairs(Evac._state.zones.evac) do
                 if _zoneData.active then
-                    _addedUnits = _addedUnits or _doLoop(_zone, _rates, _lastChecked)
+                    _addedUnits = _doLoop(_zone, _rates, _lastChecked) or _addedUnits
                 end
             end
         else
@@ -1541,7 +1602,7 @@ Evac._internal.handlers = {
             if _unit ~= nil then
                 local _name = _unit:getName()
 
-                if Evac._state.extractionUnits[_name] ~= nil and Gremlin.utils.countTableEntries(Evac._state.extractionUnits[_name]) > 0 then
+                if Evac._state.extractionUnits[_name] ~= nil and Evac._internal.aircraft.countEvacuees(_name) > 0 then
                     local _side
 
                     if Evac._state.extractionUnits[_name][0] ~= nil then
@@ -1574,9 +1635,9 @@ Evac._internal.handlers = {
                         end
                     end
 
-                    Gremlin.log.debug(Evac.Id, string.format('Lost Evacuees! : %s', mist.utils.tableShowSorted(Evac._state.extractionUnits[_name])))
+                    Gremlin.log.debug(Evac.Id, string.format('Lost Evacuee(s)! : %s', Evac._internal.aircraft.countEvacuees(_name)))
 
-                    Gremlin.utils.displayMessageTo(Gremlin.SideToText[_side], string.format('We just lost %i evacuees! Step it up, pilots!', Gremlin.utils.countTableEntries(Evac._state.extractionUnits[_name])), 15)
+                    Gremlin.utils.displayMessageTo(Gremlin.SideToText[_side], string.format('We just lost %i evacuee(s)! Step it up, pilots!', Evac._internal.aircraft.countEvacuees(_name)), 15)
 
                     Evac._state.extractionUnits[_name] = {
                         [0] = Evac._state.extractionUnits[_name][0],
@@ -1584,6 +1645,26 @@ Evac._internal.handlers = {
                     Evac._internal.utils.endIfLossesTooHigh()
                 else
                     Gremlin.log.debug(Evac.Id, string.format('No evacuees were harmed in the making of this explosion : Unit %s Lost', _name))
+                end
+            end
+        end
+    },
+    takeControl = {
+        event = world.event.S_EVENT_BIRTH,
+        fn = function(_event)
+            Gremlin.log.trace(Evac.Id, string.format('Handling Spawn Event'))
+
+            local _unit = _event.initiator
+
+            if _unit ~= nil then
+                local _name = _unit:getName()
+
+                if Evac._state.extractionUnits[_name] ~= nil then
+                    Evac._state.extractionUnits[_name][0] = _unit
+
+                    Gremlin.log.debug(Evac.Id, string.format('Everyone welcome our newest pilot! : Unit %s Spawned by %s', _name, _unit:getPlayerName() or 'Unknown?'))
+                else
+                    Gremlin.log.debug(Evac.Id, string.format('Not my circus, not my monkeys : Unit %s Spawned', _name))
                 end
             end
         end
