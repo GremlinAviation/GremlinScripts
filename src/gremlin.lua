@@ -114,17 +114,12 @@ Gremlin = {
         end
     },
     menu = {
-        updateF10 = function(args)
-            local toolId, commands, getForUnits = table.unpack(args)
-            local forUnits = getForUnits()
-
+        updateF10 = function(toolId, commands, forUnits)
             Gremlin.log.trace(Gremlin.Id, string.format('Updating F10 Menu For %i Units', Gremlin.utils.countTableEntries(forUnits)))
-
-            timer.scheduleFunction(Gremlin.menu.updateF10, args, timer.getTime() + 10)
 
             for _unitName, _extractor in pairs(forUnits) do
                 local _unit = _extractor or Unit.getByName(_unitName)
-                if _unit ~= nil and _unit:isExist() then
+                if _unit ~= nil and _unit.isExist ~= nil and _unit:isExist() then
                     local _groupId = _unit:getGroup():getID()
                     local _groupName = _unit:getGroup():getName()
 

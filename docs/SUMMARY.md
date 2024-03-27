@@ -24,6 +24,12 @@
     - [Units](./evac/functions/units.md)
     - [Zones](./evac/functions/zones.md)
 
+# Gremlin Urgency
+
+- [About](./urgency.md)
+  - [Setup](./urgency/setup.md)
+  - [Usage](./urgency/usage.md)
+
 # Book-Keeping
 
 - [Contributors](./contributors.md)

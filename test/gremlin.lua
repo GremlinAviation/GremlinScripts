@@ -162,12 +162,9 @@ TestGremlinMenu = {
         end
 
         -- TEST
-        lu.assertEquals(Gremlin.menu.updateF10({ Gremlin.Id, _testCommands, function()
-            return {
-                [_testUnit.unitName] = _testUnit,
-                [_testUnit2.unitName] = _testUnit2,
-            }
-        end
+        lu.assertEquals(Gremlin.menu.updateF10(Gremlin.Id, _testCommands, {
+            [_testUnit.unitName] = _testUnit,
+            [_testUnit2.unitName] = _testUnit2,
         }), nil)
 
         -- SIDE EFFECTS

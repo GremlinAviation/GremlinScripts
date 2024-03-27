@@ -386,7 +386,7 @@ Evac.groups = {
         local _spawnZone = trigger.misc.getZone(_zone)
 
         if _spawnZone == nil then
-            trigger.action.outText("GREMLIN EVAC ERROR: Can't find zone called " .. _zone, 10)
+            Gremlin.log.error(Evac.Id, "Can't find zone called " .. _zone)
             return
         end
 
@@ -1198,6 +1198,13 @@ Evac._internal.zones = {
 
 -- Menu
 Evac._internal.menu = {
+    updateF10 = function()
+        Gremlin.log.trace(Evac.Id, string.format('Updating Menu'))
+
+        timer.scheduleFunction(Evac._internal.menu.updateF10, nil, timer.getTime() + 5)
+
+        Gremlin.menu.updateF10(Evac.Id, Evac._internal.menu.commands, Evac._internal.utils.extractionUnitsToMenuUnits())
+    end,
     commands = {{
         text = 'Scan For Evacuation Beacons',
         func = Evac.units.findEvacuees,
@@ -1376,10 +1383,11 @@ Evac._internal.utils = {
         local _unitsOut = {}
         ---@diagnostic disable-next-line: deprecated
         local _angle = math.atan2(_point.z, _point.x)
-        local _xOffset = math.cos(_angle) * math.random(_scatterRadius)
-        local _yOffset = math.sin(_angle) * math.random(_scatterRadius)
 
         for _i, _unit in pairs(_units) do
+            local _xOffset = math.cos(_angle) * math.random(_scatterRadius)
+            local _yOffset = math.sin(_angle) * math.random(_scatterRadius)
+
             _unitsOut[_i] = {
                 type = _unit.type,
                 unitId = _unit.unitId,
@@ -1874,7 +1882,7 @@ function Evac:setup(config)
         timer.scheduleFunction(Evac._internal.doSpawns, nil, timer.getTime() + 5)
         timer.scheduleFunction(Evac._internal.beacons.killDead, nil, timer.getTime() + 5)
         timer.scheduleFunction(Evac._internal.smoke.refresh, nil, timer.getTime() + 5)
-        timer.scheduleFunction(Gremlin.menu.updateF10, { Evac.Id, Evac._internal.menu.commands, Evac._internal.utils.extractionUnitsToMenuUnits }, timer.getTime() + 5)
+        timer.scheduleFunction(Evac._internal.menu.updateF10, nil, timer.getTime() + 5)
     end, nil, timer.getTime() + 1)
 
     for _name, _def in pairs(Evac._internal.handlers) do

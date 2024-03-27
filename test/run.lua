@@ -23,6 +23,10 @@ if testName == "evac" or testName == "all" then
     dofile(PATH .. "evac.lua")
     testsLoaded = true
 end
+if testName == "urgency" or testName == "all" then
+    dofile(PATH .. "urgency.lua")
+    testsLoaded = true
+end
 
 if testsLoaded then
     os.exit(lu.LuaUnit.run())
