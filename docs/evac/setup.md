@@ -12,11 +12,11 @@ Evac:setup({
     },
     idStart = 5,
     loadUnloadPerIndividual = 2,
-    lossFlags = { 'GremlinEvacRedLoss', 'GremlinEvacBlueLoss' }
-    lossThresholds = { 25, 25 },
+    lossFlags = { 1, 2 }
+    lossThresholds = { 0, 25 },
     maxExtractable = {
         {
-            Generic = 12,
+            ['Downed Pilot'] = 12,
             Infantry = 12,
             M249 = 12,
             RPG = 12,
@@ -25,7 +25,7 @@ Evac:setup({
             JTAC = 3,
         },
         {
-            Generic = 12,
+            ['Downed Pilot'] = 12,
             Infantry = 12,
             M249 = 12,
             RPG = 12,
@@ -45,13 +45,14 @@ Evac:setup({
             },
         },
     },
+    startingUnits = { 'helicargo1', 'helicargo2', 'MedEvac1', 'MedEvac2', 'MedEvac3' },
     startingZones = {
         { mode = Evac.modes.EVAC, name = "Test 1", smoke = trigger.smokeColor.Green, side = coalition.side.BLUE, active = true },
         { mode = Evac.modes.RELAY, name = "Test 2", smoke = trigger.smokeColor.Orange, side = coalition.side.BLUE, active = true },
         { mode = Evac.modes.SAFE, name = "Test 3", smoke = trigger.smokeColor.White, side = coalition.side.BLUE },
     },
-    winFlags = { 'GremlinEvacRedWin', 'GremlinEvacBlueWin' }
-    winThresholds = { 75, 75 },
+    winFlags = { 3, 4 }
+    winThresholds = { 0, 75 },
 })
 ```
 
@@ -65,7 +66,7 @@ Evac:setup({
   - Default: `{ ["C-130"] = 90, ["CH-47D"] = 44, ["CH-43E"] = 55, ["Mi-8MT"] = 24, ["Mi-24P"] = 5, ["Mi-24V"] = 5, ["Mi-26"] = 70, ["SH60B"] = 5, ["UH-1H"] = 8, ["UH-60L"] = 11 }`
 
 - `idStart`: The lowest ID number that Gremlin Evac will use to create units and groups
-  - Default: `500`
+  - Default: `50000`
 
 - `loadUnloadPerIndividual`: The amount of time it takes to load/unload a single evacuee onto/from an aircraft, in seconds
   - Default: `30`
@@ -95,6 +96,9 @@ Evac:setup({
           - `< 0`: After `math.abs(per)` periods, no repeat
           - `> 0`: Every `per` periods, until `maxExtractable` is reached
         - `period`: One of the `Gremlin.Periods` constants indicating how long a single period lasts
+
+- `startingUnits`: Registers units for evacuation purposes during setup
+  - Default: `{}`
 
 - `startingZones`: Registers zones for evacuation purposes during setup
   - Default: `{}`

@@ -1703,7 +1703,7 @@ Evac:setup({
     },
     idStart = 500,
     loadUnloadPerIndividual = 30,
-    lossFlags = { 'GremlinEvacRedLoss', 'GremlinEvacBlueLoss' }
+    lossFlags = { 'GremlinEvacRedLoss', 'GremlinEvacBlueLoss' },
     lossThresholds = { 25, 25 },
     maxExtractable = {
         {
@@ -1742,7 +1742,10 @@ Evac:setup({
         },
     },
     spawnWeight = 100,
+    startingUnits = {},
     startingZones = {},
+    winFlags = { 'GremlinEvacRedWin', 'GremlinEvacBlueWin' },
+    winThresholds = { 75, 75 },
 })
 ```
 
@@ -1765,6 +1768,10 @@ zone(s) themselves. Four keys are required: `mode` (one of the constants in
 attached to).
 ]]
 function Evac:setup(config)
+    if config == nil then
+        config = {}
+    end
+
     assert(Gremlin ~= nil,
         '\n\n** HEY MISSION-DESIGNER! **\n\nGremlin Script Tools has not been loaded!\n\nMake sure Gremlin Script Tools is loaded *before* running this script!\n')
 
@@ -1781,11 +1788,7 @@ function Evac:setup(config)
     Gremlin.log.info(Evac.Id, string.format('Starting setup of %s version %s!', Evac.Id, Evac.Version))
 
     -- start configuration
-    if not Evac._state.alreadyInitialized or (config ~= nil and config.forceReload) then
-        if config == nil then
-            config = {}
-        end
-
+    if not Evac._state.alreadyInitialized or config.forceReload then
         Evac.beaconBatteryLife = config.beaconBatteryLife or 30
         Evac.beaconSound = config.beaconSound or 'beacon.ogg'
         Evac.carryLimits = config.carryLimits or {
@@ -1832,6 +1835,12 @@ function Evac:setup(config)
                 period = Gremlin.Periods.Second
             }}
         }
+
+        if config.startingUnits ~= nil then
+            for _, _unit in pairs(config.startingUnits) do
+                Evac.units.register(_unit)
+            end
+        end
 
         if config.startingZones ~= nil then
             for _, _zone in pairs(config.startingZones) do

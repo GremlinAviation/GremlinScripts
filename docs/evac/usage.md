@@ -37,7 +37,7 @@ Evac:setup({
     lossThresholds = { 0, 25 },
     maxExtractable = {
         {
-            Generic = 12,
+            ['Downed Pilot'] = 12,
             Infantry = 12,
             M249 = 12,
             RPG = 12,
@@ -46,7 +46,7 @@ Evac:setup({
             JTAC = 3,
         },
         {
-            Generic = 12,
+            ['Downed Pilot'] = 12,
             Infantry = 12,
             M249 = 12,
             RPG = 12,
@@ -66,6 +66,7 @@ Evac:setup({
             },
         },
     },
+    startingUnits = { 'helicargo1', 'helicargo2', 'MedEvac1', 'MedEvac2', 'MedEvac3' },
     startingZones = {
         { mode = Evac.modes.EVAC, name = "Test 1", smoke = trigger.smokeColor.Green, side = coalition.side.BLUE, active = true },
         { mode = Evac.modes.RELAY, name = "Test 2", smoke = trigger.smokeColor.Orange, side = coalition.side.BLUE, active = true },

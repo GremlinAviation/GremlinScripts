@@ -86,11 +86,11 @@ Urgency:setup({
   - countdown
     - `reuse` whether to put this countdown back in the queue to be triggered again
     - `startTrigger` table
-      - `type` one of `time`, `event`, or `menu`
+      - `type` one of `time`, `flag`, `event`, or `menu`
       - `value` the time, event id and handler, or menu text to trigger on
     - `startFlag` the flag to set true when the countdown starts
     - `endTrigger` table
-      - `type` one of `time`, `event`, or `menu`
+      - `type` one of `time`, `flag`, `event`, or `menu`
       - `value` the time, event id and handler, or menu text to trigger on
     - `endFlag` the flag to set true when the countdown ends
     - `messages` a list of messages to display, keyed by the countdown's seconds since start (or seconds until end, if negative)

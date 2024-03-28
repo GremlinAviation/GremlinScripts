@@ -18,58 +18,6 @@ Urgency = {
     },
 }
 
-Urgency._internal.handlers = {
-    eventTriggers = {
-        event = -1,
-        fn = function(_event)
-            Gremlin.log.trace(Urgency.Id, string.format('Checking Event Against Countdowns : %s', Gremlin.events.idToName[_event.id]))
-
-            for _name, _countdown in pairs(Urgency._state.countdowns.pending) do
-                if _countdown.startTrigger.type == 'event'
-                    and (
-                        _countdown.startTrigger.value.id == _event.id
-                        or _countdown.startTrigger.value.id == -1
-                    )
-                    and _countdown.startTrigger.value.filter(_event)
-                then
-                    Urgency._internal.startCountdown(_name)
-
-                    Gremlin.log.trace(Urgency.Id, string.format('Started Countdown : %s', _name))
-                end
-            end
-
-            for _name, _countdown in pairs(Urgency._state.countdowns.active) do
-                if _countdown.endTrigger.type == 'event'
-                    and (
-                        _countdown.endTrigger.value.id == _event.id
-                        or _countdown.endTrigger.value.id == -1
-                    )
-                    and _countdown.endTrigger.value.filter(_event)
-                then
-                    Urgency._internal.endCountdown(_name)
-
-                    Gremlin.log.trace(Urgency.Id, string.format('Ended Countdown : %s', _name))
-                end
-            end
-        end
-    },
-}
-
-Urgency._internal.menu = {
-    {
-        text = 'Reset Active Countdowns',
-        func = Urgency._internal.resetCountdowns,
-        args = {},
-        when = true,
-    },
-    {
-        text = 'Reset All Countdowns',
-        func = Urgency._internal.restoreCountdowns,
-        args = {},
-        when = true,
-    },
-}
-
 Urgency._internal.getAdminUnits = function()
     Gremlin.log.trace(Urgency.Id, string.format('Scanning For Admin Units'))
 
@@ -81,9 +29,11 @@ Urgency._internal.getAdminUnits = function()
         if _unit ~= nil and _unit.isExist ~= nil and _unit:isExist() and _unit.getPlayerName ~= nil then
             local _pilot = _unit:getPlayerName()
             if _pilot ~= nil and _pilot ~= '' then
+                Gremlin.log.trace(Urgency.Id, string.format('Found A Pilot : %s (in %s)', _pilot, _name))
+
                 for _, _adminName in pairs(Urgency.config.adminPilotNames) do
                     if _adminName == _pilot then
-                        table.insert(_units, _name)
+                        _units[_name] = _unit
                         break
                     end
                 end
@@ -152,9 +102,11 @@ Urgency._internal.doCountdowns = function()
     local _now = timer.getTime()
 
     for _name, _countdown in pairs(Urgency._state.countdowns.pending) do
-        if _countdown.startTrigger.type == 'time' and _countdown.startTrigger.value <= _now then
+        if (_countdown.startTrigger.type == 'time' and _countdown.startTrigger.value <= _now)
+            or (_countdown.startTrigger.type == 'flag' and trigger.misc.getUserFlag(_countdown.startTrigger.value) ~= 0)
+        then
             Urgency._internal.startCountdown(_name)
-            Gremlin.log.trace(Urgency.Id, string.format('Timer-Based Countdown Started : %s', _name))
+            Gremlin.log.trace(Urgency.Id, string.format('%s-Based Countdown Started : %s', _countdown.startTrigger.type, _name))
         end
     end
 
@@ -249,6 +201,59 @@ Urgency._internal.restoreCountdowns = function()
 
     Gremlin.log.trace(Urgency.Id, string.format('Restored Configured Countdowns'))
 end
+
+Urgency._internal.menu = {
+    {
+        text = 'Reset Active Countdowns',
+        func = Urgency._internal.resetCountdowns,
+        args = {},
+        when = true,
+    },
+    {
+        text = 'Reset All Countdowns',
+        func = Urgency._internal.restoreCountdowns,
+        args = {},
+        when = true,
+    },
+}
+
+Urgency._internal.handlers = {
+    eventTriggers = {
+        event = -1,
+        fn = function(_event)
+            Gremlin.log.trace(Urgency.Id,
+                string.format('Checking Event Against Countdowns : %s', Gremlin.events.idToName[_event.id]))
+
+            for _name, _countdown in pairs(Urgency._state.countdowns.pending) do
+                if _countdown.startTrigger.type == 'event'
+                    and (
+                        _countdown.startTrigger.value.id == _event.id
+                        or _countdown.startTrigger.value.id == -1
+                    )
+                    and _countdown.startTrigger.value.filter(_event)
+                then
+                    Urgency._internal.startCountdown(_name)
+
+                    Gremlin.log.trace(Urgency.Id, string.format('Started Countdown : %s', _name))
+                end
+            end
+
+            for _name, _countdown in pairs(Urgency._state.countdowns.active) do
+                if _countdown.endTrigger.type == 'event'
+                    and (
+                        _countdown.endTrigger.value.id == _event.id
+                        or _countdown.endTrigger.value.id == -1
+                    )
+                    and _countdown.endTrigger.value.filter(_event)
+                then
+                    Urgency._internal.endCountdown(_name)
+
+                    Gremlin.log.trace(Urgency.Id, string.format('Ended Countdown : %s', _name))
+                end
+            end
+        end
+    },
+}
 
 function Urgency:setup(config)
     if config == nil then

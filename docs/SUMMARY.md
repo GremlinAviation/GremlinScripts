@@ -30,6 +30,12 @@
   - [Setup](./urgency/setup.md)
   - [Usage](./urgency/usage.md)
 
+# Gremlin Waves
+
+- [About](./waves.md)
+  - [Setup](./waves/setup.md)
+  - [Usage](./waves/usage.md)
+
 # Book-Keeping
 
 - [Contributors](./contributors.md)
