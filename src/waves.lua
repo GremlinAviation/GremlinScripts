@@ -87,6 +87,7 @@ Waves._internal.spawnWave = function(_name, _wave)
             x = _pos3.x,
             y = _pos3.z,
         })
+        Gremlin.events.fire({ id = 'Waves:GroupSpawn', wave = _name, group = _groupName })
 
         -- Apparently, ships in particular don't like having their AI messed with.
         -- We'll leave them be just following their routes.
@@ -114,6 +115,7 @@ Waves._internal.spawnWave = function(_name, _wave)
         end
     end
 
+    Gremlin.events.fire({ id = 'Waves:WaveSpawn', wave = _name })
     Gremlin.log.trace(Waves.Id, string.format('Finished Spawning Wave : %s', _name))
 end
 
@@ -206,6 +208,7 @@ end
 Waves._internal.pause = function()
     Gremlin.log.trace(Waves.Id, string.format('Pausing Reinforcement Waves'))
 
+    Gremlin.events.fire({ id = 'Waves:Paused' })
     Waves._state.paused = true
     Gremlin.menu.updateF10(Waves.Id, Waves._internal.menu, Waves._internal.getAdminUnits())
 end
@@ -213,6 +216,7 @@ end
 Waves._internal.unpause = function()
     Gremlin.log.trace(Waves.Id, string.format('Releasing Pending Reinforcement Waves'))
 
+    Gremlin.events.fire({ id = 'Waves:Resumed' })
     Waves._state.paused = false
     Gremlin.menu.updateF10(Waves.Id, Waves._internal.menu, Waves._internal.getAdminUnits())
 end
@@ -247,8 +251,7 @@ Waves._internal.handlers = {
         event = -1,
         fn = function(_event)
             if not Waves._state.paused then
-                Gremlin.log.trace(Waves.Id,
-                    string.format('Checking Event Against Waves : %s', Gremlin.events.idToName[_event.id]))
+                Gremlin.log.trace(Waves.Id, string.format('Checking Event Against Waves : %s', Gremlin.events.idToName[_event.id] or _event.id))
 
                 for _name, _wave in pairs(Waves.config.waves) do
                     if _wave.trigger.type == 'event'

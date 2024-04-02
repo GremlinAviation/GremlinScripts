@@ -19,6 +19,7 @@
 - [About](./evac.md)
   - [Setup](./evac/setup.md)
   - [Usage](./evac/usage.md)
+  - [Events](./evac/events.md)
   - [Functions](./evac/functions.md)
     - [Groups](./evac/functions/groups.md)
     - [Units](./evac/functions/units.md)
@@ -29,12 +30,14 @@
 - [About](./urgency.md)
   - [Setup](./urgency/setup.md)
   - [Usage](./urgency/usage.md)
+  - [Events](./urgency/events.md)
 
 # Gremlin Waves
 
 - [About](./waves.md)
   - [Setup](./waves/setup.md)
   - [Usage](./waves/usage.md)
+  - [Events](./waves/events.md)
 
 # Book-Keeping
 

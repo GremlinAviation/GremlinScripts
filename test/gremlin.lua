@@ -81,6 +81,8 @@ end
 
 local tearDown = function()
     Gremlin.alreadyInitialized = false
+    Gremlin._state.menuAdded = {}
+    Gremlin.events._handlers = {}
 
     mist.nextUnitId = 1
     mist.nextGroupId = 1
@@ -108,6 +110,53 @@ local tearDown = function()
     trigger.action.outTextForGroup:reset()
     trigger.action.outTextForUnit:reset()
 end
+
+local assertMockCalledWith = function(_mock, _args)
+    local _status, _result = pcall( _mock.assertAnyCallMatches, _mock, { arguments = _args } )
+    return lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(_mock.spy.calls)))
+end
+
+local assertSpyCalledWith = function(_mock, _args)
+    local _status, _result = pcall( _mock.assertAnyCallMatches, _mock, { arguments = _args } )
+    return lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(_mock.calls)))
+end
+
+TestGremlinEvents = {
+    setUp = setUp,
+    testOn = function()
+        -- INIT
+        local _testHandler = Spy(function() end)
+
+        -- TEST
+        lu.assertEquals(Gremlin.events.on('testEvent', _testHandler), 1)
+
+        -- SIDE EFFECTS
+        lu.assertEquals(Gremlin.events._handlers, { testEvent = { _testHandler } })
+    end,
+    testOff = function()
+        -- INIT
+        local _testHandler = Spy(function() end)
+        Gremlin.events.on('testEvent', _testHandler)
+
+        -- TEST
+        lu.assertEquals(Gremlin.events.off('testEvent', 1), nil)
+
+        -- SIDE EFFECTS
+        lu.assertEquals(Gremlin.events._handlers, { testEvent = {} })
+    end,
+    testFire = function()
+        -- INIT
+        local _testHandler = Spy(function() end)
+        Gremlin.events.on('testEvent', _testHandler)
+
+        -- TEST
+        lu.assertEquals(Gremlin.events.fire({ id = 'testEvent', params = {} }), nil)
+
+        -- SIDE EFFECTS
+        assertSpyCalledWith(_testHandler, { ValueMatcher.anyTable })
+    end,
+    tearDown = tearDown,
+}
 
 TestGremlinMenu = {
     setUp = setUp,
@@ -139,23 +188,12 @@ TestGremlinMenu = {
                 when = false,
             },
         }
-        local argsToMatcher = function(_args)
-            for _pos, _arg in pairs(_args.arguments) do
-                if type(_arg) == "table" then
-                    _args.arguments[_pos] = ValueMatcher.anyTable
-                elseif type(_arg) == "function" then
-                    _args.arguments[_pos] = ValueMatcher.anyFunction
-                end
-            end
-
-            return _args.arguments
-        end
 
         missionCommands.addSubMenuForGroup:whenCalled({ with = { 1, Gremlin.Id }, thenReturn = { { Gremlin.Id } } })
         missionCommands.removeItemForGroup:whenCalled({ with = { 1, ValueMatcher.anyTable }, thenReturn = nil })
         for _, _command in pairs(_testCommands) do
             if type(_command.text) == 'function' then
-                missionCommands.addCommandForGroup:whenCalled({ with = { 1, _command.text(), ValueMatcher.anyTable, ValueMatcher.anyFunction, ValueMatcher.anyTable }, thenReturn = { { Gremlin.Id, _command.text }, _command.text } })
+                missionCommands.addCommandForGroup:whenCalled({ with = { 1, _command.text(), ValueMatcher.anyTable, ValueMatcher.anyFunction, ValueMatcher.anyTable }, thenReturn = { { Gremlin.Id, _command.text() }, _command.text() } })
             else
                 missionCommands.addCommandForGroup:whenCalled({ with = { 1, _command.text, ValueMatcher.anyTable, ValueMatcher.anyFunction, ValueMatcher.anyTable }, thenReturn = { { Gremlin.Id, _command.text }, _command.text } })
             end
@@ -168,24 +206,16 @@ TestGremlinMenu = {
         }), nil)
 
         -- SIDE EFFECTS
-        local _status, _result = pcall(
-            missionCommands.addSubMenuForGroup.assertAnyCallMatches,
-            missionCommands.addSubMenuForGroup,
-            { arguments = { 1, Gremlin.Id } }
-        )
-        lu.assertEquals(_status, true,
-            string.format('%s\n%s', inspect(_result), inspect(missionCommands.addSubMenuForGroup.spy.calls)))
+        assertMockCalledWith(missionCommands.addSubMenuForGroup, { 1, Gremlin.Id })
 
         for _, _command in pairs(_testCommands) do
             if _command.when == true then
-                local _args = { arguments = { 1, _command.text, { Gremlin.Id }, _command.func, {} } }
-
-                _status, _result = pcall(
-                    missionCommands.addCommandForGroup.assertAnyCallMatches,
-                    missionCommands.addCommandForGroup,
-                    argsToMatcher(_args)
-                )
-                lu.assertEquals(_status, true, string.format('%s\n%s\n%s', inspect(_result), inspect(_args), inspect(missionCommands.addCommandForGroup.spy.calls)))
+                local _cmdText = _command.text
+                if type(_cmdText) == 'function' then
+                    _cmdText = _cmdText()
+                end
+                local _args = { 1, _cmdText, ValueMatcher.anyTable, ValueMatcher.anyFunction, ValueMatcher.anyTable }
+                assertMockCalledWith(missionCommands.addCommandForGroup, _args)
             end
         end
     end,
@@ -194,12 +224,123 @@ TestGremlinMenu = {
 
 TestGremlinUtils = {
     setUp = setUp,
+    testCountTableEntries = function()
+        -- INIT
+        -- N/A?
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.countTableEntries({}), 0)
+        lu.assertEquals(Gremlin.utils.countTableEntries({ 'test' }), 1)
+        lu.assertEquals(Gremlin.utils.countTableEntries({ test = 'test' }), 1)
+
+        -- SIDE EFFECTS
+        -- N/A?
+    end,
+    testDisplayMessageToAll = function()
+        -- INIT
+        trigger.action.outText:whenCalled({ with = { 'test all', 1 }, thenReturn = nil })
+        trigger.action.outText:whenCalled({ with = { 'test neutral', 1 }, thenReturn = nil })
+        trigger.action.outText:whenCalled({ with = { 'test nil', 1 }, thenReturn = nil })
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.displayMessageTo('all', 'test all', 1), nil)
+        lu.assertEquals(Gremlin.utils.displayMessageTo('Neutral', 'test neutral', 1), nil)
+        lu.assertEquals(Gremlin.utils.displayMessageTo(nil, 'test nil', 1), nil)
+
+        -- SIDE EFFECTS
+        assertMockCalledWith(trigger.action.outText, { 'test all', 1 })
+        assertMockCalledWith(trigger.action.outText, { 'test neutral', 1 })
+        assertMockCalledWith(trigger.action.outText, { 'test nil', 1 })
+    end,
+    testDisplayMessageToCoalition = function()
+        -- INIT
+        trigger.action.outTextForCoalition:whenCalled({ with = { 1, 'test red', 1 }, thenReturn = nil })
+        trigger.action.outTextForCoalition:whenCalled({ with = { 2, 'test blue', 1 }, thenReturn = nil })
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.displayMessageTo('red', 'test red', 1), nil)
+        lu.assertEquals(Gremlin.utils.displayMessageTo('blue', 'test blue', 1), nil)
+
+        -- SIDE EFFECTS
+        assertMockCalledWith(trigger.action.outTextForCoalition, { 1, 'test red', 1 })
+        assertMockCalledWith(trigger.action.outTextForCoalition, { 2, 'test blue', 1 })
+    end,
+    testDisplayMessageToCountry = function()
+        -- INIT
+        trigger.action.outTextForCountry:whenCalled({ with = { 2, 'test USA', 1 }, thenReturn = nil })
+        trigger.action.outTextForCountry:whenCalled({ with = { 0, 'test Russia', 1 }, thenReturn = nil })
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.displayMessageTo('USA', 'test USA', 1), nil)
+        lu.assertEquals(Gremlin.utils.displayMessageTo('Russia', 'test Russia', 1), nil)
+
+        -- SIDE EFFECTS
+        assertMockCalledWith(trigger.action.outTextForCountry, { 2, 'test USA', 1 })
+        assertMockCalledWith(trigger.action.outTextForCountry, { 0, 'test Russia', 1 })
+    end,
+    testDisplayMessageToGroup = function()
+        -- INIT
+        trigger.action.outTextForGroup:whenCalled({ with = { 1, 'test group object', 1 }, thenReturn = nil })
+        trigger.action.outTextForGroup:whenCalled({ with = { 2, 'test group name', 1 }, thenReturn = nil })
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.displayMessageTo(_testGroup, 'test group object', 1), nil)
+        lu.assertEquals(Gremlin.utils.displayMessageTo(_testGroup2.groupName, 'test group name', 1), nil)
+
+        -- SIDE EFFECTS
+        assertMockCalledWith(trigger.action.outTextForGroup, { 1, 'test group object', 1 })
+        assertMockCalledWith(trigger.action.outTextForGroup, { 2, 'test group name', 1 })
+    end,
+    testDisplayMessageToUnit = function()
+        -- INIT
+        trigger.action.outTextForUnit:whenCalled({ with = { 1, 'test unit object', 1 }, thenReturn = nil })
+        trigger.action.outTextForUnit:whenCalled({ with = { 1, 'test unit name', 1 }, thenReturn = nil })
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.displayMessageTo(_testUnit, 'test unit object', 1), nil)
+        lu.assertEquals(Gremlin.utils.displayMessageTo(_testUnit2.unitName, 'test unit name', 1), nil)
+
+        -- SIDE EFFECTS
+        assertMockCalledWith(trigger.action.outTextForUnit, { 1, 'test unit object', 1 })
+        assertMockCalledWith(trigger.action.outTextForUnit, { 1, 'test unit name', 1 })
+    end,
+    testDisplayMessageToUnknown = function()
+        -- INIT
+        -- N/A?
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.displayMessageTo('HammerTime', 'test unknown', 1), nil)
+
+        -- SIDE EFFECTS
+        assertSpyCalledWith(Gremlin.log.error, { Gremlin.Id, string.format("Can't find object named %s to display message to!\nMessage was: %s", tostring('HammerTime'), 'test unknown') })
+    end,
     testGetUnitZones = function()
         -- INIT
         -- N/A?
 
         -- TEST
         lu.assertEquals(Gremlin.utils.getUnitZones(_testUnit.unitName), { _testZone })
+
+        -- SIDE EFFECTS
+        -- N/A?
+    end,
+    testParseFuncArgs = function()
+        -- INIT
+        -- N/A?
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.parseFuncArgs({ '{unit}:name' }, { unit = _testUnit, group = _testGroup }), { _testUnit.unitName })
+        lu.assertEquals(Gremlin.utils.parseFuncArgs({ '{group}:name' }, { unit = _testUnit, group = _testGroup }), { _testGroup.groupName })
+
+        -- SIDE EFFECTS
+        -- N/A?
+    end,
+    testMergeTables = function()
+        -- INIT
+        -- N/A?
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.mergeTables({ test1 = true, testOverwritten = false }, { test2 = true, testOverwritten = true }), { test1 = true, test2 = true, testOverwritten = true })
 
         -- SIDE EFFECTS
         -- N/A?

@@ -35,7 +35,7 @@ Gremlin = {
                 enabled = false,
                 event = -1,
                 fn = function(_event)
-                    Gremlin.log.debug(Gremlin.Id, string.format('%s: %s\n', Gremlin.events.idToName[_event.id], mist.utils.tableShowSorted(_event)))
+                    Gremlin.log.debug(Gremlin.Id, string.format('%s: %s\n', Gremlin.events.idToName[_event.id] or _event.id, mist.utils.tableShowSorted(_event)))
                 end
             },
         },
@@ -55,12 +55,14 @@ Gremlin = {
                 Gremlin.events._handlers[_eventId][_index] = nil
             end
         end,
+        fire = function(_event)
+            Gremlin.events._handler(_event)
+        end,
         _handler = function(_event)
-            for _, _handler in pairs(Gremlin.utils.mergeTables(Gremlin.events._handlers[_event.id] or {},
-                Gremlin.events._handlers[-1] or {})) do
+            for _, _handler in pairs(Gremlin.utils.mergeTables(Gremlin.events._handlers[_event.id] or {}, Gremlin.events._handlers[-1] or {})) do
                 _handler(_event)
             end
-        end
+        end,
     },
     log = {
         error = function(toolId, message)

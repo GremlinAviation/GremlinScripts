@@ -143,6 +143,7 @@ Urgency._internal.startCountdown = function(_name)
         _countdown.startedAt = _now
         Urgency._state.countdowns.active[_name] = _countdown
         Urgency._state.countdowns.pending[_name] = nil
+        Gremlin.events.fire({ id = 'Urgency:CountdownStart', name = _name })
         trigger.action.setUserFlag(_countdown.startFlag, true)
         trigger.action.setUserFlag(_countdown.endFlag, false)
     end
@@ -164,6 +165,7 @@ Urgency._internal.endCountdown = function(_name)
             Urgency._state.countdowns.done[_name] = _countdown
         end
         Urgency._state.countdowns.active[_name] = nil
+        Gremlin.events.fire({ id = 'Urgency:CountdownEnd', name = _name })
         trigger.action.setUserFlag(_countdown.startFlag, false)
         trigger.action.setUserFlag(_countdown.endFlag, true)
     end
@@ -183,6 +185,7 @@ Urgency._internal.resetCountdowns = function()
         trigger.action.setUserFlag(_countdown.endFlag, false)
     end
 
+    Gremlin.events.fire({ id = 'Urgency:CountdownsReset' })
     Gremlin.log.trace(Urgency.Id, string.format('Active Countdowns Reset'))
 end
 
@@ -199,6 +202,7 @@ Urgency._internal.restoreCountdowns = function()
         trigger.action.setUserFlag(_countdown.endFlag, false)
     end
 
+    Gremlin.events.fire({ id = 'Urgency:CountdownsRestored' })
     Gremlin.log.trace(Urgency.Id, string.format('Restored Configured Countdowns'))
 end
 
@@ -221,8 +225,7 @@ Urgency._internal.handlers = {
     eventTriggers = {
         event = -1,
         fn = function(_event)
-            Gremlin.log.trace(Urgency.Id,
-                string.format('Checking Event Against Countdowns : %s', Gremlin.events.idToName[_event.id]))
+            Gremlin.log.trace(Urgency.Id, string.format('Checking Event Against Countdowns : %s', Gremlin.events.idToName[_event.id] or _event.id))
 
             for _name, _countdown in pairs(Urgency._state.countdowns.pending) do
                 if _countdown.startTrigger.type == 'event'

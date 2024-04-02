@@ -1,9 +1,21 @@
 <!-- markdownlint-disable MD041 -->
 ### Utils
 
+#### `Gremlin.utils.countTableEntries(_tbl)`
+
+Counts the number of entries in a table, regardless of type
+
+---
+
 #### `Gremlin.utils.displayMessageTo(_name, _text, _time)`
 
 Displays a message to a named Unit, Group, Country, or Coalition, or to everyone with the special name `all`
+
+---
+
+#### `Gremlin.utils.getUnitZones(_unit_)`
+
+Looks up a list of all the zones a unit is currently in
 
 ---
 
@@ -18,12 +30,8 @@ For `_objs`, simply pass a table with the appropriate structure:
 
 ```lua
 {
-    unit = {
-        [unitName] = Unit.getByName(unitName),
-    },
-    group = {
-        [groupName] = Group.getByName(groupName),
-    },
+    unit = Unit.getByName(unitName),
+    group = Group.getByName(groupName),
 }
 ```
 

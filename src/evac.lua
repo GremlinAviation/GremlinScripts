@@ -418,8 +418,6 @@ Evac.groups = {
         }
 
         mist.dynAdd(_group)
-        -- trigger.action.activateGroup(_group.name)
-        -- mist.teleportInZone(_group.name, _zone, true, _scatterRadius)
 
         for _, _unit in pairs(_groupData.units) do
             Evac._state.extractableNow[_zone][_unit.unitName] = _unit
@@ -578,6 +576,7 @@ Evac._internal.aircraft = {
 
             Gremlin.log.debug(Evac.Id, string.format('Loading Evacuees : Sending %s to %s', _message, tostring(_unit)))
 
+            Gremlin.events.fire({ id = 'Evac:UnitLoaded', zone = _zone, unit = _unit, number = _number })
             Gremlin.utils.displayMessageTo(_unit, _message, _displayFor)
         end, {_timeNow + 0.01}, _timeNow + 0.01, 1, _timeNow + _timeout + 0.02)
     end,
@@ -697,6 +696,7 @@ Evac._internal.aircraft = {
 
             Gremlin.log.debug(Evac.Id, string.format('Unloading Evacuees : Sending %s to %s', _message, tostring(_unit)))
 
+            Gremlin.events.fire({ id = 'Evac:UnitUnloaded', zone = _zone, unit = _unit, number = _number })
             Gremlin.utils.displayMessageTo(_unit, _message, _displayFor)
             Evac._internal.utils.endIfEnoughGotOut()
         end, { _timeNow + 0.01 }, _timeNow + 0.01, 1, _timeNow + _timeout + 0.02)
@@ -774,6 +774,8 @@ Evac._internal.beacons = {
 
         Evac._internal.beacons.update(_beaconDetails)
         table.insert(Evac._state.beacons, _beaconDetails)
+
+        Gremlin.events.fire({ id = 'Evac:BeaconSpawn', zone = _zone, details = _beaconDetails })
 
         return _beaconDetails
     end,
@@ -854,6 +856,7 @@ Evac._internal.beacons = {
             trigger.action.stopRadioTransmission(_beaconDetails.text .. ' | FM')
             _radioGroup:destroy()
 
+            Gremlin.events.fire({ id = 'Evac:BeaconDead', details = _beaconDetails })
             return false
         end
 
@@ -899,6 +902,7 @@ Evac._internal.beacons = {
                     end
                 end
 
+                Gremlin.events.fire({ id = 'Evac:BeaconDead', details = _beaconDetails })
                 table.remove(Evac._state.beacons, _index)
             end
         end
@@ -1044,6 +1048,7 @@ Evac._internal.zones = {
             mode = _evacMode
         }
         Evac._state.extractableNow[_zone] = {}
+        Gremlin.events.fire({ id = 'Evac:ZoneAdd', zone = _zone, mode = _evacMode })
     end,
     generateEvacuees = function(_side, _numberOrComposition, _country)
         if type(_numberOrComposition) == 'table' then
@@ -1106,6 +1111,7 @@ Evac._internal.zones = {
             Evac._state.zones[Evac.modeToText[_evacMode]] ~= nil and
             Evac._state.zones[Evac.modeToText[_evacMode]][_zone] ~= nil
         then
+            Gremlin.events.fire({ id = 'Evac:ZoneActive', zone = _zone, mode = _evacMode })
             Evac._state.zones[Evac.modeToText[_evacMode]][_zone].active = true
         end
     end,
@@ -1179,6 +1185,7 @@ Evac._internal.zones = {
     deactivate = function(_zone, _evacMode)
         Gremlin.log.trace(Evac.Id, string.format('Deactivating Zone Internally : %s, %i', _zone, _evacMode))
 
+        Gremlin.events.fire({ id = 'Evac:ZoneInactive', zone = _zone, mode = _evacMode })
         Evac._state.zones[Evac.modeToText[_evacMode]][_zone].active = false
     end,
     unregister = function(_zone, _evacMode)
@@ -1191,6 +1198,7 @@ Evac._internal.zones = {
             end
         end
 
+        Gremlin.events.fire({ id = 'Evac:ZoneRemove', zone = _zone, mode = _evacMode })
         Evac._state.extractableNow[_zone] = nil
         Evac._state.zones[Evac.modeToText[_evacMode]][_zone] = nil
     end
@@ -1281,6 +1289,7 @@ Evac._internal.utils = {
 
             if (_combined > 0 and _combined >= (Evac.winThresholds[_side] / 100)) or
                 (_pilot > 0 and _pilot >= (Evac.winThresholds[_side] / 100)) then
+                Gremlin.events.fire({ id = 'Evac:Win', side = _side })
                 trigger.action.setUserFlag(Evac.winFlags[_side], true)
             end
         end
@@ -1302,6 +1311,7 @@ Evac._internal.utils = {
 
             if (_combined > 0 and _combined >= (Evac.lossThresholds[_side] / 100)) or
                 (_pilot > 0 and _pilot >= (Evac.lossThresholds[_side] / 100)) then
+                Gremlin.events.fire({ id = 'Evac:Loss', side = _side })
                 trigger.action.setUserFlag(Evac.lossFlags[_side], true)
             end
         end
@@ -1520,14 +1530,17 @@ Evac._internal.doSpawns = function()
                         _addedUnits = true
                     end
 
+                    Gremlin.events.fire({ id = 'Evac:Spawned', units = -_removed, zone = _zone })
                     Gremlin.log.debug(Evac.Id, string.format('Removed %i evacuees from %s', _removed, _zone))
                 else
                     Evac.groups.spawn(_side, _units, _side, _zone, 5)
                     _addedUnits = true
 
                     if type(_units) == 'table' then
+                        Gremlin.events.fire({ id = 'Evac:Spawned', units = #_units, zone = _zone })
                         Gremlin.log.debug(Evac.Id, string.format('Spawned %i evacuees in %s', #_units, _zone))
                     else
+                        Gremlin.events.fire({ id = 'Evac:Spawned', units = _units, zone = _zone })
                         Gremlin.log.debug(Evac.Id, string.format('Spawned %i evacuees in %s', _units, _zone))
                     end
                 end
