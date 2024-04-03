@@ -37,7 +37,7 @@ Evac:setup({
     lossThresholds = { 0, 25 },
     maxExtractable = {
         {
-            ['Downed Pilot'] = 12,
+            ['Carrier Seaman'] = 12,
             Infantry = 12,
             M249 = 12,
             RPG = 12,
@@ -46,7 +46,7 @@ Evac:setup({
             JTAC = 3,
         },
         {
-            ['Downed Pilot'] = 12,
+            ['Carrier Seaman'] = 12,
             Infantry = 12,
             M249 = 12,
             RPG = 12,

@@ -47,7 +47,7 @@ For both of the above, `_zone` is the zone name to activate, `_side` is taken fr
 
 ```lua,editable
 Evac.zones.evac.setRemaining('test', coalition.side.BLUE, country.USA, {
-    { type = 'Ejected Pilot', unitName = 'Karl Marx', unitId = 42, weight = 75 },
+    { type = 'Carrier Seaman', unitName = 'Karl Marx', unitId = 42, weight = 75 },
     { type = 'Infantry' },
     { type = 'JTAC' },
     {},

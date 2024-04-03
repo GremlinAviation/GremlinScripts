@@ -6,7 +6,7 @@ table.unpack = table.unpack or unpack
 unpack = table.unpack
 
 require('mocks.DCS')
-require('mist_4_5_122')
+require('mist_4_5_126')
 require('gremlin')
 require('evac')
 
@@ -43,10 +43,10 @@ local _testUnit2 = { className_ = 'Unit', groupName = 'Extraction Group 1', type
 ---@diagnostic disable-next-line: undefined-global
 class(_testUnit2, Unit)
 
-local _testUnit3 = { className_ = 'Unit', groupName = 'Evacuee Group 2', type = 'Ejected Pilot', unitName = 'TestUnit3', unitId = 3, point = { x = 0, y = 0, z = 0 } }
+local _testUnit3 = { className_ = 'Unit', groupName = 'Evacuee Group 2', type = 'Carrier Seaman', unitName = 'TestUnit3', unitId = 3, point = { x = 0, y = 0, z = 0 } }
 ---@diagnostic disable-next-line: undefined-global
 class(_testUnit3, Unit)
-local _testEvacuee = { name = 'TestUnit3', type = 'Ejected Pilot', side = 2, text = 'Evacuee: Ejected Pilot #1', unitId = 3, object = _testUnit3 }
+local _testEvacuee = { name = 'TestUnit3', type = 'Carrier Seaman', side = 2, text = 'Evacuee: Carrier Seaman #1', unitId = 3, object = _testUnit3 }
 
 local _testGroup = { className_ = 'Group', groupName = 'Extraction Group 1', groupId = 1, units = { _testUnit, _testUnit2 } }
 ---@diagnostic disable-next-line: undefined-global
@@ -81,7 +81,7 @@ local setUp = function()
     }
 
     -- Evac Settings
-    Evac.maxExtractable[2]['Ejected Pilot'] = 250
+    Evac.maxExtractable[2]['Carrier Seaman'] = 250
     Evac.spawnRates = { _global = {
         { units = 0, per = 0, period = Gremlin.Periods.Second },
         { units = 0, per = 0, period = Gremlin.Periods.Second },
@@ -103,7 +103,7 @@ local tearDown = function()
     Evac.lossFlags = { 0, 0 }
     Evac.maxExtractable = {
         {
-            ['Ejected Pilot'] = 0,
+            ['Carrier Seaman'] = 0,
             Infantry = 0,
             M249 = 0,
             RPG = 0,
@@ -112,7 +112,7 @@ local tearDown = function()
             JTAC = 0,
         },
         {
-            ['Ejected Pilot'] = 0,
+            ['Carrier Seaman'] = 0,
             Infantry = 0,
             M249 = 0,
             RPG = 0,
@@ -139,7 +139,7 @@ local tearDown = function()
     Evac._state.zones.safe = {}
     Evac._state.spawns.alreadySpawned = {
         {
-            ['Ejected Pilot'] = 0,
+            ['Carrier Seaman'] = 0,
             Infantry = 0,
             ['2B11'] = 0,
             StingerIgla = 0,
@@ -148,7 +148,7 @@ local tearDown = function()
             JTAC = 0,
         },
         {
-            ['Ejected Pilot'] = 0,
+            ['Carrier Seaman'] = 0,
             Infantry = 0,
             ['2B11'] = 0,
             StingerIgla = 0,
@@ -252,7 +252,7 @@ TestEvacZonesEvac = {
         lu.assertEquals(Evac.zones.evac.setRemaining(_testZone, 2, 2, 1), nil)
 
         -- SIDE EFFECTS
-        lu.assertEquals(Evac._state.extractableNow[_testZone], { ['Evacuee: Ejected Pilot #2'] = { unitName = 'Evacuee: Ejected Pilot #2', type = 'Ejected Pilot', unitId = 2, weight = 0 } })
+        lu.assertEquals(Evac._state.extractableNow[_testZone], { ['Evacuee: Carrier Seaman #2'] = { unitName = 'Evacuee: Carrier Seaman #2', type = 'Carrier Seaman', unitId = 2, weight = 0 } })
 
         Evac.beaconBatteryLife = 0
     end,
@@ -298,7 +298,7 @@ TestEvacZonesEvac = {
 
         -- SIDE EFFECTS
         lu.assertEquals(Evac._state.extractableNow[_testZone],
-            { ['Evacuee: Ejected Pilot #2'] = { unitName = 'Evacuee: Ejected Pilot #2', type = 'Ejected Pilot', unitId = 2, weight = 0 } })
+            { ['Evacuee: Carrier Seaman #2'] = { unitName = 'Evacuee: Carrier Seaman #2', type = 'Carrier Seaman', unitId = 2, weight = 0 } })
     end,
     testCount = function()
         -- INIT
@@ -317,7 +317,7 @@ TestEvacZonesEvac = {
 
         -- TEST
         lu.assertEquals(Evac.zones.evac.isIn(_testUnit.unitName), true)
-        lu.assertEquals(Evac.zones.evac.isIn('Evacuee: Ejected Pilot #710'), false)
+        lu.assertEquals(Evac.zones.evac.isIn('Evacuee: Carrier Seaman #710'), false)
 
         -- SIDE EFFECTS
         -- N/A?
@@ -378,7 +378,7 @@ TestEvacZonesRelay = {
 
         -- SIDE EFFECTS
         lu.assertEquals(Evac._state.extractableNow[_testZone],
-            { ['Evacuee: Ejected Pilot #2'] = { unitName = 'Evacuee: Ejected Pilot #2', type = 'Ejected Pilot', unitId = 2, weight = 0 } })
+            { ['Evacuee: Carrier Seaman #2'] = { unitName = 'Evacuee: Carrier Seaman #2', type = 'Carrier Seaman', unitId = 2, weight = 0 } })
     end,
     testSetRemainingComposition = function()
         -- INIT
@@ -389,7 +389,7 @@ TestEvacZonesRelay = {
 
         -- SIDE EFFECTS
         lu.assertEquals(Evac._state.extractableNow[_testZone],
-            { ['Evacuee: Ejected Pilot #2'] = { unitName = 'Evacuee: Ejected Pilot #2', type = 'Ejected Pilot', unitId = 2, weight = 0 } })
+            { ['Evacuee: Carrier Seaman #2'] = { unitName = 'Evacuee: Carrier Seaman #2', type = 'Carrier Seaman', unitId = 2, weight = 0 } })
     end,
     testCount = function()
         -- INIT
@@ -411,7 +411,7 @@ TestEvacZonesRelay = {
 
         -- TEST
         lu.assertEquals(Evac.zones.relay.isIn(_testUnit.unitName), true)
-        lu.assertEquals(Evac.zones.relay.isIn('Evacuee: Ejected Pilot #710'), false)
+        lu.assertEquals(Evac.zones.relay.isIn('Evacuee: Carrier Seaman #710'), false)
 
         -- SIDE EFFECTS
         -- N/A?
@@ -487,7 +487,7 @@ TestEvacZonesSafe = {
 
         -- TEST
         lu.assertEquals(Evac.zones.safe.isIn(_testUnit.unitName), true)
-        lu.assertEquals(Evac.zones.safe.isIn('Evacuee: Ejected Pilot #710'), false)
+        lu.assertEquals(Evac.zones.safe.isIn('Evacuee: Carrier Seaman #710'), false)
 
         -- SIDE EFFECTS
         -- N/A?
@@ -663,20 +663,20 @@ TestEvacGroups = {
             units = {
                 {
                     heading = 0,
-                    name = 'Evacuee: Ejected Pilot #2',
+                    name = 'Evacuee: Carrier Seaman #2',
                     playerCanDrive = false,
                     skill = 'Excellent',
-                    type = 'Ejected Pilot',
+                    type = 'Carrier Seaman',
                     unitId = 2,
                     x = -28,
                     y = 1
                 },
                 {
                     heading = 0,
-                    name = 'Evacuee: Ejected Pilot #4',
+                    name = 'Evacuee: Carrier Seaman #4',
                     playerCanDrive = false,
                     skill = 'Excellent',
-                    type = 'Ejected Pilot',
+                    type = 'Carrier Seaman',
                     unitId = 4,
                     x = -26,
                     y = 2
@@ -735,10 +735,10 @@ TestEvacGroups = {
             units = {
                 {
                     heading = 0,
-                    name = 'Evacuee: Ejected Pilot #2',
+                    name = 'Evacuee: Carrier Seaman #2',
                     playerCanDrive = false,
                     skill = 'Excellent',
-                    type = 'Ejected Pilot',
+                    type = 'Carrier Seaman',
                     unitId = 2,
                     x = -26,
                     y = 2
@@ -2134,7 +2134,7 @@ TestEvacInternalZones = {
 
         -- TEST
         lu.assertAlmostEquals(Evac._internal.zones.generateEvacuees(coalition.side.BLUE, 1, country.USA), {
-            units = { { type = 'Ejected Pilot', unitId = 2, unitName = 'Evacuee: Ejected Pilot #2', weight = 0 } },
+            units = { { type = 'Carrier Seaman', unitId = 2, unitName = 'Evacuee: Carrier Seaman #2', weight = 0 } },
             groupId = 2,
             groupName = 'Evacuee Group 2',
             side = coalition.side.BLUE,
@@ -2151,7 +2151,7 @@ TestEvacInternalZones = {
 
         -- TEST
         lu.assertAlmostEquals(Evac._internal.zones.generateEvacuees(coalition.side.BLUE, { {} }, country.USA), {
-            units = { { type = 'Ejected Pilot', unitId = 2, unitName = 'Evacuee: Ejected Pilot #2', weight = 0 } },
+            units = { { type = 'Carrier Seaman', unitId = 2, unitName = 'Evacuee: Carrier Seaman #2', weight = 0 } },
             groupId = 2,
             groupName = 'Evacuee Group 2',
             side = coalition.side.BLUE,
@@ -2180,7 +2180,7 @@ TestEvacInternalZones = {
         lu.assertEquals(Evac._internal.zones.setRemaining(_testZone, coalition.side.BLUE, country.USA, 1), nil)
 
         -- SIDE EFFECTS
-        lu.assertEquals(Evac._state.extractableNow[_testZone], { ['Evacuee: Ejected Pilot #2'] = { type = 'Ejected Pilot', unitId = 2, unitName = 'Evacuee: Ejected Pilot #2', weight = 0 } })
+        lu.assertEquals(Evac._state.extractableNow[_testZone], { ['Evacuee: Carrier Seaman #2'] = { type = 'Carrier Seaman', unitId = 2, unitName = 'Evacuee: Carrier Seaman #2', weight = 0 } })
     end,
     testSetRemainingComposition = function()
         -- INIT
@@ -2190,7 +2190,7 @@ TestEvacInternalZones = {
         lu.assertEquals(Evac._internal.zones.setRemaining(_testZone, coalition.side.BLUE, country.USA, {{}}), nil)
 
         -- SIDE EFFECTS
-        lu.assertEquals(Evac._state.extractableNow[_testZone], { ['Evacuee: Ejected Pilot #2'] = { type = 'Ejected Pilot', unitId = 2, unitName = 'Evacuee: Ejected Pilot #2', weight = 0 } })
+        lu.assertEquals(Evac._state.extractableNow[_testZone], { ['Evacuee: Carrier Seaman #2'] = { type = 'Carrier Seaman', unitId = 2, unitName = 'Evacuee: Carrier Seaman #2', weight = 0 } })
     end,
     testCount = function()
         -- INIT
@@ -2255,7 +2255,7 @@ TestEvacInternalUtils = {
         Evac.lossFlags = { 1, 2 }
         Evac._state.lostEvacuees = {
             {
-                ['Ejected Pilot'] = 25,
+                ['Carrier Seaman'] = 25,
                 Infantry = 25,
                 ['2B11'] = 25,
                 M249 = 25,
@@ -2264,7 +2264,7 @@ TestEvacInternalUtils = {
                 JTAC = 25,
             },
             {
-                ['Ejected Pilot'] = 25,
+                ['Carrier Seaman'] = 25,
                 Infantry = 25,
                 ['2B11'] = 25,
                 M249 = 25,
@@ -2399,7 +2399,7 @@ TestEvacInternalHandlers = {
         Evac.lossFlags = { 1, 2 }
         Evac._state.lostEvacuees = {
             {
-                ['Ejected Pilot'] = 25,
+                ['Carrier Seaman'] = 25,
                 Infantry = 25,
                 ['2B11'] = 25,
                 M249 = 25,
@@ -2408,7 +2408,7 @@ TestEvacInternalHandlers = {
                 JTAC = 25,
             },
             {
-                ['Ejected Pilot'] = 25,
+                ['Carrier Seaman'] = 25,
                 Infantry = 25,
                 ['2B11'] = 25,
                 M249 = 25,
@@ -2429,7 +2429,7 @@ TestEvacInternalHandlers = {
 
         -- SIDE EFFECTS
         lu.assertEquals(Evac._state.extractionUnits[_testUnit.unitName], { [0] = _testUnit })
-        lu.assertEquals(Evac._state.lostEvacuees[2]['Ejected Pilot'], 26)
+        lu.assertEquals(Evac._state.lostEvacuees[2]['Carrier Seaman'], 26)
 
         local _status, _result = pcall(
             trigger.action.setUserFlag.assertAnyCallMatches,
@@ -2495,7 +2495,7 @@ TestEvacTopLevel = {
         lu.assertEquals(Evac.loadUnloadPerIndividual, 30)
         lu.assertEquals(Evac.maxExtractable, {
             {
-                ['Ejected Pilot'] = 0,
+                ['Carrier Seaman'] = 0,
                 Infantry = 0,
                 M249 = 0,
                 RPG = 0,
@@ -2504,7 +2504,7 @@ TestEvacTopLevel = {
                 JTAC = 0,
             },
             {
-                ['Ejected Pilot'] = 250,
+                ['Carrier Seaman'] = 250,
                 Infantry = 0,
                 M249 = 0,
                 RPG = 0,
@@ -2546,7 +2546,7 @@ TestEvacTopLevel = {
         lu.assertEquals(Evac.loadUnloadPerIndividual, 30)
         lu.assertEquals(Evac.maxExtractable, {
             {
-                ['Ejected Pilot'] = 0,
+                ['Carrier Seaman'] = 0,
                 Infantry = 0,
                 M249 = 0,
                 RPG = 0,
@@ -2555,7 +2555,7 @@ TestEvacTopLevel = {
                 JTAC = 0,
             },
             {
-                ['Ejected Pilot'] = 250,
+                ['Carrier Seaman'] = 250,
                 Infantry = 0,
                 M249 = 0,
                 RPG = 0,
@@ -2586,7 +2586,7 @@ TestEvacTopLevel = {
             maxExtractable = {
                 nil,
                 {
-                    ['Ejected Pilot'] = 12,
+                    ['Carrier Seaman'] = 12,
                     Infantry = 12,
                     M249 = 12,
                     RPG = 12,
@@ -2619,7 +2619,7 @@ TestEvacTopLevel = {
         lu.assertEquals(Evac.loadUnloadPerIndividual, 2)
         lu.assertEquals(Evac.maxExtractable, {
             {
-                ['Ejected Pilot'] = 0,
+                ['Carrier Seaman'] = 0,
                 Infantry = 0,
                 ['2B11'] = 0,
                 StingerIgla = 0,
@@ -2628,7 +2628,7 @@ TestEvacTopLevel = {
                 JTAC = 0,
             },
             {
-                ['Ejected Pilot'] = 250,
+                ['Carrier Seaman'] = 250,
                 Infantry = 0,
                 ['2B11'] = 0,
                 StingerIgla = 0,

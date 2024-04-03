@@ -8,7 +8,7 @@ table.unpack = table.unpack or unpack
 unpack = table.unpack
 
 require('mocks.DCS')
-require('mist_4_5_122')
+require('mist_4_5_126')
 require('gremlin')
 
 mist.scheduleFunction = Spy(mist.scheduleFunction)
@@ -42,7 +42,7 @@ local _testUnit2 = { className_ = 'Unit', groupName = 'Gremlin Troop 1', type = 
 ---@diagnostic disable-next-line: undefined-global
 class(_testUnit2, Unit)
 
-local _testUnit3 = { className_ = 'Unit', groupName = 'Gremlin Troop 2', type = 'Ejected Pilot', unitName = 'TestUnit3', unitId = 3, point = { x = 0, y = 0, z = 0 } }
+local _testUnit3 = { className_ = 'Unit', groupName = 'Gremlin Troop 2', type = 'Carrier Seaman', unitName = 'TestUnit3', unitId = 3, point = { x = 0, y = 0, z = 0 } }
 ---@diagnostic disable-next-line: undefined-global
 class(_testUnit3, Unit)
 

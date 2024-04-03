@@ -36,7 +36,7 @@ Evac = {
     lossThresholds = {0, 0},
     -- The maximum number of each unit to generate when spawning units
     maxExtractable = {{
-        ['Ejected Pilot'] = 0,
+        ['Carrier Seaman'] = 0,
         Infantry = 0,
         M249 = 0,
         RPG = 0,
@@ -44,7 +44,7 @@ Evac = {
         ['2B11'] = 0,
         JTAC = 0
     }, {
-        ['Ejected Pilot'] = 0,
+        ['Carrier Seaman'] = 0,
         Infantry = 0,
         M249 = 0,
         RPG = 0,
@@ -97,7 +97,7 @@ Evac = {
             }
         },
         lostEvacuees = {{
-            ['Ejected Pilot'] = 0,
+            ['Carrier Seaman'] = 0,
             Infantry = 0,
             M249 = 0,
             RPG = 0,
@@ -105,7 +105,7 @@ Evac = {
             ['2B11'] = 0,
             JTAC = 0
         }, {
-            ['Ejected Pilot'] = 0,
+            ['Carrier Seaman'] = 0,
             Infantry = 0,
             M249 = 0,
             RPG = 0,
@@ -116,7 +116,7 @@ Evac = {
         smoke = {},
         spawns = {
             alreadySpawned = {{
-                ['Ejected Pilot'] = 0,
+                ['Carrier Seaman'] = 0,
                 Infantry = 0,
                 M249 = 0,
                 RPG = 0,
@@ -124,7 +124,7 @@ Evac = {
                 ['2B11'] = 0,
                 JTAC = 0
             }, {
-                ['Ejected Pilot'] = 0,
+                ['Carrier Seaman'] = 0,
                 Infantry = 0,
                 M249 = 0,
                 RPG = 0,
@@ -163,12 +163,9 @@ Evac.zones = {
         -- Manually override the remaining units in a zone
         setRemaining = function(_zone, _side, _country, _numberOrComposition)
             if type(_numberOrComposition) == "table" then
-                Gremlin.log.trace(Evac.Id,
-                    string.format('Setting Remaining In Evac Zone : %s, %i, %i, %s', _zone, _side, _country,
-                        mist.utils.tableShowSorted(_numberOrComposition)))
+                Gremlin.log.trace(Evac.Id, string.format('Setting Remaining In Evac Zone : %s, %i, %i, %s', _zone, _side, _country, mist.utils.tableShowSorted(_numberOrComposition)))
             else
-                Gremlin.log.trace(Evac.Id, string.format('Setting Remaining In Evac Zone : %s, %i, %i, %i', _zone,
-                    _side, _country, _numberOrComposition))
+                Gremlin.log.trace(Evac.Id, string.format('Setting Remaining In Evac Zone : %s, %i, %i, %i', _zone, _side, _country, _numberOrComposition))
             end
 
             return Evac._internal.zones.setRemaining(_zone, _side, _country, _numberOrComposition)
@@ -1011,8 +1008,7 @@ Evac._internal.smoke = {
     refresh = function()
         Gremlin.log.trace(Evac.Id, string.format('Refreshing Smoke'))
 
-        for _, _zoneData in pairs(Gremlin.utils.mergeTables(Evac._state.zones.evac, Evac._state.zones.relay,
-            Evac._state.zones.safe)) do
+        for _, _zoneData in pairs(Gremlin.utils.mergeTables(Evac._state.zones.evac, Evac._state.zones.relay, Evac._state.zones.safe)) do
             local _zone = trigger.misc.getZone(_zoneData.name)
             if _zone ~= nil and _zoneData.active then
                 local _pos2 = {
@@ -1060,7 +1056,7 @@ Evac._internal.zones = {
         end
 
         local _groupName = 'Evacuee Group'
-        local _unitType = 'Ejected Pilot'
+        local _unitType = 'Carrier Seaman'
         local _groupId = Evac._internal.utils.getNextGroupId()
         local _composition = {}
         local _troops = {}
@@ -1156,24 +1152,22 @@ Evac._internal.zones = {
         return _count
     end,
     isIn = function(_unit, _evacMode)
-        Gremlin.log.trace(Evac.Id, string.format('Checking Whether Unit Is In Zones Internally : %s, %s', _unit,
-            tostring(_evacMode)))
+        Gremlin.log.trace(Evac.Id, string.format('Checking Whether Unit Is In Zones Internally : %s, %s', _unit, tostring(_evacMode)))
 
         local _unitObj = Unit.getByName(_unit)
 
         if _unitObj ~= nil then
             if type(_evacMode) == 'string' then
                 local _zone = _evacMode
-                local _zoneData = Evac._state.zones.evac[_zone] or Evac._state.zones.relay[_zone] or
-                                      Evac._state.zones.safe[_zone] or {
-                    active = false
-                }
+                local _zoneData = Evac._state.zones.evac[_zone] or Evac._state.zones.relay[_zone] or Evac._state.zones.safe[_zone] or { active = false }
+                local _zoneExists = trigger.misc.getZone(_zone) ~= nil
                 local _unitPoint = _unitObj:getPoint()
 
-                return _zoneData.active and mist.pointInZone(_unitPoint, _zone)
+                return _zoneExists and _zoneData.active and mist.pointInZone(_unitPoint, _zone)
             else
                 for _, _zoneData in pairs(Evac._state.zones[Evac.modeToText[_evacMode]]) do
-                    if _zoneData.active and mist.pointInZone(_unitObj:getPoint(), _zoneData.name) then
+                    local _zoneExists = trigger.misc.getZone(_zoneData.name) ~= nil
+                    if _zoneExists and _zoneData.active and mist.pointInZone(_unitObj:getPoint(), _zoneData.name) then
                         return true
                     end
                 end
@@ -1278,7 +1272,7 @@ Evac._internal.utils = {
         for _side, _maxExtract in pairs(Evac.maxExtractable) do
             local _saved = Evac._internal.utils.tallyEvacueesInZones(Evac._state.zones.safe)
 
-            local _pilot = _saved['Ejected Pilot'] / _maxExtract['Ejected Pilot']
+            local _pilot = _saved['Carrier Seaman'] / _maxExtract['Carrier Seaman']
             local _infantry = _saved.Infantry / _maxExtract.Infantry
             local _2b11 = _saved['2B11'] / _maxExtract['2B11']
             local _m249 = _saved.M249 / _maxExtract.M249
@@ -1300,7 +1294,7 @@ Evac._internal.utils = {
         for _side, _maxExtract in pairs(Evac.maxExtractable) do
             local _lost = Evac._state.lostEvacuees[_side]
 
-            local _pilot = _lost['Ejected Pilot'] / _maxExtract['Ejected Pilot']
+            local _pilot = _lost['Carrier Seaman'] / _maxExtract['Carrier Seaman']
             local _infantry = _lost.Infantry / _maxExtract.Infantry
             local _2b11 = _lost['2B11'] / _maxExtract['2B11']
             local _m249 = _lost.M249 / _maxExtract.M249
@@ -1370,7 +1364,7 @@ Evac._internal.utils = {
     end,
     tallyEvacueesInZones = function(_zoneList)
         local _evacCounter = {
-            ['Ejected Pilot'] = 0,
+            ['Carrier Seaman'] = 0,
             Infantry = 0,
             ['2B11'] = 0,
             M249 = 0,
@@ -1423,7 +1417,7 @@ Evac._internal.doSpawns = function()
 
         local _haveLeft = {}
 
-        _haveLeft['Ejected Pilot'] = Evac.maxExtractable[_side]['Ejected Pilot'] - Evac._state.spawns.alreadySpawned[_side]['Ejected Pilot']
+        _haveLeft['Carrier Seaman'] = Evac.maxExtractable[_side]['Carrier Seaman'] - Evac._state.spawns.alreadySpawned[_side]['Carrier Seaman']
         _haveLeft['Infantry'] = Evac.maxExtractable[_side].Infantry - Evac._state.spawns.alreadySpawned[_side].Infantry
         _haveLeft['M249'] = Evac.maxExtractable[_side].M249 - Evac._state.spawns.alreadySpawned[_side].M249
         _haveLeft['RPG'] = Evac.maxExtractable[_side].RPG - Evac._state.spawns.alreadySpawned[_side].RPG
@@ -1450,29 +1444,29 @@ Evac._internal.doSpawns = function()
                 local _units
                 if _rate.units == 0 then
                     _units = {}
-                    for i = 1, Evac.maxExtractable[_side]['Ejected Pilot'] do
+                    for i = 1, Evac.maxExtractable[_side]['Carrier Seaman'] do
                         table.insert(_units, {
-                            type = 'Ejected Pilot'
+                            type = 'Carrier Seaman'
                         })
                     end
                     for i = 1, Evac.maxExtractable[_side].Infantry do
                         table.insert(_units, {
-                            type = 'Infantry'
+                            type = 'Infantry M4',
                         })
                     end
                     for i = 1, Evac.maxExtractable[_side].StingerIgla do
                         table.insert(_units, {
-                            type = 'StingerIgla'
+                            type = 'soldier_stinger',
                         })
                     end
                     for i = 1, Evac.maxExtractable[_side].RPG do
                         table.insert(_units, {
-                            type = 'RPG'
+                            type = 'soldier_rpg',
                         })
                     end
                     for i = 1, Evac.maxExtractable[_side].M249 do
                         table.insert(_units, {
-                            type = 'M249'
+                            type = 'soldier_m249',
                         })
                     end
                     for i = 1, Evac.maxExtractable[_side]['2B11'] do
@@ -1490,19 +1484,19 @@ Evac._internal.doSpawns = function()
                 end
 
                 if type(_units) == 'number' then
-                    _units = math.min(_units, _spawnLimits['Ejected Pilot'])
+                    _units = math.min(_units, _spawnLimits['Carrier Seaman'])
                 else
-                    local _have = { ['Ejected Pilot'] = 0, Infantry = 0, M249 = 0, RPG = 0, StingerIgla = 0, ['2B11'] = 0, JTAC = 0 }
+                    local _have = { ['Carrier Seaman'] = 0, Infantry = 0, M249 = 0, RPG = 0, StingerIgla = 0, ['2B11'] = 0, JTAC = 0 }
 
                     for _idx, _unit in pairs(_units) do
-                        _have[_unit.type] = _have[_unit.type] + 1
+                        _have[_unit.type] = (_have[_unit.type] or 0) + 1
 
-                        if _spawnLimits[_unit.type] < _have[_unit.type] then
+                        if (_spawnLimits[_unit.type] or 0) < _have[_unit.type] then
 
-                            -- Change the type to ['Ejected Pilot'], if possible, or remove it entirely otherwise
+                            -- Change the type to ['Carrier Seaman'], if possible, or remove it entirely otherwise
                             -- Tries to spawn the right number of units even if it can't spawn the exact types
-                            if _unit.type ~= 'Ejected Pilot' and _spawnLimits['Ejected Pilot'] >= _have['Ejected Pilot'] then
-                                _units[_idx] = Gremlin.utils.mergeTables(_unit, { type = 'Ejected Pilot' })
+                            if _unit.type ~= 'Carrier Seaman' and _spawnLimits['Carrier Seaman'] >= _have['Carrier Seaman'] then
+                                _units[_idx] = Gremlin.utils.mergeTables(_unit, { type = 'Carrier Seaman' })
                             else
                                 _units[_idx] = nil
                             end
@@ -1548,7 +1542,7 @@ Evac._internal.doSpawns = function()
                 -- Maintain internal data structures
                 if Evac._state.spawns.alreadySpawned[_side] == nil then
                     Evac._state.spawns.alreadySpawned[_side] = {
-                        ['Ejected Pilot'] = 0,
+                        ['Carrier Seaman'] = 0,
                         Infantry = 0,
                         M249 = 0,
                         RPG = 0,
@@ -1559,7 +1553,7 @@ Evac._internal.doSpawns = function()
                 end
 
                 if type(_units) == 'number' then
-                    Evac._state.spawns.alreadySpawned[_side]['Ejected Pilot'] = Evac._state.spawns.alreadySpawned[_side]['Ejected Pilot'] + _units
+                    Evac._state.spawns.alreadySpawned[_side]['Carrier Seaman'] = Evac._state.spawns.alreadySpawned[_side]['Carrier Seaman'] + _units
                 elseif type(_units) == 'table' then
                     for _, _unit in pairs(_units) do
                         local _spawnType = _unit.type
@@ -1637,12 +1631,12 @@ Evac._internal.handlers = {
                             local _type = _evacuee.type
 
                             if _type == nil then
-                                _type = 'Ejected Pilot'
+                                _type = 'Carrier Seaman'
                             end
 
                             if Evac._state.lostEvacuees[_side] == nil then
                                 Evac._state.lostEvacuees[_side] = {
-                                    ['Ejected Pilot'] = 0,
+                                    ['Carrier Seaman'] = 0,
                                     Infantry = 0,
                                     M249 = 0,
                                     RPG = 0,
@@ -1720,7 +1714,7 @@ Evac:setup({
     lossThresholds = { 25, 25 },
     maxExtractable = {
         {
-            ['Ejected Pilot'] = 0,
+            ['Carrier Seaman'] = 0,
             Infantry = 0,
             M249 = 0,
             RPG = 0,
@@ -1730,7 +1724,7 @@ Evac:setup({
             Downed = 0,
         },
         {
-            ['Ejected Pilot'] = 0,
+            ['Carrier Seaman'] = 0,
             Infantry = 0,
             M249 = 0,
             RPG = 0,
@@ -1825,7 +1819,7 @@ function Evac:setup(config)
         if config.maxExtractable ~= nil then
             for _side, _extractable in ipairs(config.maxExtractable) do
                 if _extractable ~= nil then
-                    Evac.maxExtractable[_side]['Ejected Pilot'] = _extractable['Ejected Pilot'] or 0
+                    Evac.maxExtractable[_side]['Carrier Seaman'] = _extractable['Carrier Seaman'] or 0
                     Evac.maxExtractable[_side].Infantry = _extractable.Infantry or 0
                     Evac.maxExtractable[_side].M249 = _extractable.M249 or 0
                     Evac.maxExtractable[_side].RPG = _extractable.RPG or 0
