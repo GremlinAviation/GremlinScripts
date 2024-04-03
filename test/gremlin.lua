@@ -324,6 +324,18 @@ TestGremlinUtils = {
         -- SIDE EFFECTS
         -- N/A?
     end,
+    testIsInTable = function()
+        -- INIT
+        -- N/A?
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.isInTable({}, 'test'), false)
+        lu.assertEquals(Gremlin.utils.isInTable({ 'test' }, 'test'), true)
+        lu.assertEquals(Gremlin.utils.isInTable({ test = 'test' }, 'test'), true)
+
+        -- SIDE EFFECTS
+        -- N/A?
+    end,
     testParseFuncArgs = function()
         -- INIT
         -- N/A?

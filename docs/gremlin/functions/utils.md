@@ -13,9 +13,15 @@ Displays a message to a named Unit, Group, Country, or Coalition, or to everyone
 
 ---
 
-#### `Gremlin.utils.getUnitZones(_unit_)`
+#### `Gremlin.utils.getUnitZones(_unit)`
 
 Looks up a list of all the zones a unit is currently in
+
+---
+
+#### `Gremlin.utils.isInTable(_tbl, _needle)`
+
+Checks whether `_needle` is in the haystack `_tbl`
 
 ---
 

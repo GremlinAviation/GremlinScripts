@@ -224,6 +224,15 @@ Gremlin = {
 
             return _outZones
         end,
+        isInTable = function(_tbl, _needle)
+            for _, _straw in pairs(_tbl) do
+                if _straw == _needle then
+                    return true
+                end
+            end
+
+            return false
+        end,
         parseFuncArgs = function(_args, _objs)
             local _out = {}
             for _, _arg in pairs(_args) do
