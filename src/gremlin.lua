@@ -4,7 +4,7 @@ end
 
 Gremlin = {
     Id = 'Gremlin Script Tools',
-    Version = '202403.01',
+    Version = '202404.01',
 
     -- Config
     Debug = false,

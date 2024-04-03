@@ -1,6 +1,6 @@
 Waves = {
     Id = 'Gremlin Waves',
-    Version = '202403.01',
+    Version = '202404.01',
 
     config = {
         adminPilotNames = {},

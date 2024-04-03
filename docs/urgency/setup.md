@@ -48,20 +48,8 @@ Urgency:setup({
         easterEgg1 = {
             reuse = true,
             startTrigger = {
-                type = 'event',
-                value = {
-                    id = world.event.S_EVENT_TRIGGER_ZONE,
-                    filter = function(_event)
-                        local _unit = _event.initiator
-                        local _zone = _event.target
-
-                        if _zone == 'egg1' then
-                            return true
-                        end
-
-                        return false
-                    end,
-                },
+                type = 'flag',
+                value = 'Egg1Triggered',
             },
             startFlag = 'Egg1Found',
             endTrigger = {
@@ -72,6 +60,10 @@ Urgency:setup({
             messages = {
                 [0] = { to = 'all', text = 'An Easter Egg Was Discovered!', duration = 15 },
                 [3600] = { to = 'all', text = 'An Easter Egg Has Vanished!', duration = 15 },
+            },
+            clips = {
+                [0] = { to = 'all', path = 'exclaim.ogg' },
+                [3600] = { to = 'all', path = 'snake.ogg' },
             },
         },
     },
@@ -94,5 +86,9 @@ Urgency:setup({
       - `value` the time, event id and handler, or menu text to trigger on
     - `endFlag` the flag to set true when the countdown ends
     - `messages` a list of messages to display, keyed by the countdown's seconds since start (or seconds until end, if negative)
+      - `to` the units that should receive the message (unit, group, country, coalition), or the special value `all` for everyone
       - `text` the message to display
       - `duration` how long the message should be visible (in seconds)
+    - `clips` a list of clips to play, keyed by the countdown's seconds since start (or seconds until end, if negative)
+      - `to` the units that should receive the message (unit, group, country, coalition), or the special value `all` for everyone
+      - `path` the path to the clip to play

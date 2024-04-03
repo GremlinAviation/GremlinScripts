@@ -1,6 +1,6 @@
 Urgency = {
     Id = 'Gremlin Urgency',
-    Version = '202403.01',
+    Version = '202404.01',
 
     config = {
         adminPilotNames = {},
@@ -116,11 +116,19 @@ Urgency._internal.doCountdowns = function()
             _endTime = _countdown.endTrigger.value + _countdown.startedAt
         end
 
-        for _time, _message in pairs(_countdown.messages) do
+        for _time, _message in pairs(_countdown.messages or {}) do
             if (_time >= 0 and _time + _countdown.startedAt <= _now) or (_endTime ~= nil and _time < 0 and _time + _endTime <= _now) then
                 Urgency._state.countdowns.active[_name].messages[_time] = nil
                 Gremlin.comms.displayMessageTo(_message.to, _message.text, _message.duration)
                 Gremlin.log.trace(Urgency.Id, string.format('Sent Message : %s', _message.text))
+            end
+        end
+
+        for _time, _clip in pairs(_countdown.clips or {}) do
+            if (_time >= 0 and _time + _countdown.startedAt <= _now) or (_endTime ~= nil and _time < 0 and _time + _endTime <= _now) then
+                Urgency._state.countdowns.active[_name].clips[_time] = nil
+                Gremlin.comms.playClipTo(_clip.to, _clip.path)
+                Gremlin.log.trace(Urgency.Id, string.format('Played Clip : %s', _clip.path))
             end
         end
 
