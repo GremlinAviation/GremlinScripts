@@ -324,19 +324,19 @@ Evac.units = {
         if _unitObj ~= nil then
             local _free = Evac.carryLimits[_unitObj:getTypeName()] or 0
             if _free == 0 then
-                Gremlin.utils.displayMessageTo(_unit, "Your aircraft isn't rated for evacuees in this mission!", 1)
+                Gremlin.comms.displayMessageTo(_unit, "Your aircraft isn't rated for evacuees in this mission!", 1)
                 return
             end
 
             _free = _free - Evac._internal.aircraft.countEvacuees(_unit)
             if _free <= 0 then
-                Gremlin.utils.displayMessageTo(_unit, 'Already full! Unload, first!', 1)
+                Gremlin.comms.displayMessageTo(_unit, 'Already full! Unload, first!', 1)
                 return
             end
 
             Evac._internal.aircraft.loadEvacuees(_unit, _free)
         else
-            Gremlin.utils.displayMessageTo(_unit, "Your aircraft isn't rated for evacuees in this mission!", 1)
+            Gremlin.comms.displayMessageTo(_unit, "Your aircraft isn't rated for evacuees in this mission!", 1)
         end
     end,
     -- Starts the evacuee unloading process for a unit
@@ -351,7 +351,7 @@ Evac.units = {
 
         local _count = Evac._internal.aircraft.countEvacuees(_unit)
 
-        Gremlin.utils.displayMessageTo(_unit, 'You are currently carrying ' .. _count .. ' evacuees.', 1)
+        Gremlin.comms.displayMessageTo(_unit, 'You are currently carrying ' .. _count .. ' evacuees.', 1)
     end,
     -- Count the number of units in a given zone
     count = function(_zone)
@@ -513,20 +513,20 @@ Evac._internal.aircraft = {
 
         if Evac._state.extractableNow[_zone] == nil or ((Evac._state.zones.evac[_zone] == nil or Evac._state.zones.evac[_zone].active == false) and (Evac._state.zones.relay[_zone] == nil or Evac._state.zones.relay[_zone].active == false)) then
             Gremlin.log.debug(Evac.Id, string.format('Loading Evacuees : %s is not an active or registered zone\nextractable - %s\nevac zone - %s\nrelay zone - %s', _zone, mist.utils.tableShowSorted(Evac._state.extractableNow[_zone]), mist.utils.tableShowSorted(Evac._state.zones.evac[_zone]), mist.utils.tableShowSorted(Evac._state.zones.relay[_zone])))
-            Gremlin.utils.displayMessageTo(_unit, 'Not in an active evac or relay zone! Try looking elsewhere.', 5)
+            Gremlin.comms.displayMessageTo(_unit, 'Not in an active evac or relay zone! Try looking elsewhere.', 5)
             return
         end
 
         if Evac._internal.aircraft.inAir(_unit) then
             Gremlin.log.debug(Evac.Id, string.format('Loading Evacuees : %s is not on the ground', _unit))
-            Gremlin.utils.displayMessageTo(_unit, 'You need to land, first! Unless you have some magic way to teleport them up? And no, these folks are in no condition for the hoist, so put that back up.', 5)
+            Gremlin.comms.displayMessageTo(_unit, 'You need to land, first! Unless you have some magic way to teleport them up? And no, these folks are in no condition for the hoist, so put that back up.', 5)
             return
         end
 
         _number = math.min(_number, Gremlin.utils.countTableEntries(Evac._state.extractableNow[_zone]))
         if _number < 1 then
             Gremlin.log.debug(Evac.Id, string.format('Loading Evacuees : %s is empty', _zone))
-            Gremlin.utils.displayMessageTo(_unit, 'No evacuees to load here, pilot! Try looking elsewhere.', 5)
+            Gremlin.comms.displayMessageTo(_unit, 'No evacuees to load here, pilot! Try looking elsewhere.', 5)
             return
         end
 
@@ -577,7 +577,7 @@ Evac._internal.aircraft = {
             Gremlin.log.debug(Evac.Id, string.format('Loading Evacuees : Sending %s to %s', _message, tostring(_unit)))
 
             Gremlin.events.fire({ id = 'Evac:UnitLoaded', zone = _zone, unit = _unit, number = _number })
-            Gremlin.utils.displayMessageTo(_unit, _message, _displayFor)
+            Gremlin.comms.displayMessageTo(_unit, _message, _displayFor)
         end, {_timeNow + 0.01}, _timeNow + 0.01, 1, _timeNow + _timeout + 0.02)
     end,
     countEvacuees = function(_unit)
@@ -634,20 +634,20 @@ Evac._internal.aircraft = {
 
         if (Evac._state.zones.safe[_zone] == nil or Evac._state.zones.safe[_zone].active == false) and (Evac._state.zones.relay[_zone] == nil or Evac._state.zones.relay[_zone].active == false) then
             Gremlin.log.debug(Evac.Id, string.format('Unloading Evacuees : %s is not an active or registered zone\nrelay zone - %s\nsafe zone - %s', _zone, mist.utils.tableShowSorted(Evac._state.zones.relay[_zone]), mist.utils.tableShowSorted(Evac._state.zones.safe[_zone])))
-            Gremlin.utils.displayMessageTo(_unit, 'Not in an active relay or safe zone! Try looking elsewhere.', 5)
+            Gremlin.comms.displayMessageTo(_unit, 'Not in an active relay or safe zone! Try looking elsewhere.', 5)
             return
         end
 
         if Evac._internal.aircraft.inAir(_unit) then
             Gremlin.log.debug(Evac.Id, string.format('Unloading Evacuees : %s is not on the ground', _unit))
-            Gremlin.utils.displayMessageTo(_unit, "You need to land, first! Fastrope doesn't work with stretchers.", 5)
+            Gremlin.comms.displayMessageTo(_unit, "You need to land, first! Fastrope doesn't work with stretchers.", 5)
             return
         end
 
         local _number = Evac._internal.aircraft.countEvacuees(_unit)
         if _number < 1 then
             Gremlin.log.debug(Evac.Id, string.format('Unloading Evacuees : %s is empty', _unit))
-            Gremlin.utils.displayMessageTo(_unit, 'No evacuees to unload?! Why are you even here, pilot?!', 5)
+            Gremlin.comms.displayMessageTo(_unit, 'No evacuees to unload?! Why are you even here, pilot?!', 5)
             return
         end
 
@@ -697,7 +697,7 @@ Evac._internal.aircraft = {
             Gremlin.log.debug(Evac.Id, string.format('Unloading Evacuees : Sending %s to %s', _message, tostring(_unit)))
 
             Gremlin.events.fire({ id = 'Evac:UnitUnloaded', zone = _zone, unit = _unit, number = _number })
-            Gremlin.utils.displayMessageTo(_unit, _message, _displayFor)
+            Gremlin.comms.displayMessageTo(_unit, _message, _displayFor)
             Evac._internal.utils.endIfEnoughGotOut()
         end, { _timeNow + 0.01 }, _timeNow + 0.01, 1, _timeNow + _timeout + 0.02)
     end
@@ -834,9 +834,9 @@ Evac._internal.beacons = {
                 Gremlin.log.debug(Evac.Id, string.format('Got Beacon List For Unit : %s, %s', tostring(_unit), _message or 'none'))
 
                 if _message ~= nil and _message ~= '' then
-                    Gremlin.utils.displayMessageTo(_unitObj:getGroup(), 'Evacuation Beacons:\n' .. _message, 15)
+                    Gremlin.comms.displayMessageTo(_unitObj:getGroup(), 'Evacuation Beacons:\n' .. _message, 15)
                 else
-                    Gremlin.utils.displayMessageTo(_unitObj:getGroup(), 'No Active Evacuation Beacons', 15)
+                    Gremlin.comms.displayMessageTo(_unitObj:getGroup(), 'No Active Evacuation Beacons', 15)
                 end
             end
         end
@@ -1658,7 +1658,7 @@ Evac._internal.handlers = {
 
                     Gremlin.log.debug(Evac.Id, string.format('Lost Evacuee(s)! : %s', Evac._internal.aircraft.countEvacuees(_name)))
 
-                    Gremlin.utils.displayMessageTo(Gremlin.SideToText[_side], string.format('We just lost %i evacuee(s)! Step it up, pilots!', Evac._internal.aircraft.countEvacuees(_name)), 15)
+                    Gremlin.comms.displayMessageTo(Gremlin.SideToText[_side], string.format('We just lost %i evacuee(s)! Step it up, pilots!', Evac._internal.aircraft.countEvacuees(_name)), 15)
 
                     Evac._state.extractionUnits[_name] = {
                         [0] = Evac._state.extractionUnits[_name][0],

@@ -9,6 +9,7 @@
   - [Setup](./gremlin/setup.md)
   - [Usage](./gremlin/usage.md)
   - [Functions](./gremlin/functions.md)
+    - [Comms](./gremlin/functions/comms.md)
     - [Events](./gremlin/functions/events.md)
     - [Log](./gremlin/functions/log.md)
     - [Menu](./gremlin/functions/menu.md)

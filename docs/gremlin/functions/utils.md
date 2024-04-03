@@ -7,12 +7,6 @@ Counts the number of entries in a table, regardless of type
 
 ---
 
-#### `Gremlin.utils.displayMessageTo(_name, _text, _time)`
-
-Displays a message to a named Unit, Group, Country, or Coalition, or to everyone with the special name `all`
-
----
-
 #### `Gremlin.utils.getUnitZones(_unit)`
 
 Looks up a list of all the zones a unit is currently in

@@ -119,7 +119,7 @@ Urgency._internal.doCountdowns = function()
         for _time, _message in pairs(_countdown.messages) do
             if (_time >= 0 and _time + _countdown.startedAt <= _now) or (_endTime ~= nil and _time < 0 and _time + _endTime <= _now) then
                 Urgency._state.countdowns.active[_name].messages[_time] = nil
-                Gremlin.utils.displayMessageTo(_message.to, _message.text, _message.duration)
+                Gremlin.comms.displayMessageTo(_message.to, _message.text, _message.duration)
                 Gremlin.log.trace(Urgency.Id, string.format('Sent Message : %s', _message.text))
             end
         end

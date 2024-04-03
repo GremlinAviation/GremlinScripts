@@ -29,6 +29,46 @@ Gremlin = {
     },
 
     -- Methods
+    comms = {
+        displayMessageTo = function(_name, _text, _time)
+            if _name == 'all' or _name == 'Neutral' or _name == nil then
+                trigger.action.outText(_text, _time)
+            elseif type(_name) == 'string' and coalition.side[string.upper(_name)] ~= nil then
+                trigger.action.outTextForCoalition(coalition.side[string.upper(_name)], _text, _time)
+            elseif type(_name) == 'string' and country[string.upper(_name)] ~= nil then
+                trigger.action.outTextForCountry(country[string.upper(_name)], _text, _time)
+            elseif type(_name) == 'table' and _name.className_ == 'Group' then
+                trigger.action.outTextForGroup(_name:getID(), _text, _time)
+            elseif type(_name) == 'string' and Group.getByName(_name) ~= nil then
+                trigger.action.outTextForGroup(Group.getByName(_name):getID(), _text, _time)
+            elseif type(_name) == 'table' and _name.className_ == 'Unit' then
+                trigger.action.outTextForUnit(_name:getID(), _text, _time)
+            elseif type(_name) == 'string' and Unit.getByName(_name) ~= nil then
+                trigger.action.outTextForUnit(Unit.getByName(_name):getID(), _text, _time)
+            else
+                Gremlin.log.error(Gremlin.Id, string.format("Can't find object named %s to display message to!\nMessage was: %s", tostring(_name), _text))
+            end
+        end,
+        playClipTo = function(_name, _path)
+            if _name == 'all' or _name == 'Neutral' or _name == nil then
+                trigger.action.outSound(_path)
+            elseif type(_name) == 'string' and coalition.side[string.upper(_name)] ~= nil then
+                trigger.action.outSoundForCoalition(coalition.side[string.upper(_name)], _path)
+            elseif type(_name) == 'string' and country[string.upper(_name)] ~= nil then
+                trigger.action.outSoundForCountry(country[string.upper(_name)], _path)
+            elseif type(_name) == 'table' and _name.className_ == 'Group' then
+                trigger.action.outSoundForGroup(_name:getID(), _path)
+            elseif type(_name) == 'string' and Group.getByName(_name) ~= nil then
+                trigger.action.outSoundForGroup(Group.getByName(_name):getID(), _path)
+            elseif type(_name) == 'table' and _name.className_ == 'Unit' then
+                trigger.action.outSoundForUnit(_name:getID(), _path)
+            elseif type(_name) == 'string' and Unit.getByName(_name) ~= nil then
+                trigger.action.outSoundForUnit(Unit.getByName(_name):getID(), _path)
+            else
+                Gremlin.log.error(Gremlin.Id, string.format("Can't find object named %s to play clip to!\nClip was: %s", tostring(_name), _path))
+            end
+        end,
+    },
     events = {
         _globalHandlers = {
             logEvents = {
@@ -186,25 +226,6 @@ Gremlin = {
                 _count = _count + 1
             end
             return _count
-        end,
-        displayMessageTo = function(_name, _text, _time)
-            if _name == 'all' or _name == 'Neutral' or _name == nil then
-                trigger.action.outText(_text, _time)
-            elseif type(_name) == 'string' and coalition.side[string.upper(_name)] ~= nil then
-                trigger.action.outTextForCoalition(coalition.side[string.upper(_name)], _text, _time)
-            elseif type(_name) == 'string' and country[string.upper(_name)] ~= nil then
-                trigger.action.outTextForCountry(country[string.upper(_name)], _text, _time)
-            elseif type(_name) == 'table' and _name.className_ == 'Group' then
-                trigger.action.outTextForGroup(_name:getID(), _text, _time)
-            elseif type(_name) == 'string' and Group.getByName(_name) ~= nil then
-                trigger.action.outTextForGroup(Group.getByName(_name):getID(), _text, _time)
-            elseif type(_name) == 'table' and _name.className_ == 'Unit' then
-                trigger.action.outTextForUnit(_name:getID(), _text, _time)
-            elseif type(_name) == 'string' and Unit.getByName(_name) ~= nil then
-                trigger.action.outTextForUnit(Unit.getByName(_name):getID(), _text, _time)
-            else
-                Gremlin.log.error(Gremlin.Id, string.format("Can't find object named %s to display message to!\nMessage was: %s", tostring(_name), _text))
-            end
         end,
         getUnitZones = function(_unit)
             Gremlin.log.trace(Gremlin.Id, string.format('Grabbing Unit Zone Names : %s', _unit))

@@ -8,7 +8,7 @@ Gremlin:setup()
 
 Gremlin.log.info('My Cool DCS Script', 'Starting up!')
 
-Gremlin.utils.displayMessageTo('test', 'Hullabaloo!', timer.getTime() + 1)
+Gremlin.comms.displayMessageTo('test', 'Hullabaloo!', timer.getTime() + 1)
 
 local myArgs = Gremlin.utils.parseFuncArgs({ '{unit}:test', '{group}:test', timer.getTime() }, {
     unit = {

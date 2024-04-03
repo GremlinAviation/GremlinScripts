@@ -104,6 +104,11 @@ local tearDown = function()
     Gremlin.log.trace:reset()
     trigger.action.setUnitInternalCargo:reset()
     trigger.action.setUserFlag:reset()
+    trigger.action.outSound:reset()
+    trigger.action.outSoundForCoalition:reset()
+    trigger.action.outSoundForCountry:reset()
+    trigger.action.outSoundForGroup:reset()
+    trigger.action.outSoundForUnit:reset()
     trigger.action.outText:reset()
     trigger.action.outTextForCoalition:reset()
     trigger.action.outTextForCountry:reset()
@@ -120,6 +125,169 @@ local assertSpyCalledWith = function(_mock, _args)
     local _status, _result = pcall( _mock.assertAnyCallMatches, _mock, { arguments = _args } )
     return lu.assertEquals(_status, true, string.format('%s\n%s', inspect(_result), inspect(_mock.calls)))
 end
+
+TestGremlinComms = {
+    setUp = setUp,
+    testDisplayMessageToAll = function()
+        -- INIT
+        trigger.action.outText:whenCalled({ with = { 'test all', 1 }, thenReturn = nil })
+        trigger.action.outText:whenCalled({ with = { 'test neutral', 1 }, thenReturn = nil })
+        trigger.action.outText:whenCalled({ with = { 'test nil', 1 }, thenReturn = nil })
+
+        -- TEST
+        lu.assertEquals(Gremlin.comms.displayMessageTo('all', 'test all', 1), nil)
+        lu.assertEquals(Gremlin.comms.displayMessageTo('Neutral', 'test neutral', 1), nil)
+        lu.assertEquals(Gremlin.comms.displayMessageTo(nil, 'test nil', 1), nil)
+
+        -- SIDE EFFECTS
+        assertMockCalledWith(trigger.action.outText, { 'test all', 1 })
+        assertMockCalledWith(trigger.action.outText, { 'test neutral', 1 })
+        assertMockCalledWith(trigger.action.outText, { 'test nil', 1 })
+    end,
+    testDisplayMessageToCoalition = function()
+        -- INIT
+        trigger.action.outTextForCoalition:whenCalled({ with = { 1, 'test red', 1 }, thenReturn = nil })
+        trigger.action.outTextForCoalition:whenCalled({ with = { 2, 'test blue', 1 }, thenReturn = nil })
+
+        -- TEST
+        lu.assertEquals(Gremlin.comms.displayMessageTo('red', 'test red', 1), nil)
+        lu.assertEquals(Gremlin.comms.displayMessageTo('blue', 'test blue', 1), nil)
+
+        -- SIDE EFFECTS
+        assertMockCalledWith(trigger.action.outTextForCoalition, { 1, 'test red', 1 })
+        assertMockCalledWith(trigger.action.outTextForCoalition, { 2, 'test blue', 1 })
+    end,
+    testDisplayMessageToCountry = function()
+        -- INIT
+        trigger.action.outTextForCountry:whenCalled({ with = { 2, 'test USA', 1 }, thenReturn = nil })
+        trigger.action.outTextForCountry:whenCalled({ with = { 0, 'test Russia', 1 }, thenReturn = nil })
+
+        -- TEST
+        lu.assertEquals(Gremlin.comms.displayMessageTo('USA', 'test USA', 1), nil)
+        lu.assertEquals(Gremlin.comms.displayMessageTo('Russia', 'test Russia', 1), nil)
+
+        -- SIDE EFFECTS
+        assertMockCalledWith(trigger.action.outTextForCountry, { 2, 'test USA', 1 })
+        assertMockCalledWith(trigger.action.outTextForCountry, { 0, 'test Russia', 1 })
+    end,
+    testDisplayMessageToGroup = function()
+        -- INIT
+        trigger.action.outTextForGroup:whenCalled({ with = { 1, 'test group object', 1 }, thenReturn = nil })
+        trigger.action.outTextForGroup:whenCalled({ with = { 2, 'test group name', 1 }, thenReturn = nil })
+
+        -- TEST
+        lu.assertEquals(Gremlin.comms.displayMessageTo(_testGroup, 'test group object', 1), nil)
+        lu.assertEquals(Gremlin.comms.displayMessageTo(_testGroup2.groupName, 'test group name', 1), nil)
+
+        -- SIDE EFFECTS
+        assertMockCalledWith(trigger.action.outTextForGroup, { 1, 'test group object', 1 })
+        assertMockCalledWith(trigger.action.outTextForGroup, { 2, 'test group name', 1 })
+    end,
+    testDisplayMessageToUnit = function()
+        -- INIT
+        trigger.action.outTextForUnit:whenCalled({ with = { 1, 'test unit object', 1 }, thenReturn = nil })
+        trigger.action.outTextForUnit:whenCalled({ with = { 1, 'test unit name', 1 }, thenReturn = nil })
+
+        -- TEST
+        lu.assertEquals(Gremlin.comms.displayMessageTo(_testUnit, 'test unit object', 1), nil)
+        lu.assertEquals(Gremlin.comms.displayMessageTo(_testUnit2.unitName, 'test unit name', 1), nil)
+
+        -- SIDE EFFECTS
+        assertMockCalledWith(trigger.action.outTextForUnit, { 1, 'test unit object', 1 })
+        assertMockCalledWith(trigger.action.outTextForUnit, { 1, 'test unit name', 1 })
+    end,
+    testDisplayMessageToUnknown = function()
+        -- INIT
+        -- N/A?
+
+        -- TEST
+        lu.assertEquals(Gremlin.comms.displayMessageTo('HammerTime', 'test unknown', 1), nil)
+
+        -- SIDE EFFECTS
+        assertSpyCalledWith(Gremlin.log.error,
+            { Gremlin.Id, string.format("Can't find object named %s to display message to!\nMessage was: %s",
+                tostring('HammerTime'), 'test unknown') })
+    end,
+    testPlayClipToAll = function()
+        -- INIT
+        trigger.action.outSound:whenCalled({ with = { 'test all' }, thenReturn = nil })
+        trigger.action.outSound:whenCalled({ with = { 'test neutral' }, thenReturn = nil })
+        trigger.action.outSound:whenCalled({ with = { 'test nil' }, thenReturn = nil })
+
+        -- TEST
+        lu.assertEquals(Gremlin.comms.playClipTo('all', 'test all'), nil)
+        lu.assertEquals(Gremlin.comms.playClipTo('Neutral', 'test neutral'), nil)
+        lu.assertEquals(Gremlin.comms.playClipTo(nil, 'test nil'), nil)
+
+        -- SIDE EFFECTS
+        assertMockCalledWith(trigger.action.outSound, { 'test all' })
+        assertMockCalledWith(trigger.action.outSound, { 'test neutral' })
+        assertMockCalledWith(trigger.action.outSound, { 'test nil' })
+    end,
+    testPlayClipToCoalition = function()
+        -- INIT
+        trigger.action.outSoundForCoalition:whenCalled({ with = { 1, 'test red' }, thenReturn = nil })
+        trigger.action.outSoundForCoalition:whenCalled({ with = { 2, 'test blue' }, thenReturn = nil })
+
+        -- TEST
+        lu.assertEquals(Gremlin.comms.playClipTo('red', 'test red'), nil)
+        lu.assertEquals(Gremlin.comms.playClipTo('blue', 'test blue'), nil)
+
+        -- SIDE EFFECTS
+        assertMockCalledWith(trigger.action.outSoundForCoalition, { 1, 'test red' })
+        assertMockCalledWith(trigger.action.outSoundForCoalition, { 2, 'test blue' })
+    end,
+    testPlayClipToCountry = function()
+        -- INIT
+        trigger.action.outSoundForCountry:whenCalled({ with = { 2, 'test USA' }, thenReturn = nil })
+        trigger.action.outSoundForCountry:whenCalled({ with = { 0, 'test Russia' }, thenReturn = nil })
+
+        -- TEST
+        lu.assertEquals(Gremlin.comms.playClipTo('USA', 'test USA'), nil)
+        lu.assertEquals(Gremlin.comms.playClipTo('Russia', 'test Russia'), nil)
+
+        -- SIDE EFFECTS
+        assertMockCalledWith(trigger.action.outSoundForCountry, { 2, 'test USA' })
+        assertMockCalledWith(trigger.action.outSoundForCountry, { 0, 'test Russia' })
+    end,
+    testPlayClipToGroup = function()
+        -- INIT
+        trigger.action.outSoundForGroup:whenCalled({ with = { 1, 'test group object' }, thenReturn = nil })
+        trigger.action.outSoundForGroup:whenCalled({ with = { 2, 'test group name' }, thenReturn = nil })
+
+        -- TEST
+        lu.assertEquals(Gremlin.comms.playClipTo(_testGroup, 'test group object'), nil)
+        lu.assertEquals(Gremlin.comms.playClipTo(_testGroup2.groupName, 'test group name'), nil)
+
+        -- SIDE EFFECTS
+        assertMockCalledWith(trigger.action.outSoundForGroup, { 1, 'test group object' })
+        assertMockCalledWith(trigger.action.outSoundForGroup, { 2, 'test group name' })
+    end,
+    testPlayClipToUnit = function()
+        -- INIT
+        trigger.action.outSoundForUnit:whenCalled({ with = { 1, 'test unit object' }, thenReturn = nil })
+        trigger.action.outSoundForUnit:whenCalled({ with = { 1, 'test unit name' }, thenReturn = nil })
+
+        -- TEST
+        lu.assertEquals(Gremlin.comms.playClipTo(_testUnit, 'test unit object'), nil)
+        lu.assertEquals(Gremlin.comms.playClipTo(_testUnit2.unitName, 'test unit name'), nil)
+
+        -- SIDE EFFECTS
+        assertMockCalledWith(trigger.action.outSoundForUnit, { 1, 'test unit object' })
+        assertMockCalledWith(trigger.action.outSoundForUnit, { 1, 'test unit name' })
+    end,
+    testPlayClipToUnknown = function()
+        -- INIT
+        -- N/A?
+
+        -- TEST
+        lu.assertEquals(Gremlin.comms.playClipTo('HammerTime', 'test unknown'), nil)
+
+        -- SIDE EFFECTS
+        assertSpyCalledWith(Gremlin.log.error, { Gremlin.Id, string.format("Can't find object named %s to play clip to!\nClip was: %s", tostring('HammerTime'), 'test unknown') })
+    end,
+    tearDown = tearDown,
+}
 
 TestGremlinEvents = {
     setUp = setUp,
@@ -235,84 +403,6 @@ TestGremlinUtils = {
 
         -- SIDE EFFECTS
         -- N/A?
-    end,
-    testDisplayMessageToAll = function()
-        -- INIT
-        trigger.action.outText:whenCalled({ with = { 'test all', 1 }, thenReturn = nil })
-        trigger.action.outText:whenCalled({ with = { 'test neutral', 1 }, thenReturn = nil })
-        trigger.action.outText:whenCalled({ with = { 'test nil', 1 }, thenReturn = nil })
-
-        -- TEST
-        lu.assertEquals(Gremlin.utils.displayMessageTo('all', 'test all', 1), nil)
-        lu.assertEquals(Gremlin.utils.displayMessageTo('Neutral', 'test neutral', 1), nil)
-        lu.assertEquals(Gremlin.utils.displayMessageTo(nil, 'test nil', 1), nil)
-
-        -- SIDE EFFECTS
-        assertMockCalledWith(trigger.action.outText, { 'test all', 1 })
-        assertMockCalledWith(trigger.action.outText, { 'test neutral', 1 })
-        assertMockCalledWith(trigger.action.outText, { 'test nil', 1 })
-    end,
-    testDisplayMessageToCoalition = function()
-        -- INIT
-        trigger.action.outTextForCoalition:whenCalled({ with = { 1, 'test red', 1 }, thenReturn = nil })
-        trigger.action.outTextForCoalition:whenCalled({ with = { 2, 'test blue', 1 }, thenReturn = nil })
-
-        -- TEST
-        lu.assertEquals(Gremlin.utils.displayMessageTo('red', 'test red', 1), nil)
-        lu.assertEquals(Gremlin.utils.displayMessageTo('blue', 'test blue', 1), nil)
-
-        -- SIDE EFFECTS
-        assertMockCalledWith(trigger.action.outTextForCoalition, { 1, 'test red', 1 })
-        assertMockCalledWith(trigger.action.outTextForCoalition, { 2, 'test blue', 1 })
-    end,
-    testDisplayMessageToCountry = function()
-        -- INIT
-        trigger.action.outTextForCountry:whenCalled({ with = { 2, 'test USA', 1 }, thenReturn = nil })
-        trigger.action.outTextForCountry:whenCalled({ with = { 0, 'test Russia', 1 }, thenReturn = nil })
-
-        -- TEST
-        lu.assertEquals(Gremlin.utils.displayMessageTo('USA', 'test USA', 1), nil)
-        lu.assertEquals(Gremlin.utils.displayMessageTo('Russia', 'test Russia', 1), nil)
-
-        -- SIDE EFFECTS
-        assertMockCalledWith(trigger.action.outTextForCountry, { 2, 'test USA', 1 })
-        assertMockCalledWith(trigger.action.outTextForCountry, { 0, 'test Russia', 1 })
-    end,
-    testDisplayMessageToGroup = function()
-        -- INIT
-        trigger.action.outTextForGroup:whenCalled({ with = { 1, 'test group object', 1 }, thenReturn = nil })
-        trigger.action.outTextForGroup:whenCalled({ with = { 2, 'test group name', 1 }, thenReturn = nil })
-
-        -- TEST
-        lu.assertEquals(Gremlin.utils.displayMessageTo(_testGroup, 'test group object', 1), nil)
-        lu.assertEquals(Gremlin.utils.displayMessageTo(_testGroup2.groupName, 'test group name', 1), nil)
-
-        -- SIDE EFFECTS
-        assertMockCalledWith(trigger.action.outTextForGroup, { 1, 'test group object', 1 })
-        assertMockCalledWith(trigger.action.outTextForGroup, { 2, 'test group name', 1 })
-    end,
-    testDisplayMessageToUnit = function()
-        -- INIT
-        trigger.action.outTextForUnit:whenCalled({ with = { 1, 'test unit object', 1 }, thenReturn = nil })
-        trigger.action.outTextForUnit:whenCalled({ with = { 1, 'test unit name', 1 }, thenReturn = nil })
-
-        -- TEST
-        lu.assertEquals(Gremlin.utils.displayMessageTo(_testUnit, 'test unit object', 1), nil)
-        lu.assertEquals(Gremlin.utils.displayMessageTo(_testUnit2.unitName, 'test unit name', 1), nil)
-
-        -- SIDE EFFECTS
-        assertMockCalledWith(trigger.action.outTextForUnit, { 1, 'test unit object', 1 })
-        assertMockCalledWith(trigger.action.outTextForUnit, { 1, 'test unit name', 1 })
-    end,
-    testDisplayMessageToUnknown = function()
-        -- INIT
-        -- N/A?
-
-        -- TEST
-        lu.assertEquals(Gremlin.utils.displayMessageTo('HammerTime', 'test unknown', 1), nil)
-
-        -- SIDE EFFECTS
-        assertSpyCalledWith(Gremlin.log.error, { Gremlin.Id, string.format("Can't find object named %s to display message to!\nMessage was: %s", tostring('HammerTime'), 'test unknown') })
     end,
     testGetUnitZones = function()
         -- INIT
