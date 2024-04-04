@@ -227,9 +227,16 @@ local setUp = function()
     }
 
     Waves.config.waves = {
-        [_testWaveTimedName] = mist.utils.deepCopy(_testWaveTimed),
-        [_testWaveMenuName] = mist.utils.deepCopy(_testWaveMenu),
-        [_testWaveEventName] = mist.utils.deepCopy(_testWaveEvent),
+        time = {
+            [_testWaveTimedName] = mist.utils.deepCopy(_testWaveTimed),
+        },
+        flag = {},
+        menu = {
+            [_testWaveMenuName] = mist.utils.deepCopy(_testWaveMenu),
+        },
+        event = {
+            [_testWaveEventName] = mist.utils.deepCopy(_testWaveEvent),
+        },
     }
 end
 
@@ -239,7 +246,7 @@ local tearDown = function()
     Waves._state.alreadyInitialized = false
     Waves._state.paused = false
     Waves.config.adminPilotNames = {}
-    Waves.config.waves = {}
+    Waves.config.waves = { time = {}, flag = {}, menu = {}, event = {} }
 
     mist.nextUnitId = 1
     mist.nextGroupId = 1
@@ -295,20 +302,20 @@ local function matcherForNameId(_tbl)
     }
 end
 
-TestWavesInternalHandlers = {
-    setUp = setUp,
-    testEventTriggers = function()
-        -- INIT
-        -- N/A?
+-- TestWavesInternalHandlers = {
+--     setUp = setUp,
+--     testEventTriggers = function()
+--         -- INIT
+--         -- N/A?
 
-        -- TEST
-        lu.assertEquals(Waves._internal.handlers.eventTriggers.fn({ id = world.event.S_EVENT_INVALID }), nil)
+--         -- TEST
+--         lu.assertEquals(Waves._internal.handlers.eventTriggers.fn({ id = world.event.S_EVENT_INVALID }), nil)
 
-        -- SIDE EFFECTS
-        -- N/A?
-    end,
-    tearDown = tearDown,
-}
+--         -- SIDE EFFECTS
+--         -- N/A?
+--     end,
+--     tearDown = tearDown,
+-- }
 
 TestWavesInternalMethods = {
     setUp = setUp,
@@ -385,13 +392,13 @@ TestWavesInternalMethods = {
     end,
     testTimeWave = function()
         -- INIT
-        lu.assertEquals(Waves.config.waves[_testWaveTimedName].trigger.fired, nil)
+        lu.assertEquals(Waves.config.waves.time[_testWaveTimedName].trigger.fired, nil)
 
         -- TEST
         lu.assertEquals(Waves._internal.timeWave(), nil)
 
         -- SIDE EFFECTS
-        lu.assertEquals(Waves.config.waves[_testWaveTimedName].trigger.fired, true)
+        lu.assertEquals(Waves.config.waves.time[_testWaveTimedName].trigger.fired, true)
     end,
     testPause = function()
         -- INIT

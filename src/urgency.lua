@@ -101,15 +101,20 @@ Urgency._internal.doCountdowns = function()
 
     local _now = timer.getTime()
 
+    local _needsStart = {}
     for _name, _countdown in pairs(Urgency._state.countdowns.pending) do
         if (_countdown.startTrigger.type == 'time' and _countdown.startTrigger.value <= _now)
             or (_countdown.startTrigger.type == 'flag' and trigger.misc.getUserFlag(_countdown.startTrigger.value) ~= 0)
         then
-            Urgency._internal.startCountdown(_name)
+            table.insert(_needsStart, _name)
             Gremlin.log.trace(Urgency.Id, string.format('%s-Based Countdown Started : %s', _countdown.startTrigger.type, _name))
         end
     end
+    for _, _name in pairs(_needsStart) do
+        Urgency._internal.startCountdown(_name)
+    end
 
+    local _needsEnd = {}
     for _name, _countdown in pairs(Urgency._state.countdowns.active) do
         local _endTime
         if _countdown.endTrigger.type == 'time' then
@@ -133,9 +138,12 @@ Urgency._internal.doCountdowns = function()
         end
 
         if _endTime ~= nil and _now >= _endTime then
-            Urgency._internal.endCountdown(_name)
+            table.insert(_needsEnd, _name)
             Gremlin.log.trace(Urgency.Id, string.format('Time-Based Countdown Complete : %s', _name))
         end
+    end
+    for _, _name in pairs(_needsEnd) do
+        Urgency._internal.endCountdown(_name)
     end
 
     Gremlin.log.trace(Urgency.Id, string.format('Time Checked Against Countdowns'))

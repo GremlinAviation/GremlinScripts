@@ -4,7 +4,12 @@ Waves = {
 
     config = {
         adminPilotNames = {},
-        waves = {}
+        waves = {
+            time = {},
+            flag = {},
+            menu = {},
+            event = {},
+        }
     },
 
     _state = {
@@ -35,14 +40,22 @@ Waves._internal.spawnWave = function(_name, _wave)
             y = _alt,
             z = _pos2.y
         }
-        ---@diagnostic disable-next-line: deprecated
-        local _angle = math.atan2(_pos3.z, _pos3.x)
+        local _angle
+        if _groupData.route ~= nil and _groupData.route[2] ~= nil then
+            -- calculated
+            ---@diagnostic disable-next-line: deprecated
+            _angle = math.atan2(_pos3.z - (_groupData.route[2].y or 0), (_groupData.route[2].x or 0) - _pos3.x)
+        else
+            -- "random"
+            ---@diagnostic disable-next-line: deprecated
+            _angle = math.atan2(_pos3.z, _pos3.x)
+        end
 
         local _units = {}
         for _unitType, _unitCount in pairs(_groupData.units) do
             for i = 1, _unitCount do
-                local _xOffset = math.cos(_angle) * math.random(_groupData.scatter.min, _groupData.scatter.max)
-                local _yOffset = math.sin(_angle) * math.random(_groupData.scatter.min, _groupData.scatter.max)
+                local _xOffset = math.cos(_angle) * math.random(_groupData.scatter.min, _groupData.scatter.max) * #_units
+                local _yOffset = math.sin(_angle) * math.random(_groupData.scatter.min, _groupData.scatter.max) * #_units
 
                 table.insert(_units, {
                     type = _unitType,
@@ -51,7 +64,7 @@ Waves._internal.spawnWave = function(_name, _wave)
                     playerCanDrive = false,
                     x = _pos3.x + _xOffset,
                     y = _pos3.z + _yOffset,
-                    heading = _angle
+                    heading = _angle - ((_angle / math.abs(_angle)) * math.pi)
                 })
             end
         end
@@ -78,6 +91,7 @@ Waves._internal.spawnWave = function(_name, _wave)
             hidden = false,
             uncontrolled = false,
             uncontrollable = false,
+            manualHeading = true,
             units = _units,
             name = string.format('%s: %s', _name, _groupName),
             task = _groupTask,
@@ -91,7 +105,7 @@ Waves._internal.spawnWave = function(_name, _wave)
 
         -- Apparently, ships in particular don't like having their AI messed with.
         -- We'll leave them be just following their routes.
-        if _group ~= nil and _groupData.category ~= Group.Category.SHIP and type(_groupData.orders) == 'table' and #_groupData.orders > 0 then
+        if _group ~= nil and _groupData.category ~= Group.Category.SHIP and type(_groupData.orders) == 'table' and Gremlin.utils.countTableEntries(_groupData.orders) > 0 then
             local _groupObj = Group.getByName(_group.name)
 
             if _groupObj ~= nil then
@@ -120,7 +134,7 @@ Waves._internal.spawnWave = function(_name, _wave)
 end
 
 Waves._internal.getAdminUnits = function()
-    Gremlin.log.trace(Waves.Id, string.format('Scanning For Connected Admins'))
+    Gremlin.log.trace(Waves.Id, string.format('Scanning For Admin Units'))
 
     local _units = {}
 
@@ -130,6 +144,8 @@ Waves._internal.getAdminUnits = function()
         if _unit ~= nil and _unit.isExist ~= nil and _unit:isExist() and _unit.getPlayerName ~= nil then
             local _pilot = _unit:getPlayerName()
             if _pilot ~= nil and _pilot ~= '' then
+                Gremlin.log.trace(Waves.Id, string.format('Found A Pilot : %s (in %s)', _pilot, _name))
+
                 for _, _adminName in pairs(Waves.config.adminPilotNames) do
                     if _adminName == _pilot then
                         _units[_name] = _unit
@@ -145,10 +161,33 @@ Waves._internal.getAdminUnits = function()
     return _units
 end
 
+Waves._internal.initEvents = function()
+    Gremlin.log.trace(Waves.Id, string.format('Building Events'))
+
+    for _name, _wave in pairs(Waves.config.waves.event) do
+        if _wave.trigger.type == 'event' then
+            Waves._internal.handlers[_name] = {
+                event = _wave.trigger.value.id,
+                fn = function(_event)
+                    if _wave.trigger.value.filter(_event) then
+                        Waves.config.waves.event[_name].trigger.fired = true
+                        Waves._internal.spawnWave(_name, _wave)
+                    end
+
+                end
+            }
+        else
+            Gremlin.log.warn(Waves.Id, string.format('Non-event item in event list : %s', _name))
+        end
+    end
+
+    Gremlin.log.trace(Waves.Id, string.format('Events Ready'))
+end
+
 Waves._internal.initMenu = function()
     Gremlin.log.trace(Waves.Id, string.format('Building Menu'))
 
-    for _name, _wave in pairs(Waves.config.waves) do
+    for _name, _wave in pairs(Waves.config.waves.menu) do
         if _wave.trigger.type == 'menu' then
             table.insert(Waves._internal.menu, {
                 text = _wave.trigger.value or ('Send In Reinforcements : ' .. _name),
@@ -156,13 +195,15 @@ Waves._internal.initMenu = function()
                 args = { _name },
                 when = {
                     func = function(_name)
-                        return not Waves._state.paused and not Waves.config.waves[_name].trigger.fired
+                        return not Waves._state.paused and not Waves.config.waves.menu[_name].trigger.fired
                     end,
                     args = { _name },
                     comp = 'equal',
                     value = true,
                 }
             })
+        else
+            Gremlin.log.warn(Waves.Id, string.format('Non-menu item in menu list : %s', _name))
         end
     end
 
@@ -178,11 +219,11 @@ Waves._internal.updateF10 = function()
 end
 
 Waves._internal.menuWave = function(_name)
-    if not Waves._state.paused and not Waves.config.waves[_name].trigger.fired then
+    if not Waves._state.paused and not Waves.config.waves.menu[_name].trigger.fired then
         Gremlin.log.trace(Waves.Id, string.format('Caling In Reinforcements : %s', _name))
 
-        Waves.config.waves[_name].trigger.fired = true
-        Waves._internal.spawnWave(_name, Waves.config.waves[_name])
+        Waves.config.waves.menu[_name].trigger.fired = true
+        Waves._internal.spawnWave(_name, Waves.config.waves.menu[_name])
 
         Gremlin.log.trace(Waves.Id, string.format('Reinforcements En Route : %s', _name))
     end
@@ -194,14 +235,21 @@ Waves._internal.timeWave = function()
     if not Waves._state.paused then
         Gremlin.log.trace(Waves.Id, string.format('Checking On Next Wave'))
 
-        for _name, _wave in pairs(Waves.config.waves) do
-            if (_wave.trigger.type == 'time' and not _wave.trigger.fired and _wave.trigger.value <= timer.getTime())
-                or (_wave.trigger.type == 'flag' and not _wave.trigger.fired and trigger.misc.getUserFlag(_wave.trigger.value) ~= 0)
-            then
-                Waves.config.waves[_name].trigger.fired = true
+        for _name, _wave in pairs(Waves.config.waves.time) do
+            if (_wave.trigger.type == 'time' and not _wave.trigger.fired and _wave.trigger.value <= timer.getTime()) then
+                Waves.config.waves.time[_name].trigger.fired = true
                 Waves._internal.spawnWave(_name, _wave)
             end
         end
+
+        for _name, _wave in pairs(Waves.config.waves.flag) do
+            if (_wave.trigger.type == 'flag' and not _wave.trigger.fired and trigger.misc.getUserFlag(_wave.trigger.value) ~= 0) then
+                Waves.config.waves.flag[_name].trigger.fired = true
+                Waves._internal.spawnWave(_name, _wave)
+            end
+        end
+
+        Gremlin.log.trace(Waves.Id, string.format('All Ready Waves Spawned'))
     end
 end
 
@@ -246,29 +294,7 @@ Waves._internal.menu = {
     },
 }
 
-Waves._internal.handlers = {
-    eventTriggers = {
-        event = -1,
-        fn = function(_event)
-            if not Waves._state.paused then
-                Gremlin.log.trace(Waves.Id, string.format('Checking Event Against Waves : %s', Gremlin.events.idToName[_event.id] or _event.id))
-
-                for _name, _wave in pairs(Waves.config.waves) do
-                    if _wave.trigger.type == 'event'
-                        and (
-                            _wave.trigger.value.id == _event.id
-                            or _wave.trigger.value.id == -1
-                        )
-                        and _wave.trigger.value.filter(_event)
-                    then
-                        Waves.config.waves[_name].trigger.fired = true
-                        Waves._internal.spawnWave(_name, _wave)
-                    end
-                end
-            end
-        end
-    },
-}
+Waves._internal.handlers = {}
 
 function Waves:setup(config)
     if config == nil then
@@ -292,12 +318,20 @@ function Waves:setup(config)
     -- start configuration
     if not Waves._state.alreadyInitialized or config.forceReload then
         Waves.config.adminPilotNames = config.adminPilotNames or {}
-        Waves.config.waves = config.waves or {}
+
+        local _waves = { time = {}, flag = {}, menu = {}, event = {} }
+        for _name, _wave in pairs(config.waves) do
+            if _wave.trigger.type ~= nil and _waves[_wave.trigger.type] ~= nil then
+                _waves[_wave.trigger.type][_name] = _wave
+            end
+        end
+        Waves.config.waves = _waves
 
         Gremlin.log.debug(Waves.Id, string.format('Configuration Loaded : %s', mist.utils.tableShowSorted(Waves.config)))
     end
     -- end configuration
 
+    Waves._internal.initEvents()
     Waves._internal.initMenu()
 
     timer.scheduleFunction(function()

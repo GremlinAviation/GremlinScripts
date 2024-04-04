@@ -414,7 +414,10 @@ Evac.groups = {
             y = _pos3.z,
         }
 
-        mist.dynAdd(_group)
+        -- mist.dynAdd(_group)
+        for _, _unit in pairs(_group.units) do
+            mist.dynAddStatic(_unit)
+        end
 
         for _, _unit in pairs(_groupData.units) do
             Evac._state.extractableNow[_zone][_unit.unitName] = _unit
@@ -1208,7 +1211,9 @@ Evac._internal.menu = {
         Gremlin.menu.updateF10(Evac.Id, Evac._internal.menu.commands, Evac._internal.utils.extractionUnitsToMenuUnits())
     end,
     commands = {{
-        text = 'Scan For Evacuation Beacons',
+        text = function(_unit)
+            return string.format('Scan For Evacuation Beacons (%i aboard)', Evac._internal.aircraft.countEvacuees(_unit))
+        end,
         func = Evac.units.findEvacuees,
         args = {'{unit}:name'},
         when = true
@@ -1217,7 +1222,8 @@ Evac._internal.menu = {
             local _unitObj = Unit.getByName(_unit)
             if _unitObj ~= nil then
                 local _zone = Evac._internal.utils.getUnitZone(_unit)
-                return string.format('Load %i Evacuees (%i In Zone)', math.min((Evac.carryLimits[_unitObj:getTypeName()] or 0), Gremlin.utils.countTableEntries(Evac._state.extractableNow[_zone])), Gremlin.utils.countTableEntries(Evac._state.extractableNow[_zone]))
+                local _seats = ((Evac.carryLimits[_unitObj:getTypeName()] or 0) - Evac._internal.aircraft.countEvacuees(_unit))
+                return string.format('Load %i Evacuees (%i in area)', math.min(_seats, Gremlin.utils.countTableEntries(Evac._state.extractableNow[_zone])), Gremlin.utils.countTableEntries(Evac._state.extractableNow[_zone]))
             end
         end,
         func = Evac.units.loadEvacuees,
@@ -1229,8 +1235,9 @@ Evac._internal.menu = {
                     if _unitObj ~= nil then
                         local _zone = Evac._internal.utils.getUnitZone(_unit)
                         if _zone ~= nil then
-                            local _seats = math.min((Evac.carryLimits[_unitObj:getTypeName()] or 0), Gremlin.utils.countTableEntries(Evac._state.extractableNow[_zone]))
-                            return _seats > Evac._internal.aircraft.countEvacuees(_unit)
+                            local _seats = ((Evac.carryLimits[_unitObj:getTypeName()] or 0) - Evac._internal.aircraft.countEvacuees(_unit))
+                            Gremlin.log.trace(Evac.Id, string.format('Recording Maximum Loadable : %i', _seats))
+                            return (math.min(_seats, Gremlin.utils.countTableEntries(Evac._state.extractableNow[_zone])) > 0)
                         end
                     end
                 end
@@ -1895,10 +1902,10 @@ function Evac:setup(config)
     Evac._internal.beacons.generateFMFrequencies()
 
     timer.scheduleFunction(function()
-        timer.scheduleFunction(Evac._internal.doSpawns, nil, timer.getTime() + 5)
-        timer.scheduleFunction(Evac._internal.beacons.killDead, nil, timer.getTime() + 5)
-        timer.scheduleFunction(Evac._internal.smoke.refresh, nil, timer.getTime() + 5)
-        timer.scheduleFunction(Evac._internal.menu.updateF10, nil, timer.getTime() + 5)
+        timer.scheduleFunction(Evac._internal.doSpawns, nil, timer.getTime() + 1)
+        timer.scheduleFunction(Evac._internal.beacons.killDead, nil, timer.getTime() + 1)
+        timer.scheduleFunction(Evac._internal.smoke.refresh, nil, timer.getTime() + 1)
+        timer.scheduleFunction(Evac._internal.menu.updateF10, nil, timer.getTime() + 1)
     end, nil, timer.getTime() + 1)
 
     for _name, _def in pairs(Evac._internal.handlers) do
