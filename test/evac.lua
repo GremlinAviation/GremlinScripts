@@ -159,8 +159,8 @@ local tearDown = function()
     }
     Evac._state.spawns.lastChecked = {}
 
-    mist.nextUnitId = 1
-    mist.nextGroupId = 1
+    Evac._internal.utils.currentGroup = 0
+    Evac._internal.utils.currentUser = 0
 
     mist.DBs.zonesByName = {}
     mist.DBs.units = {}
@@ -252,7 +252,7 @@ TestEvacZonesEvac = {
         lu.assertEquals(Evac.zones.evac.setRemaining(_testZone, 2, 2, 1), nil)
 
         -- SIDE EFFECTS
-        lu.assertEquals(Evac._state.extractableNow[_testZone], { ['Evacuee: Carrier Seaman #2'] = { unitName = 'Evacuee: Carrier Seaman #2', type = 'Carrier Seaman', unitId = 2, weight = 0 } })
+        lu.assertEquals(Evac._state.extractableNow[_testZone], { ['Evacuee: Carrier Seaman #522'] = { unitName = 'Evacuee: Carrier Seaman #522', type = 'Carrier Seaman', unitId = 522, weight = 0 } })
 
         Evac.beaconBatteryLife = 0
     end,
@@ -297,8 +297,7 @@ TestEvacZonesEvac = {
         lu.assertEquals(Evac.zones.evac.setRemaining(_testZone, 2, 2, { {} }), nil)
 
         -- SIDE EFFECTS
-        lu.assertEquals(Evac._state.extractableNow[_testZone],
-            { ['Evacuee: Carrier Seaman #2'] = { unitName = 'Evacuee: Carrier Seaman #2', type = 'Carrier Seaman', unitId = 2, weight = 0 } })
+        lu.assertEquals(Evac._state.extractableNow[_testZone], { ['Evacuee: Carrier Seaman #520'] = { unitName = 'Evacuee: Carrier Seaman #520', type = 'Carrier Seaman', unitId = 520, weight = 0 } })
     end,
     testCount = function()
         -- INIT
@@ -377,8 +376,7 @@ TestEvacZonesRelay = {
         lu.assertEquals(Evac.zones.relay.setRemaining(_testZone, 2, 2, 1), nil)
 
         -- SIDE EFFECTS
-        lu.assertEquals(Evac._state.extractableNow[_testZone],
-            { ['Evacuee: Carrier Seaman #2'] = { unitName = 'Evacuee: Carrier Seaman #2', type = 'Carrier Seaman', unitId = 2, weight = 0 } })
+        lu.assertEquals(Evac._state.extractableNow[_testZone], { ['Evacuee: Carrier Seaman #526'] = { unitName = 'Evacuee: Carrier Seaman #526', type = 'Carrier Seaman', unitId = 526, weight = 0 } })
     end,
     testSetRemainingComposition = function()
         -- INIT
@@ -388,8 +386,7 @@ TestEvacZonesRelay = {
         lu.assertEquals(Evac.zones.relay.setRemaining(_testZone, 2, 2, { {} }), nil)
 
         -- SIDE EFFECTS
-        lu.assertEquals(Evac._state.extractableNow[_testZone],
-            { ['Evacuee: Carrier Seaman #2'] = { unitName = 'Evacuee: Carrier Seaman #2', type = 'Carrier Seaman', unitId = 2, weight = 0 } })
+        lu.assertEquals(Evac._state.extractableNow[_testZone], { ['Evacuee: Carrier Seaman #524'] = { unitName = 'Evacuee: Carrier Seaman #524', type = 'Carrier Seaman', unitId = 524, weight = 0 } })
     end,
     testCount = function()
         -- INIT
@@ -663,11 +660,11 @@ TestEvacGroups = {
             units = {
                 {
                     heading = 0,
-                    name = 'Evacuee: Carrier Seaman #2',
+                    name = 'Evacuee: Carrier Seaman #3',
                     playerCanDrive = false,
                     skill = 'Excellent',
                     type = 'Carrier Seaman',
-                    unitId = 2,
+                    unitId = 3,
                     x = -28,
                     y = 1
                 },
@@ -682,8 +679,8 @@ TestEvacGroups = {
                     y = 2
                 },
             },
-            name = 'Evacuee Group 2',
-            groupId = 2,
+            name = 'Evacuee Group 1',
+            groupId = 1,
             category = Group.Category.GROUND,
             country = 2,
             x = 0,
@@ -735,17 +732,17 @@ TestEvacGroups = {
             units = {
                 {
                     heading = 0,
-                    name = 'Evacuee: Carrier Seaman #2',
+                    name = 'Evacuee: Carrier Seaman #1',
                     playerCanDrive = false,
                     skill = 'Excellent',
                     type = 'Carrier Seaman',
-                    unitId = 2,
+                    unitId = 1,
                     x = -26,
                     y = 2
                 },
             },
-            name = 'Evacuee Group 2',
-            groupId = 2,
+            name = 'Evacuee Group 1',
+            groupId = 1,
             category = Group.Category.GROUND,
             country = 2,
             x = 0,
@@ -921,7 +918,7 @@ TestEvacInternalBeacons = {
         lu.assertEquals(Evac._internal.beacons.spawn(_testZone, 2, 2, nil, nil), {
             battery = 1800,
             fm = 32150000,
-            group = 'Group #2 - Beacon #1',
+            group = 'Group #1 - Beacon #1',
             side = 2,
             text = '840.00 kHz - 277.50 / 32.15 MHz',
             uhf = 277500000,
@@ -947,7 +944,7 @@ TestEvacInternalBeacons = {
     end,
     testList = function()
         -- INIT
-        local _args = {_testUnit:getGroup():getID(), 'Evacuation Beacons:\nGroup #2 - Beacon #1 (840.00 kHz - 277.50 / 32.15 MHz)\n', 15 }
+        local _args = {_testUnit:getGroup():getID(), 'Evacuation Beacons:\nGroup #1 - Beacon #1 (840.00 kHz - 277.50 / 32.15 MHz)\n', 15 }
 
         Evac._internal.beacons.spawn(_testZone, coalition.side.BLUE, country.USA)
         trigger.action.outTextForGroup:whenCalled({ with = _args, thenReturn = nil })
@@ -968,7 +965,7 @@ TestEvacInternalBeacons = {
         local _radioGroup = {
             battery = 1800,
             fm = 32150000,
-            group = 'Group #2 - Beacon #1',
+            group = 'Group #1 - Beacon #1',
             side = 2,
             text = '840.00 kHz - 277.50 / 32.15 MHz',
             uhf = 277500000,
@@ -2134,9 +2131,9 @@ TestEvacInternalZones = {
 
         -- TEST
         lu.assertAlmostEquals(Evac._internal.zones.generateEvacuees(coalition.side.BLUE, 1, country.USA), {
-            units = { { type = 'Carrier Seaman', unitId = 2, unitName = 'Evacuee: Carrier Seaman #2', weight = 0 } },
-            groupId = 2,
-            groupName = 'Evacuee Group 2',
+            units = { { type = 'Carrier Seaman', unitId = 515, unitName = 'Evacuee: Carrier Seaman #515', weight = 0 } },
+            groupId = 1,
+            groupName = 'Evacuee Group 1',
             side = coalition.side.BLUE,
             country = country.USA,
             weight = 0,
@@ -2151,9 +2148,9 @@ TestEvacInternalZones = {
 
         -- TEST
         lu.assertAlmostEquals(Evac._internal.zones.generateEvacuees(coalition.side.BLUE, { {} }, country.USA), {
-            units = { { type = 'Carrier Seaman', unitId = 2, unitName = 'Evacuee: Carrier Seaman #2', weight = 0 } },
-            groupId = 2,
-            groupName = 'Evacuee Group 2',
+            units = { { type = 'Carrier Seaman', unitId = 514, unitName = 'Evacuee: Carrier Seaman #514', weight = 0 } },
+            groupId = 1,
+            groupName = 'Evacuee Group 1',
             side = coalition.side.BLUE,
             country = country.USA,
             weight = 0,
@@ -2180,7 +2177,7 @@ TestEvacInternalZones = {
         lu.assertEquals(Evac._internal.zones.setRemaining(_testZone, coalition.side.BLUE, country.USA, 1), nil)
 
         -- SIDE EFFECTS
-        lu.assertEquals(Evac._state.extractableNow[_testZone], { ['Evacuee: Carrier Seaman #2'] = { type = 'Carrier Seaman', unitId = 2, unitName = 'Evacuee: Carrier Seaman #2', weight = 0 } })
+        lu.assertEquals(Evac._state.extractableNow[_testZone], { ['Evacuee: Carrier Seaman #518'] = { type = 'Carrier Seaman', unitId = 518, unitName = 'Evacuee: Carrier Seaman #518', weight = 0 } })
     end,
     testSetRemainingComposition = function()
         -- INIT
@@ -2190,7 +2187,7 @@ TestEvacInternalZones = {
         lu.assertEquals(Evac._internal.zones.setRemaining(_testZone, coalition.side.BLUE, country.USA, {{}}), nil)
 
         -- SIDE EFFECTS
-        lu.assertEquals(Evac._state.extractableNow[_testZone], { ['Evacuee: Carrier Seaman #2'] = { type = 'Carrier Seaman', unitId = 2, unitName = 'Evacuee: Carrier Seaman #2', weight = 0 } })
+        lu.assertEquals(Evac._state.extractableNow[_testZone], { ['Evacuee: Carrier Seaman #516'] = { type = 'Carrier Seaman', unitId = 516, unitName = 'Evacuee: Carrier Seaman #516', weight = 0 } })
     end,
     testCount = function()
         -- INIT
@@ -2333,12 +2330,11 @@ TestEvacInternalUtils = {
         -- N/A?
 
         -- TEST
-        lu.assertAlmostEquals(Evac._internal.utils.unitDataToList({{
+        lu.assertAlmostEquals(Evac._internal.utils.unitDataToList(coalition.side.BLUE, {{
             type = 'Test',
             unitId = 0,
             unitName = 'Test Unit'
         }}, { x = 0, y = 0, z = 0 }, 5), { {
-            type = 'Test',
             unitId = 0,
             name = 'Test Unit',
             skill = 'Excellent',
