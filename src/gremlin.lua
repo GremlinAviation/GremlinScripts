@@ -14,6 +14,8 @@ Gremlin = {
     alreadyInitialized = false,
     haveCSAR = false,
     haveCTLD = false,
+    haveMiST = false,
+    haveMOOSE = false,
 
     -- Enums
     Periods = {
@@ -75,7 +77,7 @@ Gremlin = {
                 enabled = false,
                 event = -1,
                 fn = function(_event)
-                    Gremlin.log.debug(Gremlin.Id, string.format('%s: %s\n', Gremlin.events.idToName[_event.id] or _event.id, mist.utils.tableShowSorted(_event)))
+                    Gremlin.log.debug(Gremlin.Id, string.format('%s: %s\n', Gremlin.events.idToName[_event.id] or _event.id, Gremlin.utils.inspect(_event)))
                 end
             },
         },
@@ -245,6 +247,35 @@ Gremlin = {
 
             return _outZones
         end,
+        inspect = function(_value, _depth)
+            if _depth == nil then
+                _depth = 0
+            end
+
+            if _depth > 5 then
+                return '...'
+            end
+
+            if type(_value) == 'nil' then
+                return 'nil'
+            elseif type(_value) == 'number' or type(_value) == 'boolean' then
+                return tostring(_value)
+            elseif type(_value) == 'string' then
+                return string.format("'%s'", _value)
+            elseif type(_value) == 'table' then
+                local _contents = ''
+
+                for _key, _val in pairs(_value) do
+                    _contents  = string.format('%s[%s] = %s,\n', string.rep('  ', _depth + 1), Gremlin.utils.inspect(_key, _depth + 1), Gremlin.utils.inspect(_val, _depth + 1))
+                end
+
+                return string.format('%s{\n%s%s}', string.rep('  ', _depth), _contents, string.rep('  ', _depth))
+            elseif type(_value) == 'function' then
+                return string.format('<function> %s', Gremlin.utils.inspect(debug.getinfo(_value), _depth + 1))
+            elseif type(_value) == 'thread' or type(_value) == 'userdata' then
+                return string.format('<%s> [opaque]', type(_value))
+            end
+        end,
         isInTable = function(_tbl, _needle)
             for _, _straw in pairs(_tbl) do
                 if _straw == _needle then
@@ -261,7 +292,7 @@ Gremlin = {
                     if string.sub(_arg, 1, 7) == '{unit}:' then
                         local _key = string.sub(_arg, 8)
 
-                        Gremlin.log.trace(Gremlin.Id, string.format('Parsing Unit : %s, %s', _key, mist.utils.tableShowSorted(_objs.unit)))
+                        Gremlin.log.trace(Gremlin.Id, string.format('Parsing Unit : %s, %s', _key, Gremlin.utils.inspect(_objs.unit)))
 
                         if _key == 'name' then
                             table.insert(_out, _objs.unit:getName())
@@ -271,7 +302,7 @@ Gremlin = {
                     elseif string.sub(_arg, 1, 8) == '{group}:' then
                         local _key = string.sub(_arg, 9)
 
-                        Gremlin.log.trace(Gremlin.Id, string.format('Parsing Group : %s, %s', _key, mist.utils.tableShowSorted(_objs.group)))
+                        Gremlin.log.trace(Gremlin.Id, string.format('Parsing Group : %s, %s', _key, Gremlin.utils.inspect(_objs.group)))
 
                         if _key == 'name' then
                             table.insert(_out, _objs.group:getName())
@@ -316,9 +347,6 @@ Gremlin = {
 }
 
 function Gremlin:setup(config)
-    assert(mist ~= nil,
-        '\n\n** HEY MISSION-DESIGNER! **\n\nMission Script Tools (MiST) has not been loaded!\n\nMake sure MiST is running *before* running this script!\n')
-
     if Gremlin.alreadyInitialized and not config.forceReload then
         Gremlin.log.info(Gremlin.Id, string.format('Bypassing initialization because Gremlin.alreadyInitialized = true'))
         return
@@ -334,17 +362,23 @@ function Gremlin:setup(config)
         Gremlin.haveCTLD = true
     end
 
-    local _level = 'info'
+    ---@diagnostic disable-next-line: undefined-global
+    if mist ~= nil then
+        Gremlin.haveMiST = true
+    end
+
+    ---@diagnostic disable-next-line: undefined-global
+    if BASE ~= nil then
+        Gremlin.haveMOOSE = true
+    end
 
     if config ~= nil then
         if config.debug ~= nil then
             Gremlin.Debug = config.debug
-            _level = 'debug'
         end
 
         if config.trace ~= nil then
             Gremlin.Trace = config.trace
-            _level = 'trace'
         end
 
         for _name, _def in pairs(Gremlin.events._globalHandlers) do
@@ -360,7 +394,13 @@ function Gremlin:setup(config)
         Gremlin.events.idToName[_id] = _name
     end
 
-    mist.addEventHandler(Gremlin.events._handler)
+    do
+        local handler = {}
+        function handler:onEvent(event)
+            Gremlin.events._handler(event)
+        end
+        world.addEventHandler(handler)
+    end
 
     Gremlin.alreadyInitialized = true
 end

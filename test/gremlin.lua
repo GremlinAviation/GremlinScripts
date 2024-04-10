@@ -414,6 +414,90 @@ TestGremlinUtils = {
         -- SIDE EFFECTS
         -- N/A?
     end,
+    testInspectNil = function()
+        -- INIT
+        -- N/A?
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.inspect(nil), 'nil')
+
+        -- SIDE EFFECTS
+        -- N/A?
+    end,
+    testInspectNumber = function()
+        -- INIT
+        -- N/A?
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.inspect(42), '42')
+
+        -- SIDE EFFECTS
+        -- N/A?
+    end,
+    testInspectBoolean = function()
+        -- INIT
+        -- N/A?
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.inspect(true), 'true')
+        lu.assertEquals(Gremlin.utils.inspect(false), 'false')
+
+        -- SIDE EFFECTS
+        -- N/A?
+    end,
+    testInspectString = function()
+        -- INIT
+        -- N/A?
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.inspect('test'), "'test'")
+
+        -- SIDE EFFECTS
+        -- N/A?
+    end,
+    testInspectTable = function()
+        -- INIT
+        -- N/A?
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.inspect({}), '{\n}')
+
+        -- SIDE EFFECTS
+        -- N/A?
+    end,
+    testInspectFunction = function()
+        -- INIT
+        -- N/A?
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.inspect(Gremlin.utils.inspect), "<function>   {\n    ['short_src'] = '...:\\Users\\henni\\git\\ILS\\GremlinScripts\\src\\gremlin.lua',\n  }")
+
+        -- SIDE EFFECTS
+        -- N/A?
+    end,
+    testInspectThread = function()
+        -- INIT
+        local co = coroutine.create(function()
+            print("hi")
+        end)
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.inspect(co), '<thread> [opaque]')
+
+        -- SIDE EFFECTS
+        -- N/A?
+    end,
+    testInspectUserdata = function()
+        -- INIT
+        ---@diagnostic disable-next-line: deprecated
+        local _userdata = newproxy(true)
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.inspect(_userdata), '<userdata> [opaque]')
+
+        -- SIDE EFFECTS
+        -- N/A?
+    end,
     testIsInTable = function()
         -- INIT
         -- N/A?
