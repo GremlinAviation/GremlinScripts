@@ -13,9 +13,9 @@
                 "file": "${workspaceFolder}/test/run.lua"
             },
             "env": {
-                "LUA_PATH": "C:/Program Files/Eagle Dynamics/DCS World OpenBeta/?.lua;${workspaceFolder}/src/?.lua;${workspaceFolder}/lib/?.lua;${workspaceFolder}/?.lua;;"
+                "LUA_PATH": "C:/Program Files/Eagle Dynamics/DCS World/?.lua;${workspaceFolder}/src/?.lua;${workspaceFolder}/lib/?.lua;${workspaceFolder}/?.lua;;"
             },
-            "cwd": "C:/Program Files/Eagle Dynamics/DCS World OpenBeta"
+            "cwd": "C:/Program Files/Eagle Dynamics/DCS World"
         }
     ]
 }

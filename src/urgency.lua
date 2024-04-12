@@ -1,3 +1,19 @@
+--[[--
+Gremlin Urgency
+
+DO NOT EDIT THIS SCRIPT DIRECTLY! Things WILL break that way.
+
+Instead!
+
+When calling `Urgency:setup()`, you can pass in a configuration table instead
+of `nil`. Make your changes in the table you pass - defaults are already in
+place if you want to leave those out.
+
+An example, providing all the defaults, is available in the docs, or near
+the end of this script.
+
+@module Urgency
+--]]--
 Urgency = {
     Id = 'Gremlin Urgency',
     Version = '202404.01',
@@ -274,6 +290,30 @@ Urgency._internal.handlers = {
     },
 }
 
+--[[--
+Top level methods.
+Methods for interacting with Urgency itself.
+
+@section TopLevel
+--]]--
+
+--[[--
+Setup Gremlin Urgency
+
+The argument should contain a configuration table as shown below.
+
+Example providing all the defaults:
+
+```
+Urgency:setup({
+    adminPilotNames = {},
+    countdowns = {},
+})
+```
+
+@function Urgency:setup
+@tparam table config
+--]]--
 function Urgency:setup(config)
     if config == nil then
         config = {}

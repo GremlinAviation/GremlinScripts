@@ -108,7 +108,7 @@ $(ldoc.prettify(kitem.usage[1]))
 >       end
 >     end
 >     for item in items() do
-**$(display_name(item))**
+$(lev3) `$(display_name(item))`
 
 >       if ldoc.prettify_files and ldoc.is_file_prettified[item.module.file.filename] then
 [line $(item.lineno)]($(ldoc.source_ref(item)))

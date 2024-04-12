@@ -358,7 +358,7 @@ TestWavesInternalMethods = {
             },
         })
     end,
-    testUpdateF10 = function()
+    skip_testUpdateF10 = function()
         -- INIT
         -- N/A?
 

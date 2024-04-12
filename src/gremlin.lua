@@ -1,3 +1,13 @@
+--[[--
+Gremlin Script Tools.
+
+DO NOT EDIT THIS SCRIPT DIRECTLY! Things WILL break that way.
+
+Instead, pass a table to `Gremlin:setup()` with any options you wish to configure.
+
+@module Gremlin
+--]]--
+
 if table.unpack == nil then
     table.unpack = unpack
 end
@@ -17,21 +27,40 @@ Gremlin = {
     haveMiST = false,
     haveMOOSE = false,
 
-    -- Enums
+    --- Enums.
+    --
+    -- @section Enums
+
+    --- Time period "constants", in seconds.
+    --
+    -- @table Gremlin.Periods
     Periods = {
-        Second = 1,
-        Minute = 60,
-        Hour = 3600,
-        Day = 86400
+        Second = 1, -- 1 second
+        Minute = 60, -- 1 minute
+        Hour = 3600, -- 1 hour
+        Day = 86400, -- 1 day
     },
+    --- Coalition name from ID.
+    --
+    -- @table Gremlin.SideToText
     SideToText = {
-        [0] = 'Neutral',
-        [1] = 'Red',
-        [2] = 'Blue'
+        [0] = 'Neutral', -- Neutral
+        [1] = 'Red', -- Red
+        [2] = 'Blue', -- Blue
     },
 
-    -- Methods
+    --- Comms.
+    -- Methods for handling communications with players.
+    --
+    -- @section Comms
     comms = {
+        --- Display message to target.
+        -- Finds a target by name, and then sends a text message.
+        --
+        -- @function Gremlin.comms.displayMessageTo
+        -- @tparam string|Unit|Group _name  The name of the target to send a message to
+        -- @tparam string            _text  The text to send
+        -- @tparam number            _time  How long before the message should be dismissed
         displayMessageTo = function(_name, _text, _time)
             if _name == 'all' or _name == 'Neutral' or _name == nil then
                 trigger.action.outText(_text, _time)
@@ -51,6 +80,12 @@ Gremlin = {
                 Gremlin.log.error(Gremlin.Id, string.format("Can't find object named %s to display message to!\nMessage was: %s", tostring(_name), _text))
             end
         end,
+        --- Play sound file for target.
+        -- Finds a target by name, then plays a sound file.
+        --
+        -- @function Gremlin.comms.playClipTo
+        -- @tparam string|Unit|Group _name  The name of the target to play sound to
+        -- @tparam string            _path  The filename of the audio clip to play
         playClipTo = function(_name, _path)
             if _name == 'all' or _name == 'Neutral' or _name == nil then
                 trigger.action.outSound(_path)
@@ -71,6 +106,10 @@ Gremlin = {
             end
         end,
     },
+    --- Events.
+    -- Methods for handling and firing events.
+    --
+    -- @section Events
     events = {
         _globalHandlers = {
             logEvents = {
@@ -81,8 +120,18 @@ Gremlin = {
                 end
             },
         },
+        --- Event name lookup.
+        -- Not populated until setup is complete!
+        --
+        -- @table Gremlin.events.idToName
         idToName = {},
         _handlers = {},
+        --- Register an event handler.
+        --
+        -- @function Gremlin.events.on
+        -- @tparam  integer  _eventId  The DCS event ID to listen for
+        -- @tparam  function _fn       The event handler to register
+        -- @treturn integer            The handler index for later removal
         on = function(_eventId, _fn)
             if Gremlin.events._handlers[_eventId] == nil then
                 Gremlin.events._handlers[_eventId] = {}
@@ -92,11 +141,22 @@ Gremlin = {
 
             return #Gremlin.events._handlers[_eventId]
         end,
+        --- Unregister an event handler.
+        --
+        -- @function Gremlin.events.off
+        -- @tparam  integer  _eventId  The DCS event ID to stop listening for
+        -- @tparam  integer  _index    The handler index to remove
         off = function(_eventId, _index)
             if Gremlin.events._handlers[_eventId] ~= nil and #Gremlin.events._handlers[_eventId] >= 0 then
                 Gremlin.events._handlers[_eventId][_index] = nil
             end
         end,
+        --- Fire an event.
+        -- NOTE: Only works between scripts that register handlers.
+        -- It cannot send events back to DCS proper.
+        --
+        -- @function Gremlin.events.fire
+        -- @tparam table _event The event object to send to all relevant Gremlin handlers
         fire = function(_event)
             Gremlin.events._handler(_event)
         end,
@@ -106,7 +166,16 @@ Gremlin = {
             end
         end,
     },
+    --- Logging.
+    -- Methods for logging things.
+    --
+    -- @section Log
     log = {
+        --- Log a message at the error level.
+        --
+        -- @function Gremlin.log.error
+        -- @tparam string toolId   The string identifying the source of the message
+        -- @tparam string message  The message to log
         error = function(toolId, message)
             local _toolId = toolId
             local _message = message
@@ -116,6 +185,11 @@ Gremlin = {
             end
             env.error(tostring(_toolId) .. ' | ' .. tostring(timer.getTime()) .. ' | ' .. tostring(message))
         end,
+        --- Log a message at the warn level.
+        --
+        -- @function Gremlin.log.warn
+        -- @tparam string toolId   The string identifying the source of the message
+        -- @tparam string message  The message to log
         warn = function(toolId, message)
             local _toolId = toolId
             local _message = message
@@ -125,6 +199,11 @@ Gremlin = {
             end
             env.warning(tostring(_toolId) .. ' | ' .. tostring(timer.getTime()) .. ' | ' .. tostring(message))
         end,
+        --- Log a message at the info level.
+        --
+        -- @function Gremlin.log.info
+        -- @tparam string toolId   The string identifying the source of the message
+        -- @tparam string message  The message to log
         info = function(toolId, message)
             local _toolId = toolId
             local _message = message
@@ -134,6 +213,11 @@ Gremlin = {
             end
             env.info(tostring(_toolId) .. ' | ' .. tostring(timer.getTime()) .. ' | ' .. tostring(message))
         end,
+        --- Log a message at the debug level.
+        --
+        -- @function Gremlin.log.debug
+        -- @tparam string toolId   The string identifying the source of the message
+        -- @tparam string message  The message to log
         debug = function(toolId, message)
             if Gremlin.Debug then
                 local _toolId = toolId
@@ -145,6 +229,11 @@ Gremlin = {
                 env.info('DEBUG: ' .. tostring(_toolId) .. ' | ' .. tostring(timer.getTime()) .. ' | ' .. tostring(message))
             end
         end,
+        --- Log a message at the trace level.
+        --
+        -- @function Gremlin.log.trace
+        -- @tparam string toolId   The string identifying the source of the message
+        -- @tparam string message  The message to log
         trace = function(toolId, message)
             if Gremlin.Trace then
                 local _toolId = toolId
@@ -157,7 +246,17 @@ Gremlin = {
             end
         end
     },
+    --- Menu.
+    -- Methods for setting up menus and keeping them up to date.
+    --
+    -- @section Menu
     menu = {
+        --- Update the F10 menu.
+        --
+        -- @function Gremlin.menu.updateF10
+        -- @tparam string toolId    A string indicating the top level menu to create
+        -- @tparam table  commands  A table of menu items to sync
+        -- @tparam table  forUnits  A list of units who should be given menu access
         updateF10 = function(toolId, commands, forUnits)
             Gremlin.log.trace(Gremlin.Id, string.format('Updating F10 Menu For %i Units', Gremlin.utils.countTableEntries(forUnits)))
 
@@ -221,7 +320,16 @@ Gremlin = {
             end
         end,
     },
+    --- Utils.
+    -- Methods for miscellaneous script activities.
+    --
+    -- @section Utils
     utils = {
+        --- Count items in a table, numeric or otherwise.
+        --
+        -- @function Gremlin.utils.countTableEntries
+        -- @tparam  table _tbl  The table to count entries within
+        -- @treturn integer     The number of items in the table
         countTableEntries = function (_tbl)
             local _count = 0
             for _, _ in pairs(_tbl) do
@@ -229,6 +337,11 @@ Gremlin = {
             end
             return _count
         end,
+        --- Get a list of zones a unit is in.
+        --
+        -- @function Gremlin.utils.getUnitZones
+        -- @tparam  string _unit  The unit whose zones should be retrieved
+        -- @treturn table         The list of unit zones
         getUnitZones = function(_unit)
             Gremlin.log.trace(Gremlin.Id, string.format('Grabbing Unit Zone Names : %s', _unit))
 
@@ -247,6 +360,12 @@ Gremlin = {
 
             return _outZones
         end,
+        --- Get a mostly-Lua representation of a value.
+        --
+        -- @function Gremlin.utils.inspect
+        -- @tparam  any     _value  The value to inspect
+        -- @tparam  integer _depth  How deep to inspect
+        -- @treturn string          A string representation of the value
         inspect = function(_value, _depth)
             if _depth == nil then
                 _depth = 0
@@ -266,7 +385,7 @@ Gremlin = {
                 local _contents = ''
 
                 for _key, _val in pairs(_value) do
-                    _contents  = string.format('%s[%s] = %s,\n', string.rep('  ', _depth + 1), Gremlin.utils.inspect(_key, _depth + 1), Gremlin.utils.inspect(_val, _depth + 1))
+                    _contents = string.format('%s%s[%s] = %s,\n', _contents, string.rep('  ', _depth + 1), Gremlin.utils.inspect(_key, _depth + 1), Gremlin.utils.inspect(_val, _depth + 1))
                 end
 
                 return string.format('%s{\n%s%s}', string.rep('  ', _depth), _contents, string.rep('  ', _depth))
@@ -276,6 +395,12 @@ Gremlin = {
                 return string.format('<%s> [opaque]', type(_value))
             end
         end,
+        --- Searches a table for a value.
+        --
+        -- @function Gremlin.utils.isInTable
+        -- @tparam  table _tbl     The table to search
+        -- @tparam  any   _needle  The value to find
+        -- @treturn boolean        Whether the needle was in the haystack
         isInTable = function(_tbl, _needle)
             for _, _straw in pairs(_tbl) do
                 if _straw == _needle then
@@ -285,6 +410,12 @@ Gremlin = {
 
             return false
         end,
+        --- Parse arguments for things like menus.
+        --
+        -- @function Gremlin.utils.parseFuncArgs
+        -- @tparam  table _args  The arguments to parse
+        -- @tparam  table _objs  Values for substitution
+        -- @treturn table        The final (usable) arguments
         parseFuncArgs = function(_args, _objs)
             local _out = {}
             for _, _arg in pairs(_args) do
@@ -323,6 +454,12 @@ Gremlin = {
 
             return _out
         end,
+        --- Combine two tables together.
+        -- Doesn't care about integer versus string keys.
+        --
+        -- @function Gremlin.utils.mergeTables
+        -- @tparam  table ...  One or more tables to combine together
+        -- @treturn table      The final combined result
         mergeTables = function(...)
             local tbl1 = {}
 
@@ -346,6 +483,14 @@ Gremlin = {
     },
 }
 
+--- Top Level methods.
+--
+-- @section TopLevel
+
+--- Setup Gremlin.
+--
+-- @function Gremlin:setup
+-- @tparam table config  The settings table to configure Gremlin Script Tools using
 function Gremlin:setup(config)
     if Gremlin.alreadyInitialized and not config.forceReload then
         Gremlin.log.info(Gremlin.Id, string.format('Bypassing initialization because Gremlin.alreadyInitialized = true'))

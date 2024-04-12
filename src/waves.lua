@@ -1,3 +1,19 @@
+--[[--
+Gremlin Waves
+
+DO NOT EDIT THIS SCRIPT DIRECTLY! Things WILL break that way.
+
+Instead!
+
+When calling `Waves:setup()`, you can pass in a configuration table instead
+of `nil`. Make your changes in the table you pass - defaults are already in
+place if you want to leave those out.
+
+An example, providing all the defaults, is available in the docs, or near
+the end of this script.
+
+@module Waves
+--]]--
 Waves = {
     Id = 'Gremlin Waves',
     Version = '202404.01',
@@ -296,6 +312,30 @@ Waves._internal.menu = {
 
 Waves._internal.handlers = {}
 
+--[[--
+Top level methods.
+Methods for interacting with Waves itself.
+
+@section TopLevel
+--]]--
+
+--[[--
+Setup Gremlin Waves
+
+The argument should contain a configuration table as shown below.
+
+Example providing all the defaults:
+
+```
+Waves:setup({
+    adminPilotNames = {},
+    waves = {},
+})
+```
+
+@function Waves:setup
+@tparam table config
+--]]--
 function Waves:setup(config)
     if config == nil then
         config = {}

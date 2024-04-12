@@ -46,7 +46,7 @@
 
 # API
 
-- [Gremlin](./api/gremlin.md)
-- [Evac](./api/evac.md)
-- [Urgency](./api/urgency.md)
-- [Waves](./api/waves.md)
+- [Gremlin](./api/Gremlin.md)
+- [Evac](./api/Evac.md)
+- [Urgency](./api/Urgency.md)
+- [Waves](./api/Waves.md)

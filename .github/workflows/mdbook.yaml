@@ -20,25 +20,37 @@ jobs:
     env:
       MDBOOK_VERSION: 0.4.37
     steps:
+      - name: Set up Cargo cache
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - uses: actions/checkout@v4
       - name: Install mdBook
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf -y | sh
           rustup update
           cargo install --version ${MDBOOK_VERSION} mdbook
+      - name: Setup Lua
+        uses: leafo/gh-actions-lua@v8
+        with:
+          luaVersion: '5.1'
+      - name: Setup LuaRocks
+        uses: leafo/gh-actions-luarocks@v4
+      - name: Setup LDoc
+        run: luarocks install ldoc
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v4
-      - name: Generate API docs
-        run:
-          alias ldoc='docker run -v "$(pwd):/data" ghcr.io/lunarmodules/ldoc:latest'
-          cd docs/api/
-          ldoc -c gremlin.ldoc
-          ldoc -c evac.ldoc
-          ldoc -c ungency.ldoc
-          ldoc -c waves.ldoc
-      - name: Build with mdBook
-        run: mdbook build
+      - name: Generate and build docs
+        run: ./builddocs.sh
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

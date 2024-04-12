@@ -467,10 +467,10 @@ TestGremlinUtils = {
     end,
     testInspectFunction = function()
         -- INIT
-        -- N/A?
+        local _result = Gremlin.utils.inspect(Gremlin.utils.inspect)
 
         -- TEST
-        lu.assertEquals(Gremlin.utils.inspect(Gremlin.utils.inspect), "<function>   {\n    ['short_src'] = '...:\\Users\\henni\\git\\ILS\\GremlinScripts\\src\\gremlin.lua',\n  }")
+        lu.assertStrContains(_result, "%<function%>   %{.+\n    %['short_src'%] = '.+\\src\\gremlin.lua',\n  }", true)
 
         -- SIDE EFFECTS
         -- N/A?

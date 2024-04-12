@@ -81,8 +81,8 @@ local setUp = function()
     }
 
     -- Evac Settings
-    Evac.maxExtractable[2]['Carrier Seaman'] = 250
-    Evac.spawnRates = { _global = {
+    Evac.config.maxExtractable[2]['Carrier Seaman'] = 250
+    Evac.config.spawnRates = { _global = {
         { units = 0, per = 0, period = Gremlin.Periods.Second },
         { units = 0, per = 0, period = Gremlin.Periods.Second },
     } }
@@ -95,13 +95,13 @@ local setUp = function()
 end
 
 local tearDown = function()
-    Evac.beaconBatteryLife = 0
-    Evac.beaconSound = ''
-    Evac.carryLimits = {}
-    Evac.idStart = 0
-    Evac.loadUnloadPerIndividual = 0
-    Evac.lossFlags = { 0, 0 }
-    Evac.maxExtractable = {
+    Evac.config.beaconBatteryLife = 0
+    Evac.config.beaconSound = ''
+    Evac.config.carryLimits = {}
+    Evac.config.idStart = 0
+    Evac.config.loadUnloadPerIndividual = 0
+    Evac.config.lossFlags = { 0, 0 }
+    Evac.config.maxExtractable = {
         {
             ['Carrier Seaman'] = 0,
             Infantry = 0,
@@ -121,8 +121,8 @@ local tearDown = function()
             JTAC = 0,
         },
     }
-    Evac.spawnRates = {}
-    Evac.spawnWeight = 0
+    Evac.config.spawnRates = {}
+    Evac.config.spawnWeight = 0
 
     Evac._state.alreadyInitialized = false
     Gremlin.alreadyInitialized = false
@@ -213,7 +213,7 @@ TestEvacZonesEvac = {
     end,
     testSetRemainingNumber = function()
         -- INIT
-        Evac.beaconBatteryLife = 30
+        Evac.config.beaconBatteryLife = 30
 
         trigger.action.outTextForGroup:whenCalled({
             with = { _testUnit:getGroup():getID(), 'Evacuation Beacons:\nGroup #8 - Beacon #1 (840.00 kHz - 277.50 / 32.15 MHz)\n', 20 },
@@ -254,11 +254,11 @@ TestEvacZonesEvac = {
         -- SIDE EFFECTS
         lu.assertEquals(Evac._state.extractableNow[_testZone], { ['Evacuee: Carrier Seaman #522'] = { unitName = 'Evacuee: Carrier Seaman #522', type = 'Carrier Seaman', unitId = 522, weight = 0 } })
 
-        Evac.beaconBatteryLife = 0
+        Evac.config.beaconBatteryLife = 0
     end,
     testSetRemainingComposition = function()
         -- INIT
-        Evac.beaconBatteryLife = 30
+        Evac.config.beaconBatteryLife = 30
 
         trigger.action.outTextForGroup:whenCalled({
             with = { _testUnit:getGroup():getID(), 'Evacuation Beacons:\nGroup #8 - Beacon #1 (840.00 kHz - 277.50 / 32.15 MHz)\n', 20 },
@@ -620,7 +620,7 @@ TestEvacGroups = {
     setUp = setUp,
     testSpawnNumber = function()
         -- INIT
-        Evac.beaconBatteryLife = 30
+        Evac.config.beaconBatteryLife = 30
 
         trigger.action.outTextForGroup:whenCalled({
             with = { _testUnit:getGroup():getID(), 'Evacuation Beacons:\nGroup #8 - Beacon #1 (840.00 kHz - 277.50 / 32.15 MHz)\n', 20 },
@@ -688,11 +688,11 @@ TestEvacGroups = {
         }, 50)
 
         -- SIDE EFFECTS
-        Evac.beaconBatteryLife = 0
+        Evac.config.beaconBatteryLife = 0
     end,
     testSpawnComposition = function()
         -- INIT
-        Evac.beaconBatteryLife = 30
+        Evac.config.beaconBatteryLife = 30
 
         trigger.action.outTextForGroup:whenCalled({
             with = {_testUnit:getGroup():getID(), 'Evacuation Beacons:\nGroup #8 - Beacon #1 (840.00 kHz - 277.50 / 32.15 MHz)\n', 20 },
@@ -750,7 +750,7 @@ TestEvacGroups = {
         }, 50)
 
         -- SIDE EFFECTS
-        Evac.beaconBatteryLife = 0
+        Evac.config.beaconBatteryLife = 0
     end,
     testList = function()
         -- INIT
@@ -881,7 +881,7 @@ TestEvacInternalBeacons = {
     setUp = setUp,
     testSpawn = function()
         -- INIT
-        Evac.beaconBatteryLife = 30
+        Evac.config.beaconBatteryLife = 30
 
         trigger.action.outTextForGroup:whenCalled({
             with = {_testUnit:getGroup():getID(), 'Evacuation Beacons:\nGroup #8 - Beacon #1 (840.00 kHz - 277.50 / 32.15 MHz)\n', 20 },
@@ -926,7 +926,7 @@ TestEvacInternalBeacons = {
         })
 
         -- SIDE EFFECTS
-        Evac.beaconBatteryLife = 0
+        Evac.config.beaconBatteryLife = 0
     end,
     testGetFreeADFFrequencies = function()
         -- INIT
@@ -972,7 +972,7 @@ TestEvacInternalBeacons = {
             vhf = 840000
         }
 
-        Evac.beaconBatteryLife = 30
+        Evac.config.beaconBatteryLife = 30
 
         trigger.action.outTextForGroup:whenCalled({
             with = {_testUnit:getGroup():getID(), 'Evacuation Beacons:\nGroup #2 - Beacon #1 (840.00 kHz - 277.50 / 32.15 MHz)\n', 20 },
@@ -1011,7 +1011,7 @@ TestEvacInternalBeacons = {
         lu.assertEquals(Evac._internal.beacons.update(_radioGroup), true)
 
         -- SIDE EFFECTS
-        Evac.beaconBatteryLife = 0
+        Evac.config.beaconBatteryLife = 0
     end,
     testKillDead = function()
         -- INIT
@@ -2249,7 +2249,7 @@ TestEvacInternalUtils = {
         trigger.action.setUserFlag:whenCalled({ with = { 1, true }, thenReturn = nil })
         trigger.action.setUserFlag:whenCalled({ with = { 2, true }, thenReturn = nil })
 
-        Evac.lossFlags = { 1, 2 }
+        Evac.config.lossFlags = { 1, 2 }
         Evac._state.lostEvacuees = {
             {
                 ['Carrier Seaman'] = 25,
@@ -2361,7 +2361,7 @@ TestEvacInternalDoSpawns = {
 
         -- SIDE EFFECTS
         lu.assertNotEquals(Evac._state.spawns.lastChecked[0], nil)
-        lu.assertEquals(Evac._state.spawns.alreadySpawned, Evac.maxExtractable)
+        lu.assertEquals(Evac._state.spawns.alreadySpawned, Evac.config.maxExtractable)
     end,
     testDoSpawnsSecondPass = function()
         -- INIT
@@ -2372,14 +2372,14 @@ TestEvacInternalDoSpawns = {
 
         -- SIDE EFFECTS A
         lu.assertNotEquals(Evac._state.spawns.lastChecked[0], nil)
-        lu.assertEquals(Evac._state.spawns.alreadySpawned, Evac.maxExtractable)
+        lu.assertEquals(Evac._state.spawns.alreadySpawned, Evac.config.maxExtractable)
 
         -- TEST B
         lu.assertEquals(Evac._internal.doSpawns(), nil)
 
         -- SIDE EFFECTS B
         lu.assertNotEquals(Evac._state.spawns.lastChecked[0], nil)
-        lu.assertEquals(Evac._state.spawns.alreadySpawned, Evac.maxExtractable)
+        lu.assertEquals(Evac._state.spawns.alreadySpawned, Evac.config.maxExtractable)
     end,
     tearDown = tearDown,
 }
@@ -2392,7 +2392,7 @@ TestEvacInternalHandlers = {
         trigger.action.setUserFlag:whenCalled({ with = { 1, true }, thenReturn = nil })
         trigger.action.setUserFlag:whenCalled({ with = { 2, true }, thenReturn = nil })
 
-        Evac.lossFlags = { 1, 2 }
+        Evac.config.lossFlags = { 1, 2 }
         Evac._state.lostEvacuees = {
             {
                 ['Carrier Seaman'] = 25,
@@ -2472,9 +2472,9 @@ TestEvacTopLevel = {
         lu.assertEquals(Evac:setup(), nil)
 
         -- SIDE EFFECTS
-        lu.assertEquals(Evac.beaconBatteryLife, 30)
-        lu.assertEquals(Evac.beaconSound, 'beacon.ogg')
-        lu.assertEquals(Evac.carryLimits, {
+        lu.assertEquals(Evac.config.beaconBatteryLife, 30)
+        lu.assertEquals(Evac.config.beaconSound, 'beacon.ogg')
+        lu.assertEquals(Evac.config.carryLimits, {
             ['C-130'] = 90,
             ['CH-47D'] = 44,
             ['CH-43E'] = 55,
@@ -2483,13 +2483,14 @@ TestEvacTopLevel = {
             ['Mi-24P'] = 5,
             ['Mi-24V'] = 5,
             ['Mi-26'] = 70,
+            ['SH-60B'] = 5,
             ['SH60B'] = 5,
             ['UH-1H'] = 8,
             ['UH-60L'] = 11,
         })
-        lu.assertEquals(Evac.idStart, 50000)
-        lu.assertEquals(Evac.loadUnloadPerIndividual, 30)
-        lu.assertEquals(Evac.maxExtractable, {
+        lu.assertEquals(Evac.config.idStart, 50000)
+        lu.assertEquals(Evac.config.loadUnloadPerIndividual, 30)
+        lu.assertEquals(Evac.config.maxExtractable, {
             {
                 ['Carrier Seaman'] = 0,
                 Infantry = 0,
@@ -2509,8 +2510,8 @@ TestEvacTopLevel = {
                 JTAC = 0,
             },
         })
-        lu.assertEquals(Evac.spawnRates, { _global = { { per = 0, period = 1, units = 0 }, { per = 0, period = 1, units = 0 } } })
-        lu.assertEquals(Evac.spawnWeight, 100)
+        lu.assertEquals(Evac.config.spawnRates, { _global = { { per = 0, period = 1, units = 0 }, { per = 0, period = 1, units = 0 } } })
+        lu.assertEquals(Evac.config.spawnWeight, 100)
     end,
     testSetupBlank = function()
         -- INIT
@@ -2523,9 +2524,9 @@ TestEvacTopLevel = {
         lu.assertEquals(Evac:setup({}), nil)
 
         -- SIDE EFFECTS
-        lu.assertEquals(Evac.beaconBatteryLife, 30)
-        lu.assertEquals(Evac.beaconSound, 'beacon.ogg')
-        lu.assertEquals(Evac.carryLimits, {
+        lu.assertEquals(Evac.config.beaconBatteryLife, 30)
+        lu.assertEquals(Evac.config.beaconSound, 'beacon.ogg')
+        lu.assertEquals(Evac.config.carryLimits, {
             ['C-130'] = 90,
             ['CH-47D'] = 44,
             ['CH-43E'] = 55,
@@ -2534,13 +2535,14 @@ TestEvacTopLevel = {
             ['Mi-24P'] = 5,
             ['Mi-24V'] = 5,
             ['Mi-26'] = 70,
+            ['SH-60B'] = 5,
             ['SH60B'] = 5,
             ['UH-1H'] = 8,
             ['UH-60L'] = 11,
         })
-        lu.assertEquals(Evac.idStart, 50000)
-        lu.assertEquals(Evac.loadUnloadPerIndividual, 30)
-        lu.assertEquals(Evac.maxExtractable, {
+        lu.assertEquals(Evac.config.idStart, 50000)
+        lu.assertEquals(Evac.config.loadUnloadPerIndividual, 30)
+        lu.assertEquals(Evac.config.maxExtractable, {
             {
                 ['Carrier Seaman'] = 0,
                 Infantry = 0,
@@ -2560,8 +2562,8 @@ TestEvacTopLevel = {
                 JTAC = 0,
             },
         })
-        lu.assertEquals(Evac.spawnRates, { _global = { { per = 0, period = 1, units = 0 }, { per = 0, period = 1, units = 0 } } })
-        lu.assertEquals(Evac.spawnWeight, 100)
+        lu.assertEquals(Evac.config.spawnRates, { _global = { { per = 0, period = 1, units = 0 }, { per = 0, period = 1, units = 0 } } })
+        lu.assertEquals(Evac.config.spawnWeight, 100)
     end,
     testSetupConfig = function()
         -- INIT
@@ -2608,12 +2610,12 @@ TestEvacTopLevel = {
         }), nil)
 
         -- SIDE EFFECTS
-        lu.assertEquals(Evac.beaconBatteryLife, 2)
-        lu.assertEquals(Evac.beaconSound, 'test.ogg')
-        lu.assertEquals(Evac.carryLimits, { Test = 15 })
-        lu.assertEquals(Evac.idStart, 5)
-        lu.assertEquals(Evac.loadUnloadPerIndividual, 2)
-        lu.assertEquals(Evac.maxExtractable, {
+        lu.assertEquals(Evac.config.beaconBatteryLife, 2)
+        lu.assertEquals(Evac.config.beaconSound, 'test.ogg')
+        lu.assertEquals(Evac.config.carryLimits, { Test = 15 })
+        lu.assertEquals(Evac.config.idStart, 5)
+        lu.assertEquals(Evac.config.loadUnloadPerIndividual, 2)
+        lu.assertEquals(Evac.config.maxExtractable, {
             {
                 ['Carrier Seaman'] = 0,
                 Infantry = 0,
@@ -2633,8 +2635,8 @@ TestEvacTopLevel = {
                 JTAC = 0,
             },
         })
-        lu.assertEquals(Evac.spawnRates, { [_testZone] = { { per = 0, period = 1, units = 0 }, { per = 5, period = 60, units = 12 } } })
-        lu.assertEquals(Evac.spawnWeight, 50)
+        lu.assertEquals(Evac.config.spawnRates, { [_testZone] = { { per = 0, period = 1, units = 0 }, { per = 5, period = 60, units = 12 } } })
+        lu.assertEquals(Evac.config.spawnWeight, 50)
     end,
     tearDown = tearDown,
 }

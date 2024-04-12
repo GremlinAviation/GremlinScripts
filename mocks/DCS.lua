@@ -206,9 +206,11 @@ Unit = {
             return mist.DBs.unitsByName[_name]
         end
 
-        for _, _units in pairs(Evac._state.extractableNow) do
-            if _units[_name] ~= nil and _units[_name][0] ~= nil then
-                return _units[_name][0].object or _units[_name][0]
+        if Evac ~= nil then
+            for _, _units in pairs(Evac._state.extractableNow) do
+                if _units[_name] ~= nil and _units[_name][0] ~= nil then
+                    return _units[_name][0].object or _units[_name][0]
+                end
             end
         end
 
