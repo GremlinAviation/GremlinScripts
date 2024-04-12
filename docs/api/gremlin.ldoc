@@ -1,0 +1,16 @@
+file = '../../src/gremlin.lua'
+project = 'Gremlin Script Tools'
+title = 'Gremlin Script Tools'
+package = '../../src'
+description = 'Documenting Gremlin Script Tools'
+template = true
+template_escape = '>'
+dir = '.'
+output = 'gremlin'
+ext = 'md'
+merge = true
+sort = true
+custom_tags = {
+    { 'diagnostic', hidden = true }
+}
+no_space_before_args = true

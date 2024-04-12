@@ -29,6 +29,14 @@ jobs:
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v4
+      - name: Generate API docs
+        run:
+          alias ldoc='docker run -v "$(pwd):/data" ghcr.io/lunarmodules/ldoc:latest'
+          cd docs/api/
+          ldoc -c gremlin.ldoc
+          ldoc -c evac.ldoc
+          ldoc -c ungency.ldoc
+          ldoc -c waves.ldoc
       - name: Build with mdBook
         run: mdbook build
       - name: Upload artifact

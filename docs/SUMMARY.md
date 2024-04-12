@@ -43,3 +43,10 @@
 # Book-Keeping
 
 - [Contributors](./contributors.md)
+
+# API
+
+- [Gremlin](./api/gremlin.md)
+- [Evac](./api/evac.md)
+- [Urgency](./api/urgency.md)
+- [Waves](./api/waves.md)

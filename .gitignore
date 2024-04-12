@@ -2,3 +2,4 @@ DCS_header_extracted.lua
 CTLD_*.lua
 CSAR_*.lua
 book
+docs/api/*.md

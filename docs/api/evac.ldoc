@@ -1,0 +1,16 @@
+file = '../../src/evac.lua'
+project = 'Gremlin Evac'
+title = 'Gremlin Evac'
+package = '../../src'
+description = 'Documenting Gremlin Evac'
+template = true
+template_escape = '>'
+dir = '.'
+output = 'evac'
+ext = 'md'
+merge = true
+sort = true
+custom_tags = {
+    { 'diagnostic', hidden = true }
+}
+no_space_before_args = true

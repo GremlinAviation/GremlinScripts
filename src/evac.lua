@@ -7,35 +7,27 @@ When calling `Evac:setup()`, you can pass in a configuration table instead
 of `nil`. Make your changes in the table you pass - defaults are already in
 place if you want to leave those out.
 
-An example, providing all the defaults, is available near the end of this script.
+An example, providing all the defaults, is available in the docs, or near
+the end of this script.
+
+@module Evac
 --]]--
 Evac = {
     -- Static Info
 
-    -- Contains an identifier for this script
-    Id = 'Gremlin Evac',
-    -- Contains the current script version
-    Version = '202404.01',
+    Id = 'Gremlin Evac', -- Contains an identifier for this script
+    Version = '202404.01', -- Contains the current script version
 
     -- Config
 
-    -- How long a beacon should last, in minutes
-    beaconBatteryLife = 0,
-    -- The audio file to play for beacons
-    beaconSound = '',
-    -- The max carrying capacity of the aircraft in this misson
-    -- Table should be a list of capacities keyed by the unit type name
-    carryLimits = {},
-    -- Where to start counting when generating new units' and groups' IDs
-    idStart = 0,
-    -- How long it takes to load one unit, in seconds
-    loadUnloadPerIndividual = 0,
-    -- The Mission Editor flags to set when the players lose too many forces
-    lossFlags = {0, 0},
-    -- The percentage of evacuees that can be lost before mission loss
-    lossThresholds = {0, 0},
-    -- The maximum number of each unit to generate when spawning units
-    maxExtractable = {{
+    beaconBatteryLife = 0, -- How long a beacon should last, in minutes
+    beaconSound = '', -- The audio file to play for beacons
+    carryLimits = {}, -- The max carrying capacity of the aircraft in this misson; table should be a list of capacities keyed by the unit type name
+    idStart = 0, -- Where to start counting when generating new units' and groups' IDs
+    loadUnloadPerIndividual = 0, -- How long it takes to load one unit, in seconds
+    lossFlags = {0, 0}, -- The Mission Editor flags to set when the players lose too many forces
+    lossThresholds = {0, 0}, -- The percentage of evacuees that can be lost before mission loss
+    maxExtractable = {{ -- The maximum number of each unit to generate when spawning units
         ['Carrier Seaman'] = 0,
         Infantry = 0,
         M249 = 0,
@@ -52,32 +44,42 @@ Evac = {
         ['2B11'] = 0,
         JTAC = 0
     }},
-    -- How frequently to spawn new units, per zone
-    spawnRates = {},
-    -- The default weight of new units; exact weights will vary by unit
-    spawnWeight = 0,
-    -- The Mission Editor flags to set when the players evacuate enough forces
-    winFlags = {0, 0},
-    -- The percentage of evacuees that must be rescued before mission win
-    winThresholds = {0, 0},
+    spawnRates = {}, -- How frequently to spawn new units, per zone
+    spawnWeight = 0, -- The default weight of new units; exact weights will vary by unit
+    winFlags = {0, 0}, -- The Mission Editor flags to set when the players evacuate enough forces
+    winThresholds = {0, 0}, -- The percentage of evacuees that must be rescued before mission win
 
-    -- Enums
+    --- Enums.
+    -- Ways to look up constants in Gremlin Evac.
+    --
+    -- @section Enums
 
-    -- The modes that a zone can be in
+    --- The modes that a zone can be in.
+    --
+    -- @table Evac.modes
+    -- @int EVAC mode
+    -- @int SAFE mode
+    -- @int RELAY mode
     modes = {
-        EVAC = 1,
-        SAFE = 2,
-        RELAY = 3
+        EVAC = 1, -- evac mode
+        SAFE = 2, -- safe mode
+        RELAY = 3, -- relay mode
     },
-    -- Lookup table for modes to names
-    modeToText = {'evac', 'safe', 'relay'},
+    --- Lookup table for modes to names.
+    --
+    -- @table Evac.modeToText
+    modeToText = {
+        'evac', -- evac mode
+        'safe', -- safe mode
+        'relay', -- relay mode
+    },
 
-    -- Internals - DO NOT USE / MODIFY
+    -- DO NOT USE / MODIFY THESE VALUES!
 
-    -- Internal Methods - AVOID USING / DO NOT MODIFY
-    _internal = {},
-    -- Internal State - DO NOT USE / MODIFY
-    _state = {
+    --- @local Evac._internal
+    _internal = {}, -- Internal Methods - AVOID USING / DO NOT MODIFY
+    --- @local Evac._state
+    _state = { -- Internal State - DO NOT USE / MODIFY
         alreadyInitialized = false,
         beacons = {},
         extractableNow = {},
@@ -144,11 +146,18 @@ Evac = {
 
 -- Methods
 
---- Zone methods
+--[[--
+Zone methods.
+Methods for interacting with evacuation zones.
+
+@section Zones
+--]]--
 Evac.zones = {
-    --- Evac Zone methods
+    -- Evac Zone methods
     evac = {
         --[[-- Mark a zone as part of the Evac ecosystem, and give it the evac mode
+
+        @function               Evac.zones.evac.register
         @tparam  string _zone   the zone name
         @tparam  number _smoke  the smoke color, taken from `trigger.smokeColor.*`
         @tparam  number _side   the coalition, taken from `coalition.side.*`
@@ -158,7 +167,9 @@ Evac.zones = {
 
             return Evac._internal.zones.register(_zone, _smoke, _side, Evac.modes.EVAC)
         end,
-        --[[-- Activate a zone for evacuation operations
+        --[[-- Activate a zone for evacuation operations.
+
+        @function               Evac.zones.evac.activate
         @tparam  string _zone   the zone name
         ]]
         activate = function(_zone)
@@ -166,7 +177,9 @@ Evac.zones = {
 
             return Evac._internal.zones.activate(_zone, Evac.modes.EVAC)
         end,
-        --[[-- Manually override the remaining units in a zone
+        --[[-- Manually override the remaining units in a zone.
+
+        @function             Evac.zones.evac.setRemaining
         @tparam  string       _zone                 the zone name
         @tparam  number       _side                 the coalition, taken from `coalition.side.*`
         @tparam  number       _country              the country, taken from `country.*`
@@ -181,7 +194,9 @@ Evac.zones = {
 
             return Evac._internal.zones.setRemaining(_zone, _side, _country, _numberOrComposition)
         end,
-        --[[-- Count the number of evacuees in a zone
+        --[[-- Count the number of evacuees in a zone.
+
+        @function       Evac.zones.evac.count
         @tparam  string _zone   the zone name
         @treturn number         the number of evacuees in the zone
         ]]
@@ -190,8 +205,10 @@ Evac.zones = {
 
             return Evac._internal.zones.count(_zone, Evac.modes.EVAC)
         end,
-        --[[-- Check whether a given unit is in an evac zone
-        @tparam  string _zone   the zone name
+        --[[-- Check whether a given unit is in an evac zone.
+
+        @function       Evac.zones.evac.isIn
+        @tparam  string _unit   the unit name
         @treturn boolean        whether the unit is in an evac zone
         ]]
         isIn = function(_unit)
@@ -199,7 +216,9 @@ Evac.zones = {
 
             return Evac._internal.zones.isIn(_unit, Evac.modes.EVAC)
         end,
-        --[[-- Deactivate a zone for evacuation operations
+        --[[-- Deactivate a zone for evacuation operations.
+
+        @function       Evac.zones.evac.deactivate
         @tparam  string _zone   the zone name
         ]]
         deactivate = function(_zone)
@@ -207,7 +226,9 @@ Evac.zones = {
 
             return Evac._internal.zones.deactivate(_zone, Evac.modes.EVAC)
         end,
-        --[[-- Forget a zone once it should no longer be used as part of the Evac ecosystem
+        --[[-- Forget a zone once it should no longer be used as part of the Evac ecosystem.
+
+        @function       Evac.zones.evac.unregister
         @tparam  string _zone   the zone name
         ]]
         unregister = function(_zone)
@@ -216,9 +237,11 @@ Evac.zones = {
             return Evac._internal.zones.unregister(_zone, Evac.modes.EVAC)
         end
     },
-    --- Relay Zone methods
+    -- Relay Zone methods
     relay = {
-        --[[-- Mark a zone as part of the Evac ecosystem, and give it the relay mode
+        --[[-- Mark a zone as part of the Evac ecosystem, and give it the relay mode.
+
+        @function       Evac.zones.relay.register
         @tparam  string _zone   the zone name
         @tparam  number _smoke  the smoke color, taken from `trigger.smokeColor.*`
         @tparam  number _side   the coalition, taken from `coalition.side.*`
@@ -228,7 +251,9 @@ Evac.zones = {
 
             return Evac._internal.zones.register(_zone, _smoke, _side, Evac.modes.RELAY)
         end,
-        --[[-- Activate a zone for evacuation operations
+        --[[-- Activate a zone for evacuation operations.
+
+        @function       Evac.zones.relay.activate
         @tparam  string _zone   the zone name
         ]]
         activate = function(_zone)
@@ -236,7 +261,9 @@ Evac.zones = {
 
             return Evac._internal.zones.activate(_zone, Evac.modes.RELAY)
         end,
-        --[[-- Manually override the remaining units in a zone
+        --[[-- Manually override the remaining units in a zone.
+
+        @function             Evac.zones.relay.setRemaining
         @tparam  string       _zone                 the zone name
         @tparam  number       _side                 the coalition, taken from `coalition.side.*`
         @tparam  number       _country              the country, taken from `country.*`
@@ -254,7 +281,9 @@ Evac.zones = {
 
             return Evac._internal.zones.setRemaining(_zone, _side, _country, _numberOrComposition)
         end,
-        --[[-- Count the number of evacuees in a zone
+        --[[-- Count the number of evacuees in a zone.
+
+        @function       Evac.zones.relay.count
         @tparam  string _zone   the zone name
         @treturn number         the number of evacuees in the zone
         ]]
@@ -263,8 +292,10 @@ Evac.zones = {
 
             return Evac._internal.zones.count(_zone, Evac.modes.RELAY)
         end,
-        --[[-- Check whether a given unit is in a relay zone
-        @tparam  string _zone   the zone name
+        --[[-- Check whether a given unit is in a relay zone.
+
+        @function       Evac.zones.relay.isIn
+        @tparam  string _unit   the unit name
         @treturn boolean        whether the unit is in a relay zone
         ]]
         isIn = function(_unit)
@@ -272,7 +303,9 @@ Evac.zones = {
 
             return Evac._internal.zones.isIn(_unit, Evac.modes.RELAY)
         end,
-        --[[-- Deactivate a zone for evacuation operations
+        --[[-- Deactivate a zone for evacuation operations.
+
+        @function       Evac.zones.relay.deactivate
         @tparam  string _zone   the zone name
         ]]
         deactivate = function(_zone)
@@ -280,7 +313,9 @@ Evac.zones = {
 
             return Evac._internal.zones.deactivate(_zone, Evac.modes.RELAY)
         end,
-        --[[-- Forget a zone once it should no longer be used as part of the Evac ecosystem
+        --[[-- Forget a zone once it should no longer be used as part of the Evac ecosystem.
+
+        @function       Evac.zones.relay.unregister
         @tparam  string _zone   the zone name
         ]]
         unregister = function(_zone)
@@ -289,9 +324,11 @@ Evac.zones = {
             return Evac._internal.zones.unregister(_zone, Evac.modes.RELAY)
         end
     },
-    --- Safe Zone methods
+    -- Safe Zone methods
     safe = {
-        --[[-- Mark a zone as part of the Evac ecosystem, and give it the safe mode
+        --[[-- Mark a zone as part of the Evac ecosystem, and give it the safe mode.
+
+        @function       Evac.zones.safe.register
         @tparam  string _zone   the zone name
         @tparam  number _smoke  the smoke color, taken from `trigger.smokeColor.*`
         @tparam  number _side   the coalition, taken from `coalition.side.*`
@@ -301,7 +338,9 @@ Evac.zones = {
 
             return Evac._internal.zones.register(_zone, _smoke, _side, Evac.modes.SAFE)
         end,
-        --[[-- Activate a zone for evacuation operations
+        --[[-- Activate a zone for evacuation operations.
+
+        @function       Evac.zones.safe.activate
         @tparam  string _zone   the zone name
         ]]
         activate = function(_zone)
@@ -309,7 +348,9 @@ Evac.zones = {
 
             return Evac._internal.zones.activate(_zone, Evac.modes.SAFE)
         end,
-        --[[-- Count the number of evacuees in a zone
+        --[[-- Count the number of evacuees in a zone.
+
+        @function       Evac.zones.safe.count
         @tparam  string _zone   the zone name
         @treturn number         the number of evacuees in the zone
         ]]
@@ -318,8 +359,10 @@ Evac.zones = {
 
             return Evac._internal.zones.count(_zone, Evac.modes.SAFE)
         end,
-        --[[-- Check whether a given unit is in a safe zone
-        @tparam  string _zone   the zone name
+        --[[-- Check whether a given unit is in a safe zone.
+
+        @function       Evac.zones.safe.isIn
+        @tparam  string _unit   the unit name
         @treturn boolean        whether the unit is in a safe zone
         ]]
         isIn = function(_unit)
@@ -327,7 +370,9 @@ Evac.zones = {
 
             return Evac._internal.zones.isIn(_unit, Evac.modes.SAFE)
         end,
-        --[[-- Deactivate a zone for evacuation operations
+        --[[-- Deactivate a zone for evacuation operations.
+
+        @function       Evac.zones.safe.deactivate
         @tparam  string _zone   the zone name
         ]]
         deactivate = function(_zone)
@@ -335,7 +380,9 @@ Evac.zones = {
 
             return Evac._internal.zones.deactivate(_zone, Evac.modes.SAFE)
         end,
-        --[[-- Forget a zone once it should no longer be used as part of the Evac ecosystem
+        --[[-- Forget a zone once it should no longer be used as part of the Evac ecosystem.
+
+        @function       Evac.zones.safe.unregister
         @tparam  string _zone   the zone name
         ]]
         unregister = function(_zone)
@@ -346,9 +393,16 @@ Evac.zones = {
     }
 }
 
---- Unit methods
+--[[--
+Unit methods.
+Methods for working with extraction units.
+
+@section Units
+--]]--
 Evac.units = {
     --[[-- Registers a unit as an evacuation unit, capable of performing evacutions
+
+    @function Evac.units.register
     @tparam string|table _unit   the name of the unit to register
     ]]
     register = function(_unit)
@@ -368,6 +422,8 @@ Evac.units = {
         }
     end,
     --[[-- Lists the currently active beacons broadcasting for the player's coalition
+
+    @function Evac.units.findEvacuees
     @tparam string _unit   the name of the unit searching for beacons
     ]]
     findEvacuees = function(_unit)
@@ -376,6 +432,8 @@ Evac.units = {
         Evac._internal.beacons.list(_unit)
     end,
     --[[-- Starts the evacuee loading process for a unit
+
+    @function Evac.units.loadEvacuees
     @tparam string _unit   the name of the unit to load evacuees onto
     ]]
     loadEvacuees = function(_unit)
@@ -401,6 +459,8 @@ Evac.units = {
         end
     end,
     --[[-- Starts the evacuee unloading process for a unit
+
+    @function Evac.units.unloadEvacuees
     @tparam string _unit   the name of the unit to unload evacuess from
     ]]
     unloadEvacuees = function(_unit)
@@ -409,6 +469,8 @@ Evac.units = {
         Evac._internal.aircraft.unloadEvacuees(_unit)
     end,
     --[[-- Count the number of evacuees on board a given unit
+
+    @function Evac.units.countEvacuees
     @tparam string _unit   the name of the unit to count evacuees aboard
     ]]
     countEvacuees = function(_unit)
@@ -419,6 +481,8 @@ Evac.units = {
         Gremlin.comms.displayMessageTo(_unit, 'You are currently carrying ' .. _count .. ' evacuees.', 1)
     end,
     --[[-- Count the number of units in a given zone
+
+    @function Evac.units.count
     @tparam string _zone   the name of the zone to count units within
     @treturn number        the number of units in the zone
     ]]
@@ -428,6 +492,8 @@ Evac.units = {
         return #(mist.getUnitsInZones(mist.makeUnitTable({'[all]'}, false), {_zone}, 'c'))
     end,
     --[[-- Unregisters a unit as an evacuation unit
+
+    @function Evac.units.unregister
     @tparam string|table _unit   the name of the unit to unregister
     ]]
     unregister = function(_unit)
@@ -441,11 +507,17 @@ Evac.units = {
     end
 }
 
---- Group methods
+--[[--
+Group methods.
+Methods for interacting with evacuee groups.
+
+@section Groups
+--]]--
 Evac.groups = {
     --[[-- Spawns generic evacuees when given a number for `_numberOrComposition`.
     For a mix of evac targets, pass a list of units to add instead.
 
+    @function Evac.groups.spawn
     @tparam number       _side                the coalition ID to spawn evacuees under
     @tparam number|table _numberOrComposition the number of units to spawn, or a table describing the units' attributes
     @tparam number       _country             the country ID to spawn the evacuees under
@@ -507,8 +579,9 @@ Evac.groups = {
 
         return _group
     end,
-    --[[-- Returns a list of all groups in a zone
+    --[[-- Returns a list of all groups in a zone.
 
+    @function Evac.groups.list
     @tparam string _zone   the zone name to check for evacuee groups
     @treturn {string,...}  the list of groups in the zone
     ]]
@@ -534,8 +607,9 @@ Evac.groups = {
 
         return groupsFound
     end,
-    --[[-- Returns a count of all groups in a zone
+    --[[-- Returns a count of all groups in a zone.
 
+    @function Evac.groups.count
     @tparam  string  _zone  the zone name to check for evacuee groups
     @treturn number         the list of groups in the zone
     ]]
@@ -550,7 +624,10 @@ Evac.groups = {
 ---- WE ALREADY SAID NOT TO EDIT THIS FILE, BUT ESPECIALLY NOT BELOW HERE! --
 ---- --------------------------------------------------------------------- ]]
 
--- Aircraft
+--- Aircraft.
+-- Internal methods for working with aircraft.
+--
+-- @local Evac._internal.aircraft
 Evac._internal.aircraft = {
     inZone = function(_unit, _evacMode)
         Gremlin.log.trace(Evac.Id, string.format('Checking For Unit In Zones : %s, %s', _unit, tostring(_evacMode)))
@@ -787,7 +864,10 @@ Evac._internal.aircraft = {
     end
 }
 
--- Beacons
+--- Beacons.
+-- Internal methods for working with beacons.
+--
+-- @local Evac._internal.beacons
 Evac._internal.beacons = {
     spawn = function(_zone, _side, _country, _batteryLife, _name)
         if _name == nil or _name == '' then
@@ -1089,7 +1169,10 @@ Evac._internal.beacons = {
     end
 }
 
--- Smoke
+--- Smoke.
+-- Internal methods for working with smoke.
+--
+-- @local Evac._internal.smoke
 Evac._internal.smoke = {
     refresh = function()
         Gremlin.log.trace(Evac.Id, string.format('Refreshing Smoke'))
@@ -1116,7 +1199,10 @@ Evac._internal.smoke = {
     end
 }
 
--- Zones
+--- Zones.
+-- Internal methods for working with zones.
+--
+-- @local Evac._internal.zones
 Evac._internal.zones = {
     register = function(_zone, _smoke, _side, _evacMode)
         Gremlin.log.trace(Evac.Id, string.format('Registering Zone Internally : %s, %i, %i, %i', _zone, _smoke, _side,
@@ -1282,7 +1368,10 @@ Evac._internal.zones = {
     end
 }
 
--- Menu
+--- Menu.
+-- Internal methods for working with the F10 menu.
+--
+-- @local Evac._internal.menu
 Evac._internal.menu = {
     updateF10 = function()
         Gremlin.log.trace(Evac.Id, string.format('Updating Menu'))
@@ -1350,7 +1439,10 @@ Evac._internal.menu = {
     }}
 }
 
--- Utilities
+--- Utilities.
+-- Internal methods for miscellaneous purposes.
+--
+-- @local Evac._internal.utils
 Evac._internal.utils = {
     currentGroup = Evac.idStart + 0,
     currentUnit = Evac.idStart + 0,
@@ -1516,7 +1608,10 @@ Evac._internal.utils = {
     end,
 }
 
--- Auto-spawn
+--- Auto-spawn.
+-- Internal method for spawning evacuees.
+--
+-- @local Evac._internal.doSpawns
 Evac._internal.doSpawns = function()
     Gremlin.log.trace(Evac.Id, string.format('Auto-Spawning Units (As Needed)'))
 
@@ -1653,10 +1748,9 @@ Evac._internal.doSpawns = function()
         local _addedUnits = false
 
         if _zone == '_global' then
-            ---@diagnostic disable-next-line: redefined-local
-            for _zone, _zoneData in pairs(Evac._state.zones.evac) do
+            for _zoneName, _zoneData in pairs(Evac._state.zones.evac) do
                 if _zoneData.active then
-                    _addedUnits = _doLoop(_zone, _rates, _lastChecked) or _addedUnits
+                    _addedUnits = _doLoop(_zoneName, _rates, _lastChecked) or _addedUnits
                 end
             end
         else
@@ -1682,7 +1776,10 @@ Evac._internal.doSpawns = function()
     Gremlin.log.debug(Evac.Id, string.format('Finished Auto-Spawning Units (As Needed)'))
 end
 
--- Event handlers
+--- Event handlers.
+-- Internal methods for working with events.
+--
+-- @local Evac._internal.handlers
 Evac._internal.handlers = {
     fullLoss = {
         event = world.event.S_EVENT_UNIT_LOST,
@@ -1764,8 +1861,16 @@ Evac._internal.handlers = {
 }
 
 --[[--
-Setup Gremlin Evac! The argument should contain a configuration table as
-shown below.
+Top level methods.
+Methods for interacting with Evac itself.
+
+@section TopLevel
+--]]--
+
+--[[--
+Setup Gremlin Evac.
+
+The argument should contain a configuration table as shown below.
 
 Example providing all the defaults:
 
@@ -1850,6 +1955,7 @@ zone(s) themselves. Four keys are required: `mode` (one of the constants in
 `Evac.modes`), `name`, `smoke` (one of the constants in `trigger.smokeColor`),
 and `side` (the coalition number this zone should be attached to).
 
+@function Evac:setup
 @tparam table config   a configuration for Gremlin Evac
 ]]
 function Evac:setup(config)

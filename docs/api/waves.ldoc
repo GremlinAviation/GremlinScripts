@@ -1,0 +1,16 @@
+file = '../../src/waves.lua'
+project = 'Gremlin Waves'
+title = 'Gremlin Waves'
+package = '../../src'
+description = 'Documenting Gremlin Waves'
+template = true
+template_escape = '>'
+dir = '.'
+output = 'waves'
+ext = 'md'
+merge = true
+sort = true
+custom_tags = {
+    { 'diagnostic', hidden = true }
+}
+no_space_before_args = true

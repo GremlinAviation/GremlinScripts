@@ -1,0 +1,16 @@
+file = '../../src/urgency.lua'
+project = 'Gremlin Urgency'
+title = 'Gremlin Urgency'
+package = '../../src'
+description = 'Documenting Gremlin Urgency'
+template = true
+template_escape = '>'
+dir = '.'
+output = 'urgency'
+ext = 'md'
+merge = true
+sort = true
+custom_tags = {
+    { 'diagnostic', hidden = true }
+}
+no_space_before_args = true
