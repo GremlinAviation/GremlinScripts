@@ -36,33 +36,27 @@ Evac:setup({
     lossFlags = { 1, 2 },
     lossThresholds = { 0, 25 },
     maxExtractable = {
-        {
-            ['Carrier Seaman'] = 12,
-            Infantry = 12,
-            M249 = 12,
-            RPG = 12,
-            StingerIgla = 12,
-            ["2B11"] = 12,
-            JTAC = 3,
-        },
-        {
-            ['Carrier Seaman'] = 12,
-            Infantry = 12,
-            M249 = 12,
-            RPG = 12,
-            StingerIgla = 12,
-            ["2B11"] = 12,
-            JTAC = 3,
+        _global = {
+            {
+                Generic = { 12, 12, [0] = 0 },
+                Infantry = { 12, 12, [0] = 0 },
+                M249 = { 12, 12, [0] = 0 },
+                RPG = { 12, 12, [0] = 0 },
+                StingerIgla = { 12, 12, [0] = 0 },
+                ["2B11"] = { 12, 12, [0] = 0 },
+                JTAC = { 3, 3, [0] = 0 },
+            },
         },
     },
     spawnWeight = 50,
     spawnRates = {
         ["Test 1"] = {
-            nil,
             {
+                side = coalition.side.BLUE,
                 units = 12,
-                per = 5,
-                period = Gremlin.Periods.Minute,
+                startTrigger = { type = 'time', value = 0 },
+                spawnTrigger = { type = 'repeat', value = { per = 5, period = Gremlin.Periods.Minute } },
+                endTrigger = { type = 'limits', value = 100 },
             },
         },
     },
@@ -82,7 +76,7 @@ Initializes Gremlin Evac, overriding all the defaults:
 - any beacons are killed after 2 minutes (default is 30)
 - the beacon sound file is changed to something mission specific
 - the list of craft that can perform evac ops is reset to just the `SH60B` Unit type at a max loadout of 15 evacuees
-- the starting ID is dropped from 500 to 5
+- the starting ID is dropped from 50000 to 5
 - the time it takes to load or unload evacuees is set to 2 seconds per evacuee (down from 30 seconds)
 - the flags used to indicate evacuation mission failure are set to 1 and 2, respectively (default is `GremlinEvacRedLoss` and `GremlinEvacBlueLoss`)
 - the percentage of evacuees that can be lost is set to 0 for red, and 25 for blue (default is 25 for both)

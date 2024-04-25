@@ -1,7 +1,7 @@
 <!-- markdownlint-disable MD041 -->
 ## Usage
 
-Gremlin Script Tools is an abstraction framework built on MiST. It doesn't do much on its own, yet, but we're working on adding more! Here's how to use what's already working:
+Gremlin is an abstraction framework that makes working with DCS in scripts much simpler. It doesn't do much on its own, yet, but we're working on adding more! Here's how to use some of what's already working:
 
 ```lua,editable
 Gremlin:setup()

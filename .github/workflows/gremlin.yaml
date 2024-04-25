@@ -1,4 +1,4 @@
-name: 'Gremlin Script Tools'
+name: 'Gremlin'
 
 on:
   push:

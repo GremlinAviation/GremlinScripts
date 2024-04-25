@@ -119,8 +119,8 @@ Urgency._internal.doCountdowns = function()
 
     local _needsStart = {}
     for _name, _countdown in pairs(Urgency._state.countdowns.pending) do
-        if (_countdown.startTrigger.type == 'time' and _countdown.startTrigger.value <= _now)
-            or (_countdown.startTrigger.type == 'flag' and trigger.misc.getUserFlag(_countdown.startTrigger.value) ~= 0)
+        if Gremlin.utils.checkTrigger(_countdown.startTrigger, 'time')
+            or Gremlin.utils.checkTrigger(_countdown.startTrigger, 'flag')
         then
             table.insert(_needsStart, _name)
             Gremlin.log.trace(Urgency.Id, string.format('%s-Based Countdown Started : %s', _countdown.startTrigger.type, _name))
@@ -260,13 +260,7 @@ Urgency._internal.handlers = {
             Gremlin.log.trace(Urgency.Id, string.format('Checking Event Against Countdowns : %s', Gremlin.events.idToName[_event.id] or _event.id))
 
             for _name, _countdown in pairs(Urgency._state.countdowns.pending) do
-                if _countdown.startTrigger.type == 'event'
-                    and (
-                        _countdown.startTrigger.value.id == _event.id
-                        or _countdown.startTrigger.value.id == -1
-                    )
-                    and _countdown.startTrigger.value.filter(_event)
-                then
+                if Gremlin.utils.checkTrigger(_countdown.startTrigger, 'event', _event) then
                     Urgency._internal.startCountdown(_name)
 
                     Gremlin.log.trace(Urgency.Id, string.format('Started Countdown : %s', _name))
@@ -274,13 +268,7 @@ Urgency._internal.handlers = {
             end
 
             for _name, _countdown in pairs(Urgency._state.countdowns.active) do
-                if _countdown.endTrigger.type == 'event'
-                    and (
-                        _countdown.endTrigger.value.id == _event.id
-                        or _countdown.endTrigger.value.id == -1
-                    )
-                    and _countdown.endTrigger.value.filter(_event)
-                then
+                if Gremlin.utils.checkTrigger(_countdown.endTrigger, 'event', _event) then
                     Urgency._internal.endCountdown(_name)
 
                     Gremlin.log.trace(Urgency.Id, string.format('Ended Countdown : %s', _name))
@@ -320,7 +308,7 @@ function Urgency:setup(config)
     end
 
     assert(Gremlin ~= nil,
-        '\n\n** HEY MISSION-DESIGNER! **\n\nGremlin Script Tools has not been loaded!\n\nMake sure Gremlin Script Tools is loaded *before* running this script!\n')
+        '\n\n** HEY MISSION-DESIGNER! **\n\nGremlin has not been loaded!\n\nMake sure Gremlin is loaded *before* running this script!\n')
 
     if not Gremlin.alreadyInitialized or config.forceReload then
         Gremlin:setup(config)

@@ -3,4 +3,4 @@
 
 ### `Gremlin:setup(config)`
 
-Sets up Gremlin Scripting Tools. Docs for this are in [the setup section](./setup.md).
+Sets up Gremlin. Docs for this are in [the setup section](./setup.md).

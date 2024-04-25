@@ -392,6 +392,114 @@ TestGremlinMenu = {
 
 TestGremlinUtils = {
     setUp = setUp,
+    testCheckTriggerEvent = function()
+        -- INIT
+        local _testTriggerTrue = {
+            type = 'event',
+            value = { id = -1, filter = function() return true end},
+        }
+        local _testTriggerFalse = {
+            type = 'event',
+            value = { id = -1, filter = function() return false end},
+        }
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.checkTrigger(_testTriggerTrue, 'event'), true)
+        lu.assertEquals(Gremlin.utils.checkTrigger(_testTriggerFalse, 'event'), false)
+
+        -- SIDE EFFECTS
+        -- N/A?
+    end,
+    testCheckTriggerFlag = function()
+        -- INIT
+        local _testTriggerTrue = {
+            type = 'flag',
+            value = 'True',
+        }
+        local _testTriggerFalse = {
+            type = 'flag',
+            value = 'False',
+        }
+
+        trigger.action.getUserFlag:whenCalled({ with = { 'True' }, thenReturn = { 1 } })
+        trigger.action.getUserFlag:whenCalled({ with = { 'False' }, thenReturn = { 0 } })
+        trigger.action.setUserFlag:whenCalled({ with = { 'True', ValueMatcher.anyBoolean }, thenReturn = nil })
+        trigger.action.setUserFlag:whenCalled({ with = { 'False', ValueMatcher.anyBoolean }, thenReturn = nil })
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.checkTrigger(_testTriggerTrue, 'flag'), true)
+        lu.assertEquals(Gremlin.utils.checkTrigger(_testTriggerFalse, 'flag'), false)
+
+        -- SIDE EFFECTS
+        -- N/A?
+    end,
+    testCheckTriggerMenu = function()
+        -- INIT
+        local _testTriggerTrue = {
+            type = 'menu',
+            value = 'Test',
+        }
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.checkTrigger(_testTriggerTrue, 'menu'), true)
+
+        -- SIDE EFFECTS
+        -- N/A?
+    end,
+    testCheckTriggerRepeat = function()
+        -- INIT
+        local _testTriggerTrue = {
+            type = 'repeat',
+            value = { per = 0, period = Gremlin.Periods.Second },
+        }
+        local _testTriggerFalse = {
+            type = 'repeat',
+            value = { per = 100, period = Gremlin.Periods.Second },
+        }
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.checkTrigger(_testTriggerTrue, 'repeat', 0), true)
+        lu.assertEquals(Gremlin.utils.checkTrigger(_testTriggerFalse, 'repeat', 0), false)
+
+        -- SIDE EFFECTS
+        -- N/A?
+    end,
+    testCheckTriggerTimeNumber = function()
+        -- INIT
+        local _testTriggerTrue = {
+            type = 'time',
+            value = 0,
+        }
+        local _testTriggerFalse = {
+            type = 'time',
+            value = 100,
+        }
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.checkTrigger(_testTriggerTrue, 'time'), true)
+        lu.assertEquals(Gremlin.utils.checkTrigger(_testTriggerFalse, 'time'), false)
+
+        -- SIDE EFFECTS
+        -- N/A?
+    end,
+    testCheckTriggerTimeTable = function()
+        -- INIT
+        local _testTriggerTrue = {
+            type = 'time',
+            value = { after = 0, period = Gremlin.Periods.Second },
+        }
+        local _testTriggerFalse = {
+            type = 'time',
+            value = { after = 100, period = Gremlin.Periods.Second },
+        }
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.checkTrigger(_testTriggerTrue, 'time'), true)
+        lu.assertEquals(Gremlin.utils.checkTrigger(_testTriggerFalse, 'time'), false)
+
+        -- SIDE EFFECTS
+        -- N/A?
+    end,
     testCountTableEntries = function()
         -- INIT
         -- N/A?
@@ -420,6 +528,20 @@ TestGremlinUtils = {
 
         -- TEST
         lu.assertEquals(Gremlin.utils.inspect(nil), 'nil')
+
+        -- SIDE EFFECTS
+        -- N/A?
+    end,
+    testInnerSquash = function()
+        -- INIT
+        local _testTable = {
+            a = { 'a', 'aa', 'aaa' },
+            b = { 'b', 'bb', 'bbb' },
+            c = { 'c', 'cc', 'ccc' },
+        }
+
+        -- TEST
+        lu.assertEquals(Gremlin.utils.innerSquash(_testTable, 2), { a = 'aa', b = 'bb', c = 'cc' })
 
         -- SIDE EFFECTS
         -- N/A?
@@ -470,7 +592,7 @@ TestGremlinUtils = {
         local _result = Gremlin.utils.inspect(Gremlin.utils.inspect)
 
         -- TEST
-        lu.assertStrContains(_result, "%<function%>   %{.+\n    %['short_src'%] = '.+\\src\\gremlin.lua',\n  }", true)
+        lu.assertStrContains(_result, "%<function%> %{.+\n    %['short_src'%] = '.+\\src\\gremlin.lua',\n  }", true)
 
         -- SIDE EFFECTS
         -- N/A?
