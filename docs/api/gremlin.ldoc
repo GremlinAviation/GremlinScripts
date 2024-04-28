@@ -1,8 +1,8 @@
 file = '../../src/gremlin.lua'
-project = 'Gremlin Script Tools'
-title = 'Gremlin Script Tools'
+project = 'Gremlin'
+title = 'Gremlin'
 package = '../../src'
-description = 'Documenting Gremlin Script Tools'
+description = 'Documenting Gremlin'
 template = true
 template_escape = '>'
 dir = '.'

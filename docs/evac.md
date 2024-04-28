@@ -8,4 +8,5 @@ The Gremlin Evac script sets up your missions to include evacuation scenarios. S
 - Loading and unloading via in-game menus
 - Manual overrides via config and function calls
 - Automatic loss for any side that loses too many evacuees
+- Automatic win for any side that rescues enough evacuees
 - More coming soon!

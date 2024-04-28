@@ -25,6 +25,7 @@ Waves = {
             flag = {},
             menu = {},
             event = {},
+            ['repeat'] = {},
         }
     },
 
@@ -251,16 +252,19 @@ Waves._internal.timeWave = function()
     if not Waves._state.paused then
         Gremlin.log.trace(Waves.Id, string.format('Checking On Next Wave'))
 
-        for _name, _wave in pairs(Waves.config.waves.time) do
-            if (_wave.trigger.type == 'time' and not _wave.trigger.fired and _wave.trigger.value <= timer.getTime()) then
-                Waves.config.waves.time[_name].trigger.fired = true
-                Waves._internal.spawnWave(_name, _wave)
-            end
-        end
-
-        for _name, _wave in pairs(Waves.config.waves.flag) do
-            if (_wave.trigger.type == 'flag' and not _wave.trigger.fired and trigger.misc.getUserFlag(_wave.trigger.value) ~= 0) then
-                Waves.config.waves.flag[_name].trigger.fired = true
+        for _name, _wave in pairs(Gremlin.utils.mergeTables(Waves.config.waves.time, Waves.config.waves.flag, Waves.config.waves['repeat'])) do
+            if
+                _wave.trigger.fired ~= true
+                and (
+                    Gremlin.utils.checkTrigger(_wave.trigger, 'time')
+                    or Gremlin.utils.checkTrigger(_wave.trigger, 'flag')
+                    or Gremlin.utils.checkTrigger(_wave.trigger, 'repeat', _wave.trigger.fired)
+                )
+            then
+                Waves.config.waves[_wave.trigger.type][_name].trigger.fired = true
+                if _wave.trigger.type == 'repeat' then
+                    Waves.config.waves[_wave.trigger.type][_name].trigger.fired = timer.getTime()
+                end
                 Waves._internal.spawnWave(_name, _wave)
             end
         end
@@ -342,7 +346,7 @@ function Waves:setup(config)
     end
 
     assert(Gremlin ~= nil,
-        '\n\n** HEY MISSION-DESIGNER! **\n\nGremlin Script Tools has not been loaded!\n\nMake sure Gremlin Script Tools is loaded *before* running this script!\n')
+        '\n\n** HEY MISSION-DESIGNER! **\n\nGremlin has not been loaded!\n\nMake sure Gremlin is loaded *before* running this script!\n')
 
     if not Gremlin.alreadyInitialized or config.forceReload then
         Gremlin:setup(config)
@@ -359,7 +363,7 @@ function Waves:setup(config)
     if not Waves._state.alreadyInitialized or config.forceReload then
         Waves.config.adminPilotNames = config.adminPilotNames or {}
 
-        local _waves = { time = {}, flag = {}, menu = {}, event = {} }
+        local _waves = { time = {}, flag = {}, menu = {}, event = {}, ['repeat'] = {} }
         for _name, _wave in pairs(config.waves) do
             if _wave.trigger.type ~= nil and _waves[_wave.trigger.type] ~= nil then
                 _waves[_wave.trigger.type][_name] = _wave

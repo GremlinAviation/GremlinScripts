@@ -3,7 +3,7 @@
 
 [Introduction](./intro.md)
 
-# Gremlin Script Tools
+# Gremlin (Core)
 
 - [About](./gremlin.md)
   - [Setup](./gremlin/setup.md)

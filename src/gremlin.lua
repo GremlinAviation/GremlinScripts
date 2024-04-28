@@ -1,5 +1,5 @@
 --[[--
-Gremlin Script Tools.
+Gremlin.
 
 DO NOT EDIT THIS SCRIPT DIRECTLY! Things WILL break that way.
 
@@ -13,7 +13,7 @@ if table.unpack == nil then
 end
 
 Gremlin = {
-    Id = 'Gremlin Script Tools',
+    Id = 'Gremlin',
     Version = '202404.01',
 
     -- Config
@@ -325,6 +325,39 @@ Gremlin = {
     --
     -- @section Utils
     utils = {
+        --- Check whether a trigger condition has been met.
+        --
+        -- @tparam  table  _trigger  The trigger definition table to check against
+        -- @tparam  string _type     The trigger type to check for
+        -- @tparam  any    _extra    Any extra data needed to perform the check, or nil
+        -- @treturn boolean          Whether the trigger condition has been met
+        checkTrigger = function(_trigger, _type, _extra)
+            if _trigger.type == _type then
+                if _trigger.type == 'event' then
+                    return (_extra == nil or _extra == -1 or _trigger.value.id == _extra.id) and _trigger.value.filter(_extra or { id = -1 })
+                elseif _trigger.type == 'flag' then
+                    local _val = trigger.action.getUserFlag(_trigger.value)
+                    trigger.action.setUserFlag(_trigger.value, false)
+
+                    return _val > 0
+                elseif _trigger.type == 'menu' then
+                    return true
+                elseif _trigger.type == 'repeat' then
+                    return (_extra + (math.abs(_trigger.value.per) * _trigger.value.period)) <= timer.getTime()
+                elseif _trigger.type == 'time' then
+                    local _val
+                    if type(_trigger.value) == 'number' then
+                        _val = _trigger.value
+                    else
+                        _val = math.abs(_trigger.value.after or 0) * (_trigger.value.period or 0)
+                    end
+
+                    return _val <= timer.getTime()
+                end
+            end
+
+            return false
+        end,
         --- Count items in a table, numeric or otherwise.
         --
         -- @function Gremlin.utils.countTableEntries
@@ -360,19 +393,29 @@ Gremlin = {
 
             return _outZones
         end,
+        --- Flattens a table by removing the second level, rather than the first
+        --
+        -- @tparam  table         _tbl  The table to flatten
+        -- @tparam  string|number _idx  The inner index to extract
+        -- @treturn table               The flattened table
+        innerSquash = function(_tbl, _idx)
+            local _outTbl = {}
+
+            for _key, _intermediate in pairs(_tbl) do
+                _outTbl[_key] = _intermediate[_idx]
+            end
+
+            return _outTbl
+        end,
         --- Get a mostly-Lua representation of a value.
         --
         -- @function Gremlin.utils.inspect
         -- @tparam  any     _value  The value to inspect
-        -- @tparam  integer _depth  How deep to inspect
+        -- @tparam  integer _depth  How deep we've already inspected; should be 0 or nil
         -- @treturn string          A string representation of the value
         inspect = function(_value, _depth)
             if _depth == nil then
                 _depth = 0
-            end
-
-            if _depth > 5 then
-                return '...'
             end
 
             if type(_value) == 'nil' then
@@ -382,13 +425,17 @@ Gremlin = {
             elseif type(_value) == 'string' then
                 return string.format("'%s'", _value)
             elseif type(_value) == 'table' then
+                if _depth > 5 then
+                    return '...'
+                end
+
                 local _contents = ''
 
                 for _key, _val in pairs(_value) do
                     _contents = string.format('%s%s[%s] = %s,\n', _contents, string.rep('  ', _depth + 1), Gremlin.utils.inspect(_key, _depth + 1), Gremlin.utils.inspect(_val, _depth + 1))
                 end
 
-                return string.format('%s{\n%s%s}', string.rep('  ', _depth), _contents, string.rep('  ', _depth))
+                return string.format('{\n%s%s}', _contents, string.rep('  ', _depth))
             elseif type(_value) == 'function' then
                 return string.format('<function> %s', Gremlin.utils.inspect(debug.getinfo(_value), _depth + 1))
             elseif type(_value) == 'thread' or type(_value) == 'userdata' then
@@ -490,7 +537,7 @@ Gremlin = {
 --- Setup Gremlin.
 --
 -- @function Gremlin:setup
--- @tparam table config  The settings table to configure Gremlin Script Tools using
+-- @tparam table config  The settings table to configure Gremlin using
 function Gremlin:setup(config)
     if Gremlin.alreadyInitialized and not config.forceReload then
         Gremlin.log.info(Gremlin.Id, string.format('Bypassing initialization because Gremlin.alreadyInitialized = true'))

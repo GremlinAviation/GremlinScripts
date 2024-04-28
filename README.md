@@ -6,7 +6,7 @@ This is the Gremlin Scripts repo! Everything you need to succeed with DCS missio
 
 Simply copy the contents of the `src` directory to your `Missions` folder in `Saved Games`. If you like, you can also grab MiST from this project's `lib` folder, though it's usually best to grab the latest version [directly from GitHub](https://github.com/mrSkortch/MissionScriptingTools). **NOTE THAT MiST WILL BE REMOVED FROM THIS REPO SOON, AS WE ARE MOVING AWAY FROM IT!**
 
-Once you have the files in place, add a trigger to load MiST (follow its documentation for the best ways to do this), a second to load Gremlin Script Tools, and then a third to load the exact script you wish to use, such as Gremlin Evac. Once all three are loaded, the final step is to fully set up the script(s) to do their thing - see the relevant Configuration section in the docs for more on this.
+Once you have the files in place, add a trigger to load MiST (follow its documentation for the best ways to do this), a second to load Gremlin, and then a third to load the exact script you wish to use, such as Gremlin Evac. Once all three are loaded, the final step is to fully set up the script(s) to do their thing - see the relevant Configuration section in the docs for more on this.
 
 And that's it! The scripts are installed and working from this point on.
 
@@ -14,7 +14,7 @@ And that's it! The scripts are installed and working from this point on.
 
 ### gremlin.lua
 
-The Gremlin Script Tools file provides common features that all Gremlin Scripts use to do their thing. It must be loaded after MiST, and before any other Gremlin Scripts components. [Full documentation is here](https://ilsystems.github.io/GremlinScripts/gremlin.html).
+The Gremlin file provides common features that all Gremlin Scripts use to do their thing. It must be loaded after MiST, and before any other Gremlin Scripts components. [Full documentation is here](https://ilsystems.github.io/GremlinScripts/gremlin.html).
 
 ### evac.lua
 

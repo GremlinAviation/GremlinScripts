@@ -23,6 +23,7 @@ Evac = {
     -- Config
 
     config = {
+        adminPilotNames = {},
         beaconBatteryLife = 0, -- How long a beacon should last, in minutes
         beaconSound = '', -- The audio file to play for beacons
         carryLimits = {}, -- The max carrying capacity of the aircraft in this misson; table should be a list of capacities keyed by the unit type name
@@ -30,23 +31,17 @@ Evac = {
         loadUnloadPerIndividual = 0, -- How long it takes to load one unit, in seconds
         lossFlags = {0, 0}, -- The Mission Editor flags to set when the players lose too many forces
         lossThresholds = {0, 0}, -- The percentage of evacuees that can be lost before mission loss
-        maxExtractable = {{ -- The maximum number of each unit to generate when spawning units
-            ['Carrier Seaman'] = 0,
-            Infantry = 0,
-            M249 = 0,
-            RPG = 0,
-            StingerIgla = 0,
-            ['2B11'] = 0,
-            JTAC = 0
-        }, {
-            ['Carrier Seaman'] = 0,
-            Infantry = 0,
-            M249 = 0,
-            RPG = 0,
-            StingerIgla = 0,
-            ['2B11'] = 0,
-            JTAC = 0
-        }},
+        maxExtractable = { -- The maximum number of each unit to generate when spawning units
+            _global = {
+                Generic = { 0, 0, [0] = 0 },
+                Infantry = { 0, 0, [0] = 0 },
+                M249 = { 0, 0, [0] = 0 },
+                RPG = { 0, 0, [0] = 0 },
+                StingerIgla = { 0, 0, [0] = 0 },
+                ['2B11'] = { 0, 0, [0] = 0 },
+                JTAC = { 0, 0, [0] = 0 },
+            },
+        },
         spawnRates = {}, -- How frequently to spawn new units, per zone
         spawnWeight = 0, -- The default weight of new units; exact weights will vary by unit
         winFlags = {0, 0}, -- The Mission Editor flags to set when the players evacuate enough forces
@@ -102,50 +97,37 @@ Evac = {
                 used = {}
             }
         },
-        lostEvacuees = {{
-            ['Carrier Seaman'] = 0,
-            Infantry = 0,
-            M249 = 0,
-            RPG = 0,
-            StingerIgla = 0,
-            ['2B11'] = 0,
-            JTAC = 0
-        }, {
-            ['Carrier Seaman'] = 0,
-            Infantry = 0,
-            M249 = 0,
-            RPG = 0,
-            StingerIgla = 0,
-            ['2B11'] = 0,
-            JTAC = 0
-        }},
+        lostEvacuees = {
+            Generic = { 0, 0, [0] = 0 },
+            Infantry = { 0, 0, [0] = 0 },
+            M249 = { 0, 0, [0] = 0 },
+            RPG = { 0, 0, [0] = 0 },
+            StingerIgla = { 0, 0, [0] = 0 },
+            ['2B11'] = { 0, 0, [0] = 0 },
+            JTAC = { 0, 0, [0] = 0 },
+        },
         smoke = {},
         spawns = {
-            alreadySpawned = {{
-                ['Carrier Seaman'] = 0,
-                Infantry = 0,
-                M249 = 0,
-                RPG = 0,
-                StingerIgla = 0,
-                ['2B11'] = 0,
-                JTAC = 0
-            }, {
-                ['Carrier Seaman'] = 0,
-                Infantry = 0,
-                M249 = 0,
-                RPG = 0,
-                StingerIgla = 0,
-                ['2B11'] = 0,
-                JTAC = 0
-            }},
-            lastChecked = {}
+            alreadySpawned = {
+                Generic = { 0, 0, [0] = 0 },
+                Infantry = { 0, 0, [0] = 0 },
+                M249 = { 0, 0, [0] = 0 },
+                RPG = { 0, 0, [0] = 0 },
+                StingerIgla = { 0, 0, [0] = 0 },
+                ['2B11'] = { 0, 0, [0] = 0 },
+                JTAC = { 0, 0, [0] = 0 },
+            },
+            pending = {},
+            active = {},
+            completed = {},
+            lastSpawned = {},
         },
         zones = {
             evac = {},
             relay = {},
             safe = {}
-        }
-    }
+        },
+    },
 }
 
 -- Methods
@@ -863,7 +845,34 @@ Evac._internal.aircraft = {
             Gremlin.comms.displayMessageTo(_unit, _message, _displayFor)
             Evac._internal.utils.endIfEnoughGotOut()
         end, { _timeNow + 0.01 }, _timeNow + 0.01, 1, _timeNow + _timeout + 0.02)
-    end
+    end,
+    getAdminUnits = function()
+        Gremlin.log.trace(Evac.Id, string.format('Scanning For Admin Units'))
+
+        local _units = {}
+
+        for _name, _ in pairs(mist.DBs.unitsByName) do
+            local _unit = Unit.getByName(_name)
+
+            if _unit ~= nil and _unit.isExist ~= nil and _unit:isExist() and _unit.getPlayerName ~= nil then
+                local _pilot = _unit:getPlayerName()
+                if _pilot ~= nil and _pilot ~= '' then
+                    Gremlin.log.trace(Evac.Id, string.format('Found A Pilot : %s (in %s)', _pilot, _name))
+
+                    for _, _adminName in pairs(Evac.config.adminPilotNames) do
+                        if _adminName == _pilot then
+                            _units[_name] = _unit
+                            break
+                        end
+                    end
+                end
+            end
+        end
+
+        Gremlin.log.trace(Evac.Id, string.format('Scan Complete : Found %i Active Admin Units', Gremlin.utils.countTableEntries(_units)))
+
+        return _units
+    end,
 }
 
 --- Beacons.
@@ -1227,7 +1236,7 @@ Evac._internal.zones = {
         end
 
         local _groupName = 'Evacuee Group'
-        local _unitType = 'Carrier Seaman'
+        local _unitType = 'Generic'
         local _groupId = Evac._internal.utils.getNextGroupId()
         local _composition = {}
         local _troops = {}
@@ -1450,20 +1459,40 @@ Evac._internal.utils = {
     endIfEnoughGotOut = function()
         Gremlin.log.trace(Evac.Id, string.format('Checking Whether To End The Mission'))
 
-        for _side, _maxExtract in pairs(Evac.config.maxExtractable) do
-            local _saved = Evac._internal.utils.tallyEvacueesInZones(Evac._state.zones.safe)
+        local _saved = Evac._internal.utils.tallyEvacueesInZones(Evac._state.zones.safe)
 
-            local _pilot = _saved['Carrier Seaman'] / _maxExtract['Carrier Seaman']
-            local _infantry = _saved.Infantry / _maxExtract.Infantry
-            local _2b11 = _saved['2B11'] / _maxExtract['2B11']
-            local _m249 = _saved.M249 / _maxExtract.M249
-            local _rpg = _saved.RPG / _maxExtract.RPG
-            local _stingerIgla = _saved.StingerIgla / _maxExtract.StingerIgla
-            local _jtac = _saved.JTAC / _maxExtract.JTAC
-            local _combined = (_pilot + _infantry + _2b11 + _m249 + _rpg + _stingerIgla + _jtac) / 7
+        -- Only check red and blue - neutral coalition win isn't available in DCS
+        for _side = 1, 2 do
+            local _generic = 0
+            local _infantry = 0
+            local _2b11 = 0
+            local _m249 = 0
+            local _rpg = 0
+            local _stingerIgla = 0
+            local _jtac = 0
+
+            for _, _maxExtract in pairs(Evac.config.maxExtractable) do
+                _generic = _generic + _maxExtract.Generic[_side]
+                _infantry = _infantry + _maxExtract.Infantry[_side]
+                _2b11 = _2b11 + _maxExtract['2B11'][_side]
+                _m249 = _m249 + _maxExtract.M249[_side]
+                _rpg = _rpg + _maxExtract.RPG[_side]
+                _stingerIgla = _stingerIgla + _maxExtract.StingerIgla[_side]
+                _jtac = _jtac + _maxExtract.JTAC[_side]
+            end
+
+            _generic = _saved.Generic / _generic
+            _infantry = _saved.Infantry / _infantry
+            _2b11 = _saved['2B11'] / _2b11
+            _m249 = _saved.M249 / _m249
+            _rpg = _saved.RPG / _rpg
+            _stingerIgla = _saved.StingerIgla / _stingerIgla
+            _jtac = _saved.JTAC / _jtac
+
+            local _combined = (_generic + _infantry + _2b11 + _m249 + _rpg + _stingerIgla + _jtac) / 7
 
             if (_combined > 0 and _combined >= (Evac.config.winThresholds[_side] / 100)) or
-                (_pilot > 0 and _pilot >= (Evac.config.winThresholds[_side] / 100)) then
+                (_generic > 0 and _generic >= (Evac.config.winThresholds[_side] / 100)) then
                 Gremlin.events.fire({ id = 'Evac:Win', side = _side })
                 trigger.action.setUserFlag(Evac.config.winFlags[_side], true)
             end
@@ -1472,22 +1501,44 @@ Evac._internal.utils = {
     endIfLossesTooHigh = function()
         Gremlin.log.trace(Evac.Id, string.format('Checking Whether To End The Mission'))
 
-        for _side, _maxExtract in pairs(Evac.config.maxExtractable) do
-            local _lost = Evac._state.lostEvacuees[_side]
+        -- Only check red and blue - neutral coalition loss isn't available in DCS
+        for _side = 1, 2 do
+            local _generic = 0
+            local _infantry = 0
+            local _2b11 = 0
+            local _m249 = 0
+            local _rpg = 0
+            local _stingerIgla = 0
+            local _jtac = 0
 
-            local _pilot = _lost['Carrier Seaman'] / _maxExtract['Carrier Seaman']
-            local _infantry = _lost.Infantry / _maxExtract.Infantry
-            local _2b11 = _lost['2B11'] / _maxExtract['2B11']
-            local _m249 = _lost.M249 / _maxExtract.M249
-            local _rpg = _lost.RPG / _maxExtract.RPG
-            local _stingerIgla = _lost.StingerIgla / _maxExtract.StingerIgla
-            local _jtac = _lost.JTAC / _maxExtract.JTAC
-            local _combined = (_pilot + _infantry + _2b11 + _m249 + _rpg + _stingerIgla + _jtac) / 7
+            local _lost = Gremlin.utils.innerSquash(Evac._state.lostEvacuees, _side)
 
-            if (_combined > 0 and _combined >= (Evac.config.lossThresholds[_side] / 100)) or
-                (_pilot > 0 and _pilot >= (Evac.config.lossThresholds[_side] / 100)) then
-                Gremlin.events.fire({ id = 'Evac:Loss', side = _side })
-                trigger.action.setUserFlag(Evac.config.lossFlags[_side], true)
+            for _, _maxExtract in pairs(Evac.config.maxExtractable) do
+                local _limits = Gremlin.utils.innerSquash(_maxExtract, _side)
+
+                _generic = _generic + _limits.Generic
+                _infantry = _infantry + _limits.Infantry
+                _2b11 = _2b11 + _limits['2B11']
+                _m249 = _m249 + _limits.M249
+                _rpg = _rpg + _limits.RPG
+                _stingerIgla = _stingerIgla + _limits.StingerIgla
+                _jtac = _jtac + _limits.JTAC
+            end
+
+            _generic = _lost.Generic / _generic
+            _infantry = _lost.Infantry / _infantry
+            _2b11 = _lost['2B11'] / _2b11
+            _m249 = _lost.M249 / _m249
+            _rpg = _lost.RPG / _rpg
+            _stingerIgla = _lost.StingerIgla / _stingerIgla
+            _jtac = _lost.JTAC / _jtac
+
+            local _combined = (_generic + _infantry + _2b11 + _m249 + _rpg + _stingerIgla + _jtac) / 7
+
+            if (_combined > 0 and _combined >= (Evac.config.lossThresholds[_side] / 100))
+                or (_generic > 0 and _generic >= (Evac.config.lossThresholds[_side] / 100)) then
+                    Gremlin.events.fire({ id = 'Evac:Loss', side = _side })
+                    trigger.action.setUserFlag(Evac.config.lossFlags[_side], true)
             end
         end
     end,
@@ -1499,20 +1550,6 @@ Evac._internal.utils = {
         end
 
         return _menuUnits
-    end,
-    getUnitZone = function(_unit)
-        Gremlin.log.trace(Evac.Id, string.format('Getting Unit Zone : %s', _unit))
-
-        local _zones = Gremlin.utils.getUnitZones(_unit)
-        local _outZones = {}
-
-        for _, _zone in pairs(_zones) do
-            if Evac._state.zones.evac[_zone] ~= nil or Evac._state.zones.relay[_zone] ~= nil or Evac._state.zones.safe[_zone] ~= nil then
-                table.insert(_outZones, _zone)
-            end
-        end
-
-        return _outZones[1]
     end,
     getNextGroupId = function()
         Gremlin.log.trace(Evac.Id, string.format('Getting Next Group ID'))
@@ -1528,6 +1565,24 @@ Evac._internal.utils = {
 
         return Evac._internal.utils.currentUnit
     end,
+    getUnitZone = function(_unit)
+        Gremlin.log.trace(Evac.Id, string.format('Getting Unit Zone : %s', _unit))
+
+        local _zones = Gremlin.utils.getUnitZones(_unit)
+        local _outZones = {}
+
+        for _, _zone in pairs(_zones) do
+            if Evac._state.zones.evac[_zone] ~= nil or Evac._state.zones.relay[_zone] ~= nil or Evac._state.zones.safe[_zone] ~= nil then
+                table.insert(_outZones, _zone)
+            end
+        end
+
+        Gremlin.log.debug(Evac.Id,
+            string.format('Returning Unit Zone == %s : %s is in %s', _outZones[1], _unit,
+                Gremlin.utils.inspect(_outZones)))
+
+        return _outZones[1]
+    end,
     randomizeWeight = function(_weight)
         Gremlin.log.trace(Evac.Id, string.format('Randomizing Weight : %i', _weight or -1))
 
@@ -1535,7 +1590,7 @@ Evac._internal.utils = {
     end,
     tallyEvacueesInZones = function(_zoneList)
         local _evacCounter = {
-            ['Carrier Seaman'] = 0,
+            Generic = 0,
             Infantry = 0,
             ['2B11'] = 0,
             M249 = 0,
@@ -1545,7 +1600,7 @@ Evac._internal.utils = {
         }
 
         for _zone, _ in pairs(_zoneList) do
-            for _, _evacuee in pairs(Evac._state.extractableNow[_zone]) do
+            for _, _evacuee in pairs(Evac._state.extractableNow[_zone] or {}) do
                 _evacCounter[_evacuee.type] = (_evacCounter[_evacuee.type] or 0) + 1
             end
         end
@@ -1557,7 +1612,7 @@ Evac._internal.utils = {
 
         local typeTranslation = {
             [0] = { -- Neutral
-                ['Carrier Seaman'] = 'Carrier Seaman',
+                Generic = 'Carrier Seaman',
                 Infantry = 'Soldier AK',
                 M249 = 'Soldier M249',
                 RPG = 'Paratrooper RPG-16',
@@ -1566,7 +1621,7 @@ Evac._internal.utils = {
                 JTAC = 'JTAC',
             },
             [1] = { -- RedFor
-                ['Carrier Seaman'] = 'Carrier Seaman',
+                Generic = 'Carrier Seaman',
                 Infantry = 'Soldier AK',
                 M249 = 'Soldier M249',
                 RPG = 'Paratrooper RPG-16',
@@ -1575,7 +1630,7 @@ Evac._internal.utils = {
                 JTAC = 'JTAC',
             },
             [2] = { -- BlueFor
-                ['Carrier Seaman'] = 'Carrier Seaman',
+                Generic = 'Carrier Seaman',
                 Infantry = 'Soldier M4',
                 M249 = 'Soldier M249',
                 RPG = 'Soldier RPG',
@@ -1603,6 +1658,11 @@ Evac._internal.utils = {
                 y = _point.z + _yOffset,
                 heading = _angle
             }
+
+            if _unitsOut[_i].type == 'Carrier Seaman' then
+                _unitsOut[_i].shape = 'carrier_seaman_USA'
+                _unitsOut[_i].type = nil
+            end
         end
 
         return _unitsOut
@@ -1610,172 +1670,361 @@ Evac._internal.utils = {
 }
 
 --- Auto-spawn.
--- Internal method for spawning evacuees.
+-- Internal methods for managing spawn rules.
 --
--- @local Evac._internal.doSpawns
-Evac._internal.doSpawns = function()
-    Gremlin.log.trace(Evac.Id, string.format('Auto-Spawning Units (As Needed)'))
+-- @local Evac._internal.spawns
+Evac._internal.spawns = {
+    timed = {
+        iterate = function()
+            Gremlin.log.trace(Evac.Id, string.format('Auto-Spawning Time-Based Units (As Needed)'))
 
-    local _remaining = function(_side)
-        Gremlin.log.debug(Evac.Id, string.format('Checking Whether We Can Spawn More Evacuees : %s side has %s out of %s already spawned', Gremlin.SideToText[_side], Gremlin.utils.inspect(Evac._state.spawns.alreadySpawned[_side]), Gremlin.utils.inspect(Evac.config.maxExtractable[_side])))
+            timer.scheduleFunction(Evac._internal.spawns.timed.iterate, nil, timer.getTime() + 1)
+
+            for _zone, _rates in pairs(Evac._state.spawns.pending) do
+                local _lastSpawned = Evac._state.spawns.lastSpawned[_zone] or 0
+
+                for _idx, _rate in pairs(_rates) do
+                    if Evac._internal.spawns.checkTrigger(_rate.startTrigger, 'time', nil)
+                        or Evac._internal.spawns.checkTrigger(_rate.startTrigger, 'repeat', _lastSpawned)
+                        or Evac._internal.spawns.checkTrigger(_rate.startTrigger, 'flag', nil) then
+                            Evac._state.spawns.lastSpawned[_zone] = timer.getTime()
+                            Evac._internal.spawns.start(_rate, _zone, _idx)
+                    end
+                end
+            end
+
+            for _zone, _rates in pairs(Evac._state.spawns.active) do
+                local _lastSpawned = Evac._state.spawns.lastSpawned[_zone] or 0
+                local _addedUnits = false
+
+                if _zone == '_global' then
+                    for _zoneName, _zoneData in pairs(Evac._state.zones.evac) do
+                        if _zoneData.active then
+                            _addedUnits = Evac._internal.spawns.timed.loop(_zoneName, _rates, _lastSpawned) or _addedUnits
+                        end
+                    end
+                else
+                    local _zoneData = Evac._state.zones.evac[_zone]
+                    if _zoneData.active then
+                        _addedUnits = Evac._internal.spawns.timed.loop(_zone, _rates, _lastSpawned)
+                    end
+                end
+
+                if _addedUnits then
+                    Evac._state.spawns.lastSpawned[_zone] = timer.getTime()
+                end
+            end
+
+            Evac._state.spawns.lastSpawned[0] = timer.getTime()
+
+            Gremlin.log.debug(Evac.Id, string.format('Finished Auto-Spawning Time-Based Units (As Needed)'))
+        end,
+        loop = function(_zone, _rates, _lastSpawned)
+            Gremlin.log.debug(Evac.Id, string.format('Auto-Spawning In Zone : %s, %s, %s', _zone, Gremlin.utils.inspect(_rates), tostring(_lastSpawned)))
+
+            local _addedUnits = false
+
+            for _idx, _rate in pairs(_rates) do
+                if Evac._internal.spawns.checkTrigger(_rate.spawnTrigger, 'time', nil)
+                    or Evac._internal.spawns.checkTrigger(_rate.spawnTrigger, 'repeat', _lastSpawned)
+                    or Evac._internal.spawns.checkTrigger(_rate.spawnTrigger, 'flag', nil) then
+                        _addedUnits = Evac._internal.spawns.run(_rate, _zone, _idx) or _addedUnits
+                end
+
+                if Evac._internal.spawns.checkTrigger(_rate.endTrigger, 'time', nil)
+                    or Evac._internal.spawns.checkTrigger(_rate.endTrigger, 'repeat', _lastSpawned)
+                    or Evac._internal.spawns.checkTrigger(_rate.endTrigger, 'flag', nil) then
+                        Evac._internal.spawns.finish(_rate, _zone, _idx)
+                end
+            end
+
+            return _addedUnits
+        end,
+    },
+    checkTrigger = function(_trigger, _type, _extra)
+        if _trigger.type == _type then
+            if Gremlin.utils.checkTrigger(_trigger, _type, _extra) then
+                return true
+            elseif _trigger.type == 'limits' then
+                local _allowed = Evac._internal.spawns.allowed(_extra.zone, _extra.side)[0]
+                local _remaining = Evac._internal.spawns.remaining(_extra.zone, _extra.side)[0]
+                local _spawned = _allowed - _remaining
+                local _ratio = _spawned / _allowed
+
+                return _ratio >= (_trigger.value / 100)
+            end
+        end
+
+        return false
+    end,
+    allowed = function(_zone, _side)
+        Gremlin.log.debug(Evac.Id, string.format('Checking Whether We Can Spawn More Evacuees : %s side has %s out of %s already spawned', Gremlin.SideToText[_side], Gremlin.utils.inspect(Gremlin.utils.innerSquash(Evac._state.spawns.alreadySpawned, _side)), Gremlin.utils.inspect(Gremlin.utils.innerSquash(Evac.config.maxExtractable[_zone] or Evac.config.maxExtractable._global, _side))))
+
+        local _allowed = Gremlin.utils.innerSquash(Evac.config.maxExtractable[_zone] or Evac.config.maxExtractable._global, _side)
+
+        _allowed[0] = _allowed.Generic + _allowed.Infantry + _allowed.M249 + _allowed.RPG + _allowed.StingerIgla + _allowed['2B11'] + _allowed.JTAC
+
+        Gremlin.log.debug(Evac.Id, string.format('Checked Whether We Can Spawn More Evacuees : remaining spawns are %s', Gremlin.utils.inspect(_allowed)))
+
+        return _allowed
+    end,
+    remaining = function(_zone, _side)
+        local _limits = Gremlin.utils.innerSquash(Evac.config.maxExtractable[_zone] or Evac.config.maxExtractable._global, _side)
+        local _exists = Gremlin.utils.innerSquash(Evac._state.spawns.alreadySpawned, _side)
+
+        Gremlin.log.debug(
+            Evac.Id,
+            string.format(
+                'Checking Whether We Can Spawn More Evacuees : %s side has %s out of %s already spawned',
+                Gremlin.SideToText[_side],
+                Gremlin.utils.inspect(_exists),
+                Gremlin.utils.inspect(_limits)
+            )
+        )
 
         local _haveLeft = {}
 
-        _haveLeft['Carrier Seaman'] = Evac.config.maxExtractable[_side]['Carrier Seaman'] - Evac._state.spawns.alreadySpawned[_side]['Carrier Seaman']
-        _haveLeft['Infantry'] = Evac.config.maxExtractable[_side].Infantry - Evac._state.spawns.alreadySpawned[_side].Infantry
-        _haveLeft['M249'] = Evac.config.maxExtractable[_side].M249 - Evac._state.spawns.alreadySpawned[_side].M249
-        _haveLeft['RPG'] = Evac.config.maxExtractable[_side].RPG - Evac._state.spawns.alreadySpawned[_side].RPG
-        _haveLeft['StingerIgla'] = Evac.config.maxExtractable[_side].StingerIgla - Evac._state.spawns.alreadySpawned[_side].StingerIgla
-        _haveLeft['2B11'] = Evac.config.maxExtractable[_side]['2B11'] - Evac._state.spawns.alreadySpawned[_side]['2B11']
-        _haveLeft['JTAC'] = Evac.config.maxExtractable[_side].JTAC - Evac._state.spawns.alreadySpawned[_side].JTAC
+        _haveLeft.Generic = _limits.Generic - _exists.Generic
+        _haveLeft.Infantry = _limits.Infantry - _exists.Infantry
+        _haveLeft.M249 = _limits.M249 - _exists.M249
+        _haveLeft.RPG = _limits.RPG - _exists.RPG
+        _haveLeft.StingerIgla = _limits.StingerIgla - _exists.StingerIgla
+        _haveLeft['2B11'] = _limits['2B11'] - _exists['2B11']
+        _haveLeft.JTAC = _limits.JTAC - _exists.JTAC
+
+        _haveLeft[0] = _haveLeft.Generic + _haveLeft.Infantry + _haveLeft.M249 + _haveLeft.RPG + _haveLeft.StingerIgla + _haveLeft['2B11'] + _haveLeft.JTAC
 
         Gremlin.log.debug(Evac.Id, string.format('Checked Whether We Can Spawn More Evacuees : remaining spawns are %s', Gremlin.utils.inspect(_haveLeft)))
 
         return _haveLeft
-    end
+    end,
+    preload = function()
+        Gremlin.log.trace(Evac.Id, string.format('Preloading Spawn Rules'))
 
-    local _doLoop = function(_zone, _rates, _lastChecked)
-        Gremlin.log.debug(Evac.Id, string.format('Auto-Spawning In Zone : %s, %s, %s', _zone, Gremlin.utils.inspect(_rates), tostring(_lastChecked)))
+        local _counter = 0
 
-        local _addedUnits = false
+        Evac._state.spawns = {
+            alreadySpawned = {
+                Generic = { 0, 0, [0] = 0 },
+                Infantry = { 0, 0, [0] = 0 },
+                M249 = { 0, 0, [0] = 0 },
+                RPG = { 0, 0, [0] = 0 },
+                StingerIgla = { 0, 0, [0] = 0 },
+                ['2B11'] = { 0, 0, [0] = 0 },
+                JTAC = { 0, 0, [0] = 0 },
+            },
+            pending = {},
+            active = {},
+            completed = {},
+            lastSpawned = {},
+        }
 
-        for _side, _rateSource in pairs(_rates) do
-            local _rate = mist.utils.deepCopy(_rateSource)
-            local _spawnLimits = _remaining(_side)
+        for _zone, _rates in pairs(Evac.config.spawnRates) do
+            Evac._state.spawns.pending[_zone] = Evac._state.spawns.pending[_zone] or {}
 
-            if _lastChecked ~= nil and _lastChecked + (math.abs(_rate.per) * _rate.period) <= timer.getTime() then
-                -- Figure out what to spawn and where
-                local _units
-                if _rate.units == 0 then
-                    _units = {}
-                    for _type, _allowed in pairs(Evac.config.maxExtractable[_side]) do
-                        for i = 1, _allowed do
-                            table.insert(_units, { type = _type })
+            for _idx, _rate in pairs(_rates) do
+                table.insert(Evac._state.spawns.pending[_zone], _rate)
+                _counter = _counter + 1
+
+                if _rate.startTrigger.type == 'event' then
+                    ---@diagnostic disable-next-line: undefined-field
+                    Gremlin.events.on(_rate.startTrigger.value.id, function(_event)
+                        ---@diagnostic disable-next-line: undefined-field
+                        if _rate.startTrigger.value.filter(_event) then
+                            Evac._internal.spawns.start(_rate, _zone, _idx)
                         end
-                    end
-                else
-                    _units = _rate.units
-                end
-
-                if type(_units) == 'number' then
-                    _units = math.min(_units, _spawnLimits['Carrier Seaman'])
-                else
-                    local _have = { ['Carrier Seaman'] = 0, Infantry = 0, M249 = 0, RPG = 0, StingerIgla = 0, ['2B11'] = 0, JTAC = 0 }
-
-                    for _idx, _unit in pairs(_units) do
-                        if (_spawnLimits[_unit.type] or 0) <= _have[_unit.type] then
-                            -- Change the type to ['Carrier Seaman'], if possible, or remove it entirely otherwise
-                            -- Tries to spawn the right number of units even if it can't spawn the exact types
-                            if _unit.type ~= 'Carrier Seaman' and _spawnLimits['Carrier Seaman'] >= _have['Carrier Seaman'] then
-                                _units[_idx] = Gremlin.utils.mergeTables(_unit, { type = 'Carrier Seaman' })
-                            else
-                                _units[_idx] = nil
-                            end
-                        end
-
-                        _have[_unit.type] = (_have[_unit.type] or 0) + 1
-                    end
-                end
-
-                -- Actually Spawn Units
-                if type(_units) == 'number' and _units < 0 then
-                    local _spawned = #(Evac._state.extractableNow[_zone] or {})
-                    local _removed = 0
-
-                    for _idx, _unit in pairs(Evac._state.extractableNow[_zone]) do
-                        if _removed >= math.abs(_units) or _removed >= _spawned then
-                            break
-                        end
-
-                        local _unitObj = Unit.getByName(_unit.unitName)
-                        if _unitObj ~= nil then
-                            _unitObj:destroy()
-                        end
-
-                        Evac._state.extractableNow[_zone][_idx] = nil
-                        _removed = _removed + 1
-                        _addedUnits = true
-                    end
-
-                    Gremlin.events.fire({ id = 'Evac:Spawned', units = -_removed, zone = _zone })
-                    Gremlin.log.debug(Evac.Id, string.format('Removed %i evacuees from %s', _removed, _zone))
-                else
-                    Evac.groups.spawn(_side, _units, _side, _zone, 5)
-                    _addedUnits = true
-
-                    if type(_units) == 'table' then
-                        Gremlin.events.fire({ id = 'Evac:Spawned', units = #_units, zone = _zone })
-                        Gremlin.log.debug(Evac.Id, string.format('Spawned %i evacuees in %s', #_units, _zone))
-                    else
-                        Gremlin.events.fire({ id = 'Evac:Spawned', units = _units, zone = _zone })
-                        Gremlin.log.debug(Evac.Id, string.format('Spawned %i evacuees in %s', _units, _zone))
-                    end
-                end
-
-                -- Maintain internal data structures
-                if Evac._state.spawns.alreadySpawned[_side] == nil then
-                    Evac._state.spawns.alreadySpawned[_side] = {
-                        ['Carrier Seaman'] = 0,
-                        Infantry = 0,
-                        M249 = 0,
-                        RPG = 0,
-                        StingerIgla = 0,
-                        ['2B11'] = 0,
-                        JTAC = 0
+                    end)
+                elseif _rate.startTrigger.type == 'menu' then
+                    Evac._internal.menu.commands[string.format('%s-%i-start', _zone, _idx)] = {
+                        text = _rate.startTrigger.value or string.format('Activate Evacuee Spawn : %s %i', _zone, _idx),
+                        func = Evac._internal.spawns.start,
+                        args = { _rate, _zone, _idx },
+                        when = {
+                            func = function(_unit)
+                                return Gremlin.utils.isInTable(Evac._internal.aircraft.getAdminList(), _unit)
+                            end,
+                            args = { '{unit}:name' },
+                            comp = 'equal',
+                            value = true,
+                        }
                     }
                 end
-
-                if type(_units) == 'number' then
-                    Evac._state.spawns.alreadySpawned[_side]['Carrier Seaman'] = Evac._state.spawns.alreadySpawned[_side]['Carrier Seaman'] + _units
-                elseif type(_units) == 'table' then
-                    for _, _unit in pairs(_units) do
-                        local _spawnType = _unit.type
-
-                        Evac._state.spawns.alreadySpawned[_side][_spawnType] = Evac._state.spawns.alreadySpawned[_side][_spawnType] + 1
-                    end
-                end
-
-                Gremlin.log.debug(Evac.Id, string.format('Evacuee Count Updated : now at %s out of %s', Gremlin.utils.inspect(Evac._state.spawns.alreadySpawned[_side]), Gremlin.utils.inspect(Evac.config.maxExtractable[_side])))
             end
         end
 
-        return _addedUnits
-    end
+        Gremlin.log.trace(Evac.Id, string.format('Preloaded %i Spawn Rules', _counter))
+    end,
+    start = function(_rate, _zone, _idx)
+        if Evac._state.spawns.active[_zone] == nil then
+            Evac._state.spawns.active[_zone] = {}
+        end
 
-    timer.scheduleFunction(Evac._internal.doSpawns, nil, timer.getTime() + 10)
+        if _rate.spawnTrigger.type == 'event' then
+            ---@diagnostic disable-next-line: undefined-field
+            _rate.spawnTrigger.storedAt = Gremlin.events.on(_rate.spawnTrigger.value.id, function(_event)
+                ---@diagnostic disable-next-line: undefined-field
+                if _rate.spawnTrigger.value.filter(_event) then
+                    Evac._internal.spawns.by.event(_zone, _rate, _event)
+                end
+            end)
+        elseif _rate.spawnTrigger.type == 'menu' then
+            Evac._internal.menu.commands[string.format('%s-%i-spawn', _zone, _idx)] = {
+                text = _rate.spawnTrigger.value or string.format('Spawn Evacuees : %s %i', _zone, _idx),
+                func = Evac._internal.spawns.by.menu,
+                args = { _zone, _rate },
+                when = {
+                    func = function(_unit)
+                        return Gremlin.utils.isInTable(Evac._internal.aircraft.getAdminList(), _unit)
+                    end,
+                    args = { '{unit}:name' },
+                    comp = 'equal',
+                    value = true,
+                }
+            }
+        end
 
-    for _zone, _rates in pairs(Evac.config.spawnRates) do
-        local _lastChecked = Evac._state.spawns.lastChecked[_zone] or 0
+        if _rate.endTrigger.type == 'event' then
+            ---@diagnostic disable-next-line: undefined-field
+            _rate.endTrigger.storedAt = Gremlin.events.on(_rate.endTrigger.value.id, function(_event)
+                ---@diagnostic disable-next-line: undefined-field
+                if _rate.endTrigger.value.filter(_event) then
+                    Evac._internal.spawns.finish(_rate, _zone, _idx)
+                end
+            end)
+        elseif _rate.endTrigger.type == 'menu' then
+            Evac._internal.menu.commands[string.format('%s-%i-end', _zone, _idx)] = {
+                text = _rate.endTrigger.value or string.format('Deactivate Evacuee Spawn : %s %i', _zone, _idx),
+                func = Evac._internal.spawns.finish,
+                args = { _rate, _zone, _idx },
+                when = {
+                    func = function(_unit)
+                        return Gremlin.utils.isInTable(Evac._internal.aircraft.getAdminList(), _unit)
+                    end,
+                    args = { '{unit}:name' },
+                    comp = 'equal',
+                    value = true,
+                }
+            }
+        end
+
+        table.insert(Evac._state.spawns.active[_zone], _rate)
+
+        if _rate.startTrigger.type == 'time' then
+            Evac._state.spawns.pending[_zone][_idx] = nil
+        end
+    end,
+    run = function(_rate, _zone, _idx)
         local _addedUnits = false
+        local _spawnLimits = Evac._internal.spawns.remaining(_zone, _rate.side)
 
-        if _zone == '_global' then
-            for _zoneName, _zoneData in pairs(Evac._state.zones.evac) do
-                if _zoneData.active then
-                    _addedUnits = _doLoop(_zoneName, _rates, _lastChecked) or _addedUnits
+        -- Figure out what to spawn and where
+        local _units
+        if _rate.units == 0 then
+            _units = {}
+            for _type, _allowed in pairs(_spawnLimits) do
+                if _type ~= 0 then
+                    for i = 1, _allowed do
+                        table.insert(_units, { type = _type })
+                    end
                 end
             end
         else
-            local _zoneData = Evac._state.zones.evac[_zone]
-            if _zoneData.active then
-                _addedUnits = _doLoop(_zone, _rates, _lastChecked)
-            end
+            _units = _rate.units
         end
 
-        if _addedUnits then
-            for _side, _rate in pairs(_rates) do
-                if _rate.per <= 0 then
-                    Evac.config.spawnRates[_zone][_side] = nil
+        if type(_units) == 'number' then
+            _units = math.min(_units, _spawnLimits[0])
+        else
+            local _have = { Generic = 0, Infantry = 0, M249 = 0, RPG = 0, StingerIgla = 0, ['2B11'] = 0, JTAC = 0 }
+
+            for _i, _unit in pairs(_units) do
+                if (_spawnLimits[_unit.type] or 0) <= (_have[_unit.type] or 0) then
+                    -- Change the type to Generic, if possible, or remove it entirely otherwise
+                    -- Tries to spawn the right number of units even if it can't spawn the exact types
+                    if _unit.type ~= 'Generic' and _spawnLimits.Generic >= _have.Generic then
+                        _units[_i] = Gremlin.utils.mergeTables(_unit, { type = 'Generic' })
+                    else
+                        _units[_i] = nil
+                    end
+
+                    _unit = _units[_i]
+                end
+
+                if _unit ~= nil then
+                    _have[_unit.type] = (_have[_unit.type] or 0) + 1
                 end
             end
-
-            Evac._state.spawns.lastChecked[_zone] = timer.getTime()
         end
-    end
 
-    Evac._state.spawns.lastChecked[0] = timer.getTime()
+        -- Actually Spawn Units
+        if type(_units) == 'number' and _units < 0 then
+            local _spawned = #(Evac._state.extractableNow[_zone] or {})
+            local _removed = 0
 
-    Gremlin.log.debug(Evac.Id, string.format('Finished Auto-Spawning Units (As Needed)'))
-end
+            for _idx, _unit in pairs(Evac._state.extractableNow[_zone]) do
+                if _removed >= math.abs(_units) or _removed >= _spawned then
+                    break
+                end
+
+                local _unitObj = Unit.getByName(_unit.unitName)
+                if _unitObj ~= nil then
+                    _unitObj:destroy()
+                end
+
+                Evac._state.extractableNow[_zone][_idx] = nil
+                _removed = _removed + 1
+            end
+
+            Gremlin.events.fire({ id = 'Evac:Spawned', units = -_removed, zone = _zone })
+            Gremlin.log.debug(Evac.Id, string.format('Removed %i evacuees from %s', _removed, _zone))
+        else
+            Evac.groups.spawn(_rate.side, _units, _rate.side, _zone, 5)
+            _addedUnits = true
+
+            if type(_units) == 'table' then
+                Gremlin.events.fire({ id = 'Evac:Spawned', units = #_units, zone = _zone })
+                Gremlin.log.debug(Evac.Id, string.format('Spawned %i evacuees in %s', #_units, _zone))
+            else
+                Gremlin.events.fire({ id = 'Evac:Spawned', units = _units, zone = _zone })
+                Gremlin.log.debug(Evac.Id, string.format('Spawned %i evacuees in %s', _units, _zone))
+            end
+        end
+
+        -- Maintain internal data structures
+        if type(_units) == 'number' then
+            Evac._state.spawns.alreadySpawned.Generic[_rate.side] = Evac._state.spawns.alreadySpawned.Generic[_rate.side] + _units
+        elseif type(_units) == 'table' then
+            for _, _unit in pairs(_units) do
+                Evac._state.spawns.alreadySpawned[_unit.type][_rate.side] = Evac._state.spawns.alreadySpawned[_unit.type][_rate.side] + 1
+            end
+        end
+
+        Gremlin.log.debug(Evac.Id, string.format('Evacuee Count Updated : now at %s out of %s', Gremlin.utils.inspect(Gremlin.utils.innerSquash(Evac._state.spawns.alreadySpawned, _rate.side)), Gremlin.utils.inspect(Gremlin.utils.innerSquash(Evac.config.maxExtractable[_zone] or Evac.config.maxExtractable._global, _rate.side))))
+
+        return _addedUnits
+    end,
+    finish = function(_rate, _zone, _idx)
+        if Evac._state.spawns.completed[_zone] == nil then
+            Evac._state.spawns.completed[_zone] = {}
+        end
+
+        table.insert(Evac._state.spawns.completed[_zone], _rate)
+
+        if _rate.spawnTrigger.type == 'event' then
+            Gremlin.events.off(_rate.spawnTrigger.value.id, _rate.spawnTrigger.storedAt)
+        elseif _rate.spawnTrigger.type == 'menu' then
+            Evac._internal.menu.commands[string.format('%s-%i-spawn', _zone, _idx)] = nil
+        end
+
+        if _rate.endTrigger.type == 'event' then
+            Gremlin.events.off(_rate.endTrigger.value.id, _rate.endTrigger.storedAt)
+        elseif _rate.endTrigger.type == 'menu' then
+            Evac._internal.menu.commands[string.format('%s-%i-end', _zone, _idx)] = nil
+        end
+
+        Evac._state.spawns.active[_zone][_idx] = nil
+    end,
+}
 
 --- Event handlers.
 -- Internal methods for working with events.
@@ -1805,23 +2054,15 @@ Evac._internal.handlers = {
                         if _i ~= 0 then
                             local _type = _evacuee.type
 
-                            if _type == nil then
-                                _type = 'Carrier Seaman'
+                            if _type == nil or not Gremlin.utils.isInTable({ 'Generic', '2B11', 'Infantry', 'RPG', 'M249', 'StingerIgla', 'JTAC' }, _type) then
+                                _type = 'Generic'
                             end
 
-                            if Evac._state.lostEvacuees[_side] == nil then
-                                Evac._state.lostEvacuees[_side] = {
-                                    ['Carrier Seaman'] = 0,
-                                    Infantry = 0,
-                                    M249 = 0,
-                                    RPG = 0,
-                                    StingerIgla = 0,
-                                    ['2B11'] = 0,
-                                    JTAC = 0,
-                                }
+                            if Evac._state.lostEvacuees[_type] == nil then
+                                Evac._state.lostEvacuees[_type] = { 0, 0, [0] = 0 }
                             end
 
-                            Evac._state.lostEvacuees[_side][_type] = (Evac._state.lostEvacuees[_side][_type] or 0) + 1
+                            Evac._state.lostEvacuees[_type][_side] = (Evac._state.lostEvacuees[_type][_side] or 0) + 1
                         end
                     end
 
@@ -1839,10 +2080,10 @@ Evac._internal.handlers = {
             end
         end
     },
-    takeControl = {
+    newPilot = {
         event = world.event.S_EVENT_BIRTH,
         fn = function(_event)
-            Gremlin.log.trace(Evac.Id, string.format('Handling Spawn Event'))
+            Gremlin.log.trace(Evac.Id, string.format('Handling Birth Event'))
 
             local _unit = _event.initiator
 
@@ -1852,9 +2093,9 @@ Evac._internal.handlers = {
                 if Evac._state.extractionUnits[_name] ~= nil then
                     Evac._state.extractionUnits[_name][0] = _unit
 
-                    Gremlin.log.debug(Evac.Id, string.format('Everyone welcome our newest pilot! : Unit %s Spawned by %s', _name, _unit:getPlayerName() or 'Unknown?'))
+                    Gremlin.log.debug(Evac.Id, string.format('Everyone welcome our newest pilot! : Unit %s Occupied by %s', _name, _unit:getPlayerName() or 'Unknown?'))
                 else
-                    Gremlin.log.debug(Evac.Id, string.format('Not my circus, not my monkeys : Unit %s Spawned', _name))
+                    Gremlin.log.debug(Evac.Id, string.format('Not my circus, not my monkeys : Unit %s "Born"', _name))
                 end
             end
         end
@@ -1877,6 +2118,7 @@ Example providing all the defaults:
 
 ```
 Evac:setup({
+    adminPilotNames = {},
     beaconBatteryLife = 30,
     beaconSound = 'beacon.ogg',
     carryLimits = {
@@ -1893,41 +2135,43 @@ Evac:setup({
         ['UH-1H'] = 8,
         ['UH-60L'] = 11,
     },
-    idStart = 500,
+    idStart = 50000,
     loadUnloadPerIndividual = 30,
     lossFlags = { 'GremlinEvacRedLoss', 'GremlinEvacBlueLoss' },
     lossThresholds = { 25, 25 },
     maxExtractable = {
-        {
-            ['Carrier Seaman'] = 0,
-            Infantry = 0,
-            M249 = 0,
-            RPG = 0,
-            StingerIgla = 0,
-            ['2B11'] = 0,
-            JTAC = 0,
-        },
-        {
-            ['Carrier Seaman'] = 0,
-            Infantry = 0,
-            M249 = 0,
-            RPG = 0,
-            StingerIgla = 0,
-            ['2B11'] = 0,
-            JTAC = 0,
+        _global = {
+            ['Carrier Seaman'] = { 0, 0, [0] = 0 },
+            Infantry = { 0, 0, [0] = 0 },
+            M249 = { 0, 0, [0] = 0 },
+            RPG = { 0, 0, [0] = 0 },
+            StingerIgla = { 0, 0, [0] = 0 },
+            ['2B11'] = { 0, 0, [0] = 0 },
+            JTAC = { 0, 0, [0] = 0 },
         },
     },
     spawnRates = {
         _global = {
             {
-                units = 0, -- 0 loads all; + adds, - subtracts
-                per = 0,   -- 0 means only at launch; + every, - once after
-                period = Gremlin.Periods.Second,
+                side = coalition.side.NEUTRAL,
+                units = 0,
+                startTrigger = { type = 'time', value = 0 },
+                spawnTrigger = { type = 'time', value = 0 },
+                endTrigger = { type = 'limits', value = 100 },
             },
             {
-                units = 0, -- 0 loads all; + adds, - subtracts
-                per = 0,   -- 0 means only at launch; + every, - once after
-                period = Gremlin.Periods.Second,
+                side = coalition.side.RED,
+                units = 0,
+                startTrigger = { type = 'time', value = 0 },
+                spawnTrigger = { type = 'time', value = 0 },
+                endTrigger = { type = 'limits', value = 100 },
+            },
+            {
+                side = coalition.side.BLUE,
+                units = 0,
+                startTrigger = { type = 'time', value = 0 },
+                spawnTrigger = { type = 'time', value = 0 },
+                endTrigger = { type = 'limits', value = 100 },
             },
         },
     },
@@ -1965,7 +2209,7 @@ function Evac:setup(config)
     end
 
     assert(Gremlin ~= nil,
-        '\n\n** HEY MISSION-DESIGNER! **\n\nGremlin Script Tools has not been loaded!\n\nMake sure Gremlin Script Tools is loaded *before* running this script!\n')
+        '\n\n** HEY MISSION-DESIGNER! **\n\nGremlin has not been loaded!\n\nMake sure Gremlin is loaded *before* running this script!\n')
 
     if not Gremlin.alreadyInitialized or config.forceReload then
         Gremlin:setup(config)
@@ -1980,6 +2224,7 @@ function Evac:setup(config)
 
     -- start configuration
     if not Evac._state.alreadyInitialized or config.forceReload then
+        Evac.config.adminPilotNames = config.adminPilotNames or {}
         Evac.config.beaconBatteryLife = config.beaconBatteryLife or 30
         Evac.config.beaconSound = config.beaconSound or 'beacon.ogg'
         Evac.config.carryLimits = config.carryLimits or {
@@ -2002,29 +2247,54 @@ function Evac:setup(config)
         Evac.config.lossThresholds = config.lossThresholds or {25, 25}
 
         if config.maxExtractable ~= nil then
-            for _side, _extractable in ipairs(config.maxExtractable) do
+            Evac.config.maxExtractable = {}
+            for _zone, _extractable in pairs(config.maxExtractable) do
                 if _extractable ~= nil then
-                    Evac.config.maxExtractable[_side]['Carrier Seaman'] = _extractable['Carrier Seaman'] or 0
-                    Evac.config.maxExtractable[_side].Infantry = _extractable.Infantry or 0
-                    Evac.config.maxExtractable[_side].M249 = _extractable.M249 or 0
-                    Evac.config.maxExtractable[_side].RPG = _extractable.RPG or 0
-                    Evac.config.maxExtractable[_side].StingerIgla = _extractable.StingerIgla or 0
-                    Evac.config.maxExtractable[_side]['2B11'] = _extractable['2B11'] or 0
-                    Evac.config.maxExtractable[_side].JTAC = _extractable.JTAC or 0
+                    Evac.config.maxExtractable[_zone] = {
+                        Generic = _extractable.Generic or { 0, 0, [0] = 0 },
+                        Infantry = _extractable.Infantry or { 0, 0, [0] = 0 },
+                        M249 = _extractable.M249 or { 0, 0, [0] = 0 },
+                        RPG = _extractable.RPG or { 0, 0, [0] = 0 },
+                        StingerIgla = _extractable.StingerIgla or { 0, 0, [0] = 0 },
+                        ['2B11'] = _extractable['2B11'] or { 0, 0, [0] = 0 },
+                        JTAC = _extractable.JTAC or { 0, 0, [0] = 0 },
+                    }
                 end
             end
+        else
+            Evac.config.maxExtractable = {
+                _global = {
+                    Generic = { 0, 0, [0] = 0 },
+                    Infantry = { 0, 0, [0] = 0 },
+                    M249 = { 0, 0, [0] = 0 },
+                    RPG = { 0, 0, [0] = 0 },
+                    StingerIgla = { 0, 0, [0] = 0 },
+                    ['2B11'] = { 0, 0, [0] = 0 },
+                    JTAC = { 0, 0, [0] = 0 },
+                },
+            }
         end
 
         Evac.config.spawnWeight = config.spawnWeight or 100
         Evac.config.spawnRates = config.spawnRates or {
             _global = {{
+                side = coalition.side.NEUTRAL,
                 units = 0, -- 0 loads all; + adds, - subtracts
-                per = 0, -- 0 means only at launch; + every, - once after
-                period = Gremlin.Periods.Second
+                startTrigger = { type = 'time', value = 0 },
+                spawnTrigger = { type = 'time', value = 0 },
+                endTrigger = { type = 'limits', value = 100 },
             }, {
+                side = coalition.side.RED,
                 units = 0, -- 0 loads all; + adds, - subtracts
-                per = 0, -- 0 means only at launch; + every, - once after
-                period = Gremlin.Periods.Second
+                startTrigger = { type = 'time', value = 0 },
+                spawnTrigger = { type = 'time', value = 0 },
+                endTrigger = { type = 'limits', value = 100 },
+            }, {
+                side = coalition.side.BLUE,
+                units = 0, -- 0 loads all; + adds, - subtracts
+                startTrigger = { type = 'time', value = 0 },
+                spawnTrigger = { type = 'time', value = 0 },
+                endTrigger = { type = 'limits', value = 100 },
             }}
         }
 
@@ -2065,9 +2335,10 @@ function Evac:setup(config)
     Evac._internal.beacons.generateVHFrequencies()
     Evac._internal.beacons.generateUHFrequencies()
     Evac._internal.beacons.generateFMFrequencies()
+    Evac._internal.spawns.preload()
 
     timer.scheduleFunction(function()
-        timer.scheduleFunction(Evac._internal.doSpawns, nil, timer.getTime() + 1)
+        timer.scheduleFunction(Evac._internal.spawns.timed.iterate, nil, timer.getTime() + 1)
         timer.scheduleFunction(Evac._internal.beacons.killDead, nil, timer.getTime() + 1)
         timer.scheduleFunction(Evac._internal.smoke.refresh, nil, timer.getTime() + 1)
         timer.scheduleFunction(Evac._internal.menu.updateF10, nil, timer.getTime() + 1)
