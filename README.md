@@ -14,19 +14,19 @@ And that's it! The scripts are installed and working from this point on.
 
 ### gremlin.lua
 
-The Gremlin file provides common features that all Gremlin Scripts use to do their thing. It must be loaded after MiST, and before any other Gremlin Scripts components. [Full documentation is here](https://ilsystems.github.io/GremlinScripts/gremlin.html).
+The Gremlin file provides common features that all Gremlin Scripts use to do their thing. It must be loaded after MiST, and before any other Gremlin Scripts components. [Full documentation is here](https://gremlinaviation.github.io/GremlinScripts/gremlin.html).
 
 ### evac.lua
 
-The Gremlin Evac script sets up your missions to include evacuation scenarios. Simply call `Evac:setup()` to get sane defaults, or customize everything by filling out the available options you wish to override. [Full documentation is here](https://ilsystems.github.io/GremlinScripts/evac.html).
+The Gremlin Evac script sets up your missions to include evacuation scenarios. Simply call `Evac:setup()` to get sane defaults, or customize everything by filling out the available options you wish to override. [Full documentation is here](https://gremlinaviation.github.io/GremlinScripts/evac.html).
 
 ### urgency.lua
 
-The Gremlin Urgency script sets up your missions to include countdowns. Simply call `Urgency:setup()` to get sane defaults, or customize everything by filling out the available options you wish to override. [Full documentation is here](https://ilsystems.github.io/GremlinScripts/urgency.html).
+The Gremlin Urgency script sets up your missions to include countdowns. Simply call `Urgency:setup()` to get sane defaults, or customize everything by filling out the available options you wish to override. [Full documentation is here](https://gremlinaviation.github.io/GremlinScripts/urgency.html).
 
 ### waves.lua
 
-The Gremlin Waves script sets up your missions to include AI reinforcements - for either or both sides. Simply call `Waves:setup()` to get sane defaults, or customize everything by filling out the available options you wish to override. [Full documentation is here](https://ilsystems.github.io/GremlinScripts/waves.html).
+The Gremlin Waves script sets up your missions to include AI reinforcements - for either or both sides. Simply call `Waves:setup()` to get sane defaults, or customize everything by filling out the available options you wish to override. [Full documentation is here](https://gremlinaviation.github.io/GremlinScripts/waves.html).
 
 ## Development and Testing
 
