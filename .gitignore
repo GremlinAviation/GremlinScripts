@@ -3,3 +3,4 @@ CTLD_*.lua
 CSAR_*.lua
 book
 docs/api/*.md
+luacov.*.out

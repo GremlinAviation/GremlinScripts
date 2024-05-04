@@ -14,4 +14,5 @@ for /F "delims=" %%i in (%0) do set MyPath=%%~dpi
 cd /D "%DCSPath%"
 
 set LUA_PATH=%DCSPath%\?.lua;%MyPath%src\?.lua;%MyPath%lib\?.lua;%MyPath%?.lua;;
-lua "%MyPath%test\run.lua" %*
+lua -lluacov "%MyPath%test\run.lua" %*
+move luacov.*.out "%MyPath%"

@@ -12,11 +12,33 @@ jobs:
     name: Test
     runs-on: windows-latest
     steps:
+      # These are dependencies that must be loaded first
       - uses: actions/checkout@v4
       - uses: ilammy/msvc-dev-cmd@v1
       - uses: leafo/gh-actions-lua@v10
         with:
           luaVersion: '5.1'
+      - uses: leafo/gh-actions-luarocks@v4
+      - name: Setup LCOV
+        uses: hrishikesh-kadam/setup-lcov@v1
+      - run: |
+          luarocks install luacov-reporter-lcov
       - run: 'mkdir "C:\Program Files\Eagle Dynamics\DCS World"'
       - run: '7z x lib\DCS_archive.zip -o"C:\Program Files\Eagle Dynamics\DCS World"'
-      - run: .\runtests.bat urgency
+
+      # Actual tests
+      - name: Luacheck linter
+        uses: lunarmodules/luacheck@v1
+      - run: echo 'return { modules = { urgency = "src/urgency.lua" } }' > "C:\Program Files\Eagle Dynamics\DCS World\.luacov"
+      - name: Run unit tests
+        run: .\runtests.bat urgency
+      - run: luacov -r lcov
+      - name: Report code coverage
+        uses: zgosalvez/github-actions-report-lcov@v3
+        with:
+          coverage-files: luacov.report.out
+          minimum-coverage: 75
+          artifact-name: code-coverage-report-urgency
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          working-directory: .
+          update-comment: true

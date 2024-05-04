@@ -289,10 +289,8 @@ Gremlin = {
                                 group = _unit:getGroup()
                             })
 
-                            ---@diagnostic disable-next-line: undefined-field
                             if _command.when.func(table.unpack(_whenArgs)) == _command.when.value and _command.when.comp == 'equal' then
                                 _when = true
-                            ---@diagnostic disable-next-line: undefined-field
                             elseif _command.when.func(table.unpack(_whenArgs)) ~= _command.when.value and _command.when.comp == 'inequal' then
                                 _when = true
                             end
@@ -544,22 +542,18 @@ function Gremlin:setup(config)
         return
     end
 
-    ---@diagnostic disable-next-line: undefined-global
     if csar ~= nil then
         Gremlin.haveCSAR = true
     end
 
-    ---@diagnostic disable-next-line: undefined-global
     if ctld ~= nil then
         Gremlin.haveCTLD = true
     end
 
-    ---@diagnostic disable-next-line: undefined-global
     if mist ~= nil then
         Gremlin.haveMiST = true
     end
 
-    ---@diagnostic disable-next-line: undefined-global
     if BASE ~= nil then
         Gremlin.haveMOOSE = true
     end

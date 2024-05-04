@@ -1,0 +1,11 @@
+local lfs = require("lfs")
+
+return {
+    modules = {
+        gremlin = 'src/gremlin.lua',
+        evac = 'src/evac.lua',
+        urgency = 'src/urgency.lua',
+        waves = 'src/waves.lua',
+    },
+    statsfile = string.format('%s\\%s', lfs.currentdir(), 'luacov.stats.out'),
+}
