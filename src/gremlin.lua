@@ -525,7 +525,7 @@ Gremlin = {
         spawnPoints = function(_angle, _scatterRadius, _counter)
             local _xOffset, _yOffset
 
-            if _counter < 1 then
+            if _counter == nil or _counter < 1 then
                 _counter = 0
             end
 
