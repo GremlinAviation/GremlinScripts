@@ -521,7 +521,24 @@ Gremlin = {
             end
 
             return tbl1
-        end
+        end,
+        spawnPoints = function(_angle, _scatterRadius, _counter)
+            local _xOffset, _yOffset
+
+            if _counter < 1 then
+                _counter = 0
+            end
+
+            if type(_scatterRadius) == 'table' then
+                _xOffset = math.cos(_angle) * math.random(_scatterRadius.min, _scatterRadius.max) * _counter
+                _yOffset = math.sin(_angle) * math.random(_scatterRadius.min, _scatterRadius.max) * _counter
+            else
+                _xOffset = math.cos(_angle) * math.random(_scatterRadius) * _counter
+                _yOffset = math.sin(_angle) * math.random(_scatterRadius) * _counter
+            end
+
+            return _xOffset, _yOffset
+        end,
     },
 
     -- Internal State

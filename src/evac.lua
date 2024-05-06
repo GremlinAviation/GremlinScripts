@@ -1645,8 +1645,7 @@ Evac._internal.utils = {
         local _angle = math.atan2(_point.z, _point.x)
 
         for _i, _unit in pairs(_units) do
-            local _xOffset = math.cos(_angle) * math.random(_scatterRadius)
-            local _yOffset = math.sin(_angle) * math.random(_scatterRadius)
+            local _xOffset, _yOffset = Gremlin.utils.spawnPoints(_angle, _scatterRadius)
 
             _unitsOut[_i] = {
                 type = typeTranslation[_side][_unit.type],
