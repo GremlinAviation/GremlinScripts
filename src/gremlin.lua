@@ -522,19 +522,24 @@ Gremlin = {
 
             return tbl1
         end,
-        spawnPoints = function(_angle, _scatterRadius, _counter)
+        --- Calculate the positions of units to spawn.
+        --
+        -- @function Gremlin.utlis.spawnPoints
+        -- @tparam number       _angle
+        -- @tparam number|table _scatterRadius
+        -- @tparam number       _counter
+        -- @treturn number, number
+        spawnPoints = function(_angle, _scatterRadius)
             local _xOffset, _yOffset
 
-            if _counter == nil or _counter < 1 then
-                _counter = 0
-            end
-
             if type(_scatterRadius) == 'table' then
-                _xOffset = math.cos(_angle) * math.random(_scatterRadius.min, _scatterRadius.max) * _counter
-                _yOffset = math.sin(_angle) * math.random(_scatterRadius.min, _scatterRadius.max) * _counter
+                local _realRadius = math.min(math.max(_scatterRadius.max * math.sqrt(math.random()), _scatterRadius.min), _scatterRadius.max)
+                _xOffset = math.cos(_angle) * _realRadius
+                _yOffset = math.sin(_angle) * _realRadius
             else
-                _xOffset = math.cos(_angle) * math.random(_scatterRadius) * _counter
-                _yOffset = math.sin(_angle) * math.random(_scatterRadius) * _counter
+                local _realRadius = _scatterRadius * math.sqrt(math.random())
+                _xOffset = math.cos(_angle) * _realRadius
+                _yOffset = math.sin(_angle) * _realRadius
             end
 
             return _xOffset, _yOffset
