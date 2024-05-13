@@ -653,5 +653,25 @@ TestGremlinUtils = {
         -- SIDE EFFECTS
         -- N/A?
     end,
+    testSpawnPointsNumber = function()
+        -- INIT
+        -- N/A?
+
+        -- TEST
+        lu.assertAlmostEquals({ Gremlin.utils.spawnPoints(0.25 * math.pi, 50) }, { 0, 0 }, 50)
+
+        -- SIDE EFFECTS
+        -- N/A?
+    end,
+    testSpawnPointsTable = function()
+        -- INIT
+        -- N/A?
+
+        -- TEST
+        lu.assertAlmostEquals({ Gremlin.utils.spawnPoints(0.25 * math.pi, { min = 25, max = 50 }) }, { 0, 0 }, 50)
+
+        -- SIDE EFFECTS
+        -- N/A?
+    end,
     tearDown = tearDown,
 }

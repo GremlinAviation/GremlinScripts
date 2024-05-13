@@ -71,8 +71,7 @@ Waves._internal.spawnWave = function(_name, _wave)
         local _units = {}
         for _unitType, _unitCount in pairs(_groupData.units) do
             for i = 1, _unitCount do
-                local _xOffset = math.cos(_angle) * math.random(_groupData.scatter.min, _groupData.scatter.max) * #_units
-                local _yOffset = math.sin(_angle) * math.random(_groupData.scatter.min, _groupData.scatter.max) * #_units
+                local _xOffset, _yOffset = Gremlin.utils.spawnPoints(_angle, _groupData.scatter)
 
                 table.insert(_units, {
                     type = _unitType,
